@@ -5,27 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>UK3 UTM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="logo-uk3.png" />
-  <!-- Open Graph / WhatsApp Preview -->
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="UK3 UTM — Unit Kegiatan Kerohanian Kristen" />
-  <meta property="og:description" content="Wadah persekutuan, pertumbuhan iman, dan pelayanan bagi mahasiswa Kristen di Universitas Trunojoyo Madura." />
-  <meta property="og:image" content="https://uk3utm.netlify.app//logo-uk3.png" />
-  <meta property="og:url" content="https://domain-kamu.com" />
-  <meta property="og:site_name" content="UK3 UTM" />
+  <!-- Open Graph / WhatsApp & Social Preview -->
+  <meta property="og:type"         content="website" />
+  <meta property="og:title"        content="UK3 UTM — Unit Kegiatan Kerohanian Kristen" />
+  <meta property="og:description"  content="Wadah persekutuan, pertumbuhan iman, dan pelayanan bagi mahasiswa Kristen di Universitas Trunojoyo Madura." />
+  <meta property="og:image"        content="https://uk3utm.netlify.app/og-image.jpg" />
+  <meta property="og:image:width"  content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url"          content="https://uk3utm.netlify.app/" />
+  <meta property="og:site_name"    content="UK3 UTM" />
+  <!-- Twitter/X Card -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="UK3 UTM — Unit Kegiatan Kerohanian Kristen" />
+  <meta name="twitter:description" content="Wadah persekutuan, pertumbuhan iman, dan pelayanan bagi mahasiswa Kristen di Universitas Trunojoyo Madura." />
+  <meta name="twitter:image"       content="https://uk3utm.netlify.app/og-image.jpg" />
+
   <style>
     :root {
-      --gold: #C9A84C;
-      --gold-light: #E8C97A;
-      --gold-dim: rgba(201,168,76,.12);
-      --gold-border: rgba(201,168,76,.22);
-      --cream: #F5EFE0;
-      --bg: #0D0D0D;
-      --surface: #141414;
-      --surface2: #1A1A1A;
-      --text: #F0E8D8;
-      --muted: rgba(240,232,216,.45);
+      --primary-purple: #8e44ad;
+      --accent-purple: #be93fd;
+      --bg-dark: #0a0812;
+      --card-dark: #161221;
+      --text-main: #f3eff5;
+      --border-purple: rgba(190, 147, 253, 0.25);
+      --purple-dim: rgba(142, 68, 173, 0.12);
+      --purple-glow: rgba(190, 147, 253, 0.18);
       --green: #4CAF7D;
       --green-dim: rgba(76,175,125,.1);
       --green-border: rgba(76,175,125,.22);
@@ -37,8 +43,8 @@
 
     body {
       font-family: 'Outfit', sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      background: var(--bg-dark);
+      color: var(--text-main);
       min-height: 100vh;
       overflow-x: hidden;
     }
@@ -54,7 +60,7 @@
       content: '';
       position: fixed; inset: 0;
       background:
-        radial-gradient(ellipse 60% 40% at 50% -10%, rgba(201,168,76,.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 50% -10%, rgba(142,68,173,.12) 0%, transparent 60%),
         radial-gradient(ellipse 40% 30% at 80% 110%, rgba(76,175,125,.05) 0%, transparent 50%);
       pointer-events: none; z-index: 0;
     }
@@ -89,7 +95,7 @@
     .logo-ring::before {
       content: '';
       position: absolute; inset: 0; border-radius: 50%;
-      background: conic-gradient(var(--gold), var(--gold-light), transparent, var(--gold));
+      background: conic-gradient(var(--primary-purple), var(--accent-purple), transparent, var(--primary-purple));
       animation: spin 12s linear infinite;
     }
     .logo-inner {
@@ -99,25 +105,32 @@
     }
     .logo-inner img { width: 80px; height: 80px; object-fit: contain; padding: 4px; }
 
+    /* FIX: UK3 UTM typography — angka 3 tidak turun kebawah */
     .org-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 32px; font-weight: 900;
-      color: var(--text);
+      font-family: 'Cinzel', serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--text-main);
       letter-spacing: .5px;
-      line-height: 1;
+      line-height: 1.2;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 2px;
     }
-    .org-name span { color: var(--gold); }
+    .org-name span {
+      color: var(--text-main); 
+    }
 
     .org-tagline {
       font-size: 10px; font-weight: 500;
-      color: var(--muted);
+      color: rgba(243,239,245,0.55);
       letter-spacing: 3px; text-transform: uppercase;
       margin-top: 6px;
     }
 
     .divider {
       width: 60px; height: 1px; margin: 14px auto 0;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      background: linear-gradient(90deg, transparent, var(--accent-purple), transparent);
       animation: shimmer 3s ease infinite;
     }
 
@@ -138,7 +151,7 @@
 
     .soc-icon {
       width: 52px; height: 52px; border-radius: 15px;
-      background: var(--surface2);
+      background: var(--card-dark);
       border: 1px solid rgba(255,255,255,.06);
       display: flex; align-items: center; justify-content: center;
       transition: all .25s;
@@ -147,26 +160,26 @@
     .soc-icon::before {
       content: '';
       position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(201,168,76,.12), transparent);
+      background: linear-gradient(135deg, rgba(142,68,173,.12), transparent);
       opacity: 0; transition: opacity .25s;
     }
-    .soc-item:hover .soc-icon { border-color: var(--gold-border); box-shadow: 0 4px 20px rgba(201,168,76,.15); }
+    .soc-item:hover .soc-icon { border-color: var(--border-purple); box-shadow: 0 4px 20px rgba(142,68,173,.25); }
     .soc-item:hover .soc-icon::before { opacity: 1; }
-    .soc-icon svg { width: 20px; height: 20px; fill: rgba(240,232,216,.5); transition: fill .2s; position: relative; }
-    .soc-item:hover .soc-icon svg { fill: var(--gold-light); }
-    .soc-label { font-size: 8.5px; font-weight: 500; color: var(--muted); text-align: center; max-width: 54px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .soc-icon svg { width: 20px; height: 20px; fill: rgba(243,239,245,.5); transition: fill .2s; position: relative; }
+    .soc-item:hover .soc-icon svg { fill: var(--accent-purple); }
+    .soc-label { font-size: 8.5px; font-weight: 500; color: rgba(243,239,245,.5); text-align: center; max-width: 54px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     /* ── WA BUTTON ── */
     .wa-btn {
       display: flex; align-items: center; gap: 12px;
-      background: var(--surface);
+      background: var(--card-dark);
       border: 1px solid var(--green-border);
       border-radius: 14px; padding: 13px 15px;
       text-decoration: none;
-      color: var(--text); /* FIX: prevent blue link color */
+      color: var(--text-main);
       transition: all .25s;
     }
-    .wa-btn:hover { background: var(--surface2); border-color: rgba(76,175,125,.45); transform: translateX(2px); }
+    .wa-btn:hover { background: #1e1930; border-color: rgba(76,175,125,.45); transform: translateX(2px); }
 
     .wa-dot {
       width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
@@ -175,18 +188,18 @@
     }
     .wa-dot svg { width: 20px; height: 20px; fill: var(--green); }
     .wa-txt { flex: 1; }
-    .wa-name { font-size: 13.5px; font-weight: 600; display: block; color: var(--text); } /* FIX: explicit color */
-    .wa-num { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
-    .wa-arr svg { width: 16px; height: 16px; fill: var(--muted); }
+    .wa-name { font-size: 13.5px; font-weight: 600; display: block; color: var(--text-main); }
+    .wa-num { font-size: 11px; color: rgba(243,239,245,.55); display: block; margin-top: 1px; }
+    .wa-arr svg { width: 16px; height: 16px; fill: rgba(243,239,245,.5); }
 
     /* ── SECTION HEADER ── */
     .s-head {
       font-size: 9px; font-weight: 600; letter-spacing: 2.5px;
-      text-transform: uppercase; color: var(--gold);
+      text-transform: uppercase; color: var(--accent-purple);
       margin: 0 0 10px;
       display: flex; align-items: center; gap: 8px;
     }
-    .s-head::after { content: ''; flex: 1; height: 1px; background: var(--gold-border); }
+    .s-head::after { content: ''; flex: 1; height: 1px; background: var(--border-purple); }
 
     /* ── ACCORDION ── */
     .accordion { display: flex; flex-direction: column; gap: 8px; }
@@ -194,14 +207,14 @@
     .acc {
       border-radius: var(--radius);
       border: 1px solid rgba(255,255,255,.06);
-      background: var(--surface);
+      background: var(--card-dark);
       overflow: hidden;
       transition: border-color .25s, box-shadow .25s;
     }
     .acc:hover { border-color: rgba(255,255,255,.1); }
     .acc.open {
-      border-color: var(--gold-border);
-      box-shadow: 0 0 0 1px rgba(201,168,76,.06), 0 8px 32px rgba(0,0,0,.4);
+      border-color: var(--border-purple);
+      box-shadow: 0 0 0 1px rgba(142,68,173,.12), 0 8px 32px rgba(0,0,0,.4);
     }
 
     .acc-trigger {
@@ -214,21 +227,20 @@
 
     .acc-icon {
       width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
-      background: var(--gold-dim); border: 1px solid var(--gold-border);
+      background: var(--purple-dim); border: 1px solid var(--border-purple);
       display: flex; align-items: center; justify-content: center;
     }
-    .acc-icon svg { width: 18px; height: 18px; fill: var(--gold); }
+    .acc-icon svg { width: 18px; height: 18px; fill: var(--accent-purple); }
 
     .acc-labels { flex: 1; }
-    .acc-title { font-size: 14px; font-weight: 600; display: block; color: var(--text); }
-    .acc-sub { font-size: 11px; color: var(--muted); display: block; margin-top: 1.5px; }
+    .acc-title { font-size: 14px; font-weight: 600; display: block; color: var(--text-main); }
+    .acc-sub { font-size: 11px; color: rgba(243,239,245,.55); display: block; margin-top: 1.5px; }
 
     .acc-arrow { transition: transform .35s cubic-bezier(.34,1.56,.64,1); flex-shrink: 0; }
-    .acc-arrow svg { width: 18px; height: 18px; fill: var(--muted); }
+    .acc-arrow svg { width: 18px; height: 18px; fill: rgba(243,239,245,.5); }
     .acc.open .acc-arrow { transform: rotate(180deg); }
-    .acc.open .acc-arrow svg { fill: var(--gold); }
+    .acc.open .acc-arrow svg { fill: var(--accent-purple); }
 
-    /* FIX: accordion body — use grid-based approach for reliable open/close animation */
     .acc-body {
       display: grid;
       grid-template-rows: 0fr;
@@ -239,9 +251,7 @@
       grid-template-rows: 1fr;
       opacity: 1;
     }
-    .acc-body-inner {
-      overflow: hidden;
-    }
+    .acc-body-inner { overflow: hidden; }
 
     .acc-content {
       padding: 0 16px 18px;
@@ -250,15 +260,15 @@
 
     /* ── CONTENT ATOMS ── */
     .body-text {
-      font-size: 13px; line-height: 1.75; color: var(--muted);
+      font-size: 13px; line-height: 1.75; color: rgba(243,239,245,.7);
       margin-top: 14px;
     }
-    .hl { color: var(--gold-light); font-weight: 600; }
+    .hl { color: var(--accent-purple); font-weight: 600; }
 
     .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     .tag {
-      font-size: 10.5px; font-weight: 500; color: var(--gold);
-      background: var(--gold-dim); border: 1px solid var(--gold-border);
+      font-size: 10.5px; font-weight: 500; color: var(--accent-purple);
+      background: var(--purple-dim); border: 1px solid var(--border-purple);
       border-radius: 99px; padding: 3px 10px;
     }
 
@@ -272,13 +282,13 @@
     .vm-badge {
       display: inline-flex; align-items: center; gap: 5px;
       font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
-      color: var(--gold); margin-bottom: 7px;
+      color: var(--accent-purple); margin-bottom: 7px;
     }
-    .vm-badge svg { width: 13px; height: 13px; fill: var(--gold); }
-    .vm-text { font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+    .vm-badge svg { width: 13px; height: 13px; fill: var(--accent-purple); }
+    .vm-text { font-size: 12.5px; color: rgba(243,239,245,.7); line-height: 1.7; }
     .vm-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-    .vm-list li { display: flex; gap: 8px; font-size: 12px; color: var(--muted); line-height: 1.6; }
-    .vm-list li::before { content: '·'; color: var(--gold); font-size: 16px; line-height: 1.2; flex-shrink: 0; }
+    .vm-list li { display: flex; gap: 8px; font-size: 12px; color: rgba(243,239,245,.7); line-height: 1.6; }
+    .vm-list li::before { content: '·'; color: var(--accent-purple); font-size: 16px; line-height: 1.2; flex-shrink: 0; }
 
     /* Revive cards */
     .r2col { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 11px; }
@@ -287,19 +297,19 @@
       border-radius: 11px; padding: 11px;
     }
     .rcard-head { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
-    .rcard-head svg { width: 13px; height: 13px; fill: var(--gold); }
-    .rcard-title { font-size: 10px; font-weight: 700; color: var(--gold); letter-spacing: .5px; text-transform: uppercase; }
-    .rcard-body { font-size: 11px; color: var(--muted); line-height: 1.55; }
+    .rcard-head svg { width: 13px; height: 13px; fill: var(--accent-purple); }
+    .rcard-title { font-size: 10px; font-weight: 700; color: var(--accent-purple); letter-spacing: .5px; text-transform: uppercase; }
+    .rcard-body { font-size: 11px; color: rgba(243,239,245,.65); line-height: 1.55; }
 
     .info-row {
       display: flex; align-items: center; gap: 10px;
-      background: var(--gold-dim); border: 1px solid var(--gold-border);
+      background: var(--purple-dim); border: 1px solid var(--border-purple);
       border-radius: 11px; padding: 11px 12px; margin-top: 10px;
     }
-    .info-row-ic { width: 30px; height: 30px; border-radius: 8px; background: rgba(201,168,76,.12); border: 1px solid var(--gold-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .info-row-ic svg { width: 15px; height: 15px; fill: var(--gold); }
-    .info-row-t { font-size: 13px; font-weight: 600; color: var(--text); }
-    .info-row-s { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+    .info-row-ic { width: 30px; height: 30px; border-radius: 8px; background: rgba(142,68,173,.2); border: 1px solid var(--border-purple); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .info-row-ic svg { width: 15px; height: 15px; fill: var(--accent-purple); }
+    .info-row-t { font-size: 13px; font-weight: 600; color: var(--text-main); }
+    .info-row-s { font-size: 10.5px; color: rgba(243,239,245,.55); margin-top: 1px; }
 
     /* Form block */
     .form-block { margin-top: 13px; display: flex; flex-direction: column; gap: 9px; }
@@ -313,28 +323,28 @@
 
     .form-link {
       flex: 1; display: flex; align-items: center; gap: 9px;
-      background: var(--surface2); border: 1px solid rgba(255,255,255,.07);
+      background: var(--card-dark); border: 1px solid rgba(255,255,255,.07);
       border-radius: 11px; padding: 12px 13px;
       text-decoration: none;
-      color: var(--text); /* FIX: prevent blue link color */
+      color: var(--text-main);
       transition: all .25s;
     }
-    .form-link:hover { border-color: var(--gold-border); background: var(--gold-dim); }
-    .form-link-ic { width: 30px; height: 30px; border-radius: 8px; background: var(--gold-dim); border: 1px solid var(--gold-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .form-link-ic svg { width: 14px; height: 14px; fill: var(--gold); }
+    .form-link:hover { border-color: var(--border-purple); background: var(--purple-dim); }
+    .form-link-ic { width: 30px; height: 30px; border-radius: 8px; background: var(--purple-dim); border: 1px solid var(--border-purple); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .form-link-ic svg { width: 14px; height: 14px; fill: var(--accent-purple); }
     .form-link-t { flex: 1; }
-    .form-link-name { font-size: 12px; font-weight: 600; color: var(--text); display: block; } /* FIX: explicit color */
-    .form-link-hint { font-size: 10px; color: var(--muted); display: block; margin-top: 1px; }
-    .form-link-arr svg { width: 14px; height: 14px; fill: var(--muted); }
+    .form-link-name { font-size: 12px; font-weight: 600; color: var(--text-main); display: block; }
+    .form-link-hint { font-size: 10px; color: rgba(243,239,245,.55); display: block; margin-top: 1px; }
+    .form-link-arr svg { width: 14px; height: 14px; fill: rgba(243,239,245,.5); }
 
     /* Contact person */
     .cp-list { display: flex; flex-direction: column; gap: 7px; margin-top: 9px; }
     .cp-btn {
       display: flex; align-items: center; gap: 10px;
-      background: var(--surface2); border: 1px solid rgba(255,255,255,.06);
+      background: var(--card-dark); border: 1px solid rgba(255,255,255,.06);
       border-radius: 12px; padding: 11px 13px;
       text-decoration: none;
-      color: var(--text); /* FIX: prevent blue link color */
+      color: var(--text-main);
       transition: all .25s;
     }
     .cp-btn:hover { border-color: var(--green-border); transform: translateX(3px); }
@@ -345,13 +355,13 @@
     }
     .cp-av.g { background: var(--green-dim); border: 1px solid var(--green-border); }
     .cp-av.g svg { width: 17px; height: 17px; fill: var(--green); }
-    .cp-av.b { background: var(--gold-dim); border: 1px solid var(--gold-border); }
-    .cp-av.b svg { width: 17px; height: 17px; fill: var(--gold); }
+    .cp-av.b { background: var(--purple-dim); border: 1px solid var(--border-purple); }
+    .cp-av.b svg { width: 17px; height: 17px; fill: var(--accent-purple); }
 
     .cp-info { flex: 1; }
-    .cp-name { font-size: 13px; font-weight: 600; color: var(--text); display: block; } /* FIX: explicit color */
-    .cp-num { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
-    .cp-role { display: inline-block; font-size: 9px; font-weight: 600; color: var(--gold); background: var(--gold-dim); border: 1px solid var(--gold-border); border-radius: 4px; padding: 1px 6px; margin-top: 3px; letter-spacing: .3px; }
+    .cp-name { font-size: 13px; font-weight: 600; color: var(--text-main); display: block; }
+    .cp-num { font-size: 11px; color: rgba(243,239,245,.55); display: block; margin-top: 1px; }
+    .cp-role { display: inline-block; font-size: 9px; font-weight: 600; color: var(--accent-purple); background: var(--purple-dim); border: 1px solid var(--border-purple); border-radius: 4px; padding: 1px 6px; margin-top: 3px; letter-spacing: .3px; }
     .cp-wa svg { width: 14px; height: 14px; fill: var(--green); }
 
     /* QRIS / donation */
@@ -361,21 +371,21 @@
     .qris-img img { width: 96px; height: 96px; object-fit: contain; }
     .bank-stack { flex: 1; display: flex; flex-direction: column; gap: 6px; }
     .bank-card { background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.06); border-radius: 11px; padding: 10px 12px; }
-    .bank-label { font-size: 10px; font-weight: 700; color: var(--gold); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 3px; }
-    .bank-num { font-family: monospace; font-size: 12.5px; font-weight: 600; color: var(--text); letter-spacing: .5px; }
-    .bank-holder { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
-    .qris-note { font-size: 10.5px; color: var(--muted); line-height: 1.5; background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.06); border-radius: 8px; padding: 7px 10px; margin-top: 6px; }
+    .bank-label { font-size: 10px; font-weight: 700; color: var(--accent-purple); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 3px; }
+    .bank-num { font-family: monospace; font-size: 12.5px; font-weight: 600; color: var(--text-main); letter-spacing: .5px; }
+    .bank-holder { font-size: 10.5px; color: rgba(243,239,245,.55); margin-top: 2px; }
+    .qris-note { font-size: 10.5px; color: rgba(243,239,245,.6); line-height: 1.5; background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.06); border-radius: 8px; padding: 7px 10px; margin-top: 6px; }
 
     .divr { height: 1px; background: rgba(255,255,255,.05); margin: 14px 0 10px; }
-    .subsect { font-size: 9px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .subsect { font-size: 9px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: rgba(243,239,245,.5); margin-bottom: 8px; }
 
     /* ── FOOTER ── */
     .footer {
       text-align: center; margin-top: 40px;
-      font-size: 10px; color: rgba(240,232,216,.15);
+      font-size: 10px; color: rgba(243,239,245,.25);
       letter-spacing: .5px;
     }
-    .footer strong { color: rgba(201,168,76,.3); font-weight: 500; }
+    .footer strong { color: rgba(190,147,253,.4); font-weight: 500; }
 
     /* ── QR CLICKABLE ── */
     .qr-frame, .qris-img {
@@ -384,7 +394,7 @@
     }
     .qr-frame:hover, .qris-img:hover {
       transform: scale(1.04);
-      box-shadow: 0 0 0 2px var(--gold-border), 0 6px 20px rgba(201,168,76,.15);
+      box-shadow: 0 0 0 2px var(--border-purple), 0 6px 20px rgba(142,68,173,.25);
     }
 
     /* ── QR POPUP MODAL ── */
@@ -411,12 +421,12 @@
 
     .qr-popup {
       position: relative; z-index: 1;
-      background: #181818;
-      border: 1px solid var(--gold-border);
+      background: #1a1528;
+      border: 1px solid var(--border-purple);
       border-radius: 24px;
       padding: 28px 24px 24px;
       max-width: 320px; width: 100%;
-      box-shadow: 0 24px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(201,168,76,.08);
+      box-shadow: 0 24px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(142,68,173,.15);
       animation: popIn .35s cubic-bezier(.34,1.56,.64,1) both;
       text-align: center;
     }
@@ -430,24 +440,24 @@
       cursor: pointer; transition: all .2s;
     }
     .qr-popup-close:hover { background: rgba(255,255,255,.12); }
-    .qr-popup-close svg { width: 16px; height: 16px; fill: var(--muted); }
+    .qr-popup-close svg { width: 16px; height: 16px; fill: rgba(243,239,245,.6); }
 
     .qr-popup-badge {
       display: inline-flex; align-items: center; gap: 5px;
       font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
-      color: var(--gold);
-      background: var(--gold-dim); border: 1px solid var(--gold-border);
+      color: var(--accent-purple);
+      background: var(--purple-dim); border: 1px solid var(--border-purple);
       border-radius: 99px; padding: 4px 10px;
       margin-bottom: 16px;
     }
-    .qr-popup-badge svg { width: 11px; height: 11px; fill: var(--gold); }
+    .qr-popup-badge svg { width: 11px; height: 11px; fill: var(--accent-purple); }
 
     .qr-popup-title {
-      font-size: 16px; font-weight: 700; color: var(--text);
+      font-size: 16px; font-weight: 700; color: var(--text-main);
       margin-bottom: 4px;
     }
     .qr-popup-desc {
-      font-size: 12px; color: var(--muted); line-height: 1.5;
+      font-size: 12px; color: rgba(243,239,245,.65); line-height: 1.5;
       margin-bottom: 18px;
     }
 
@@ -462,7 +472,7 @@
     }
 
     .qr-popup-hint {
-      font-size: 11px; color: var(--muted);
+      font-size: 11px; color: rgba(243,239,245,.6);
       background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06);
       border-radius: 10px; padding: 8px 12px;
     }
@@ -479,7 +489,7 @@
         <img src="logo-uk3.png" alt="Logo UK3 UTM" />
       </div>
     </div>
-    <div class="org-name">UK3 <span>UTM</span></div>
+    <div class="org-name">UK3 UTM</div>
     <div class="org-tagline">Unit Kegiatan Kerohanian Kristen</div>
     <div class="divider"></div>
   </div>
@@ -511,7 +521,7 @@
         </div>
         <span class="soc-label">YouTube</span>
       </a>
-      <a href="mailto:uk3utm@email.com" class="soc-item">
+      <a href="/cdn-cgi/l/email-protection#bdc8d68ec8c9d0fdd8d0dcd4d193ded2d0" class="soc-item">
         <div class="soc-icon">
           <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
         </div>
@@ -531,7 +541,7 @@
     </a>
   </div>
 
-  <!-- ACCORDION SECTIONS -->
+  <!-- ACCORDION SECTIONS (SEMUA KONTEN TETAP SAMA) -->
   <div class="s-head rise-3">Informasi</div>
   <div class="accordion rise-3">
 
@@ -826,6 +836,7 @@
   </div>
 </div>
 
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 <script>
   function tog(id) {
     const item = document.getElementById('a-' + id);
@@ -851,11 +862,8 @@
     setTimeout(() => {
       modal.classList.remove('show', 'closing');
       document.body.style.overflow = '';
-    }, 220);
+    }, 200);
   }
-
-  // Close on Escape key
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeQR(); });
 </script>
 </body>
 </html>
