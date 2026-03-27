@@ -369,6 +369,96 @@
       letter-spacing: .5px;
     }
     .footer strong { color: rgba(201,168,76,.3); font-weight: 500; }
+
+    /* ── QR CLICKABLE ── */
+    .qr-frame, .qris-img {
+      cursor: zoom-in;
+      transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s;
+    }
+    .qr-frame:hover, .qris-img:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 0 2px var(--gold-border), 0 6px 20px rgba(201,168,76,.15);
+    }
+
+    /* ── QR POPUP MODAL ── */
+    @keyframes backdropIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popIn { from { opacity: 0; transform: scale(.85) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    @keyframes popOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(.88); } }
+
+    #qr-modal {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    #qr-modal.show { display: flex; }
+
+    .qr-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,.82);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      animation: backdropIn .25s ease both;
+    }
+    #qr-modal.closing .qr-backdrop { animation: backdropIn .2s ease reverse both; }
+
+    .qr-popup {
+      position: relative; z-index: 1;
+      background: #181818;
+      border: 1px solid var(--gold-border);
+      border-radius: 24px;
+      padding: 28px 24px 24px;
+      max-width: 320px; width: 100%;
+      box-shadow: 0 24px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(201,168,76,.08);
+      animation: popIn .35s cubic-bezier(.34,1.56,.64,1) both;
+      text-align: center;
+    }
+    #qr-modal.closing .qr-popup { animation: popOut .2s ease both; }
+
+    .qr-popup-close {
+      position: absolute; top: 14px; right: 14px;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all .2s;
+    }
+    .qr-popup-close:hover { background: rgba(255,255,255,.12); }
+    .qr-popup-close svg { width: 16px; height: 16px; fill: var(--muted); }
+
+    .qr-popup-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--gold);
+      background: var(--gold-dim); border: 1px solid var(--gold-border);
+      border-radius: 99px; padding: 4px 10px;
+      margin-bottom: 16px;
+    }
+    .qr-popup-badge svg { width: 11px; height: 11px; fill: var(--gold); }
+
+    .qr-popup-title {
+      font-size: 16px; font-weight: 700; color: var(--text);
+      margin-bottom: 4px;
+    }
+    .qr-popup-desc {
+      font-size: 12px; color: var(--muted); line-height: 1.5;
+      margin-bottom: 18px;
+    }
+
+    .qr-popup-img-wrap {
+      background: #fff; border-radius: 16px; padding: 12px;
+      display: inline-flex; margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.3);
+    }
+    .qr-popup-img-wrap img {
+      width: 220px; height: 220px; object-fit: contain; display: block;
+      border-radius: 8px;
+    }
+
+    .qr-popup-hint {
+      font-size: 11px; color: var(--muted);
+      background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06);
+      border-radius: 10px; padding: 8px 12px;
+    }
   </style>
 </head>
 
@@ -544,7 +634,7 @@
             <p class="body-text">Kami percaya doa adalah kuasa. Bagikan pergumulan &amp; pokok doamu — kami akan mendoakanmu dengan sepenuh hati.</p>
             <div class="form-block">
               <div class="form-row">
-                <div class="qr-frame"><img src="qr-prayer.jpeg" alt="QR Prayer Request" /></div>
+                <div class="qr-frame" onclick="openQR('qr-prayer.jpeg','QR Prayer Request','Scan untuk mengisi formulir permohonan doa','Kami akan mendoakanmu dengan sepenuh hati 🙏')"><img src="qr-prayer.jpeg" alt="QR Prayer Request" /></div>
                 <a href="#" target="_blank" class="form-link">
                   <div class="form-link-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg></div>
                   <div class="form-link-t">
@@ -576,7 +666,7 @@
             <p class="body-text">Jadilah bagian dari gerakan pelayanan UK3! Terbuka bagi semua mahasiswa Kristiani yang ingin melayani dan bertumbuh bersama.</p>
             <div class="form-block">
               <div class="form-row">
-                <div class="qr-frame"><img src="qr-pelayan.jpeg" alt="QR Pelayanan" /></div>
+                <div class="qr-frame" onclick="openQR('qr-pelayan.jpeg','QR Pendaftaran Pelayanan','Scan untuk mendaftar bergabung dalam pelayanan UK3','Wujudkan panggilanmu bersama kami ✨')"><img src="qr-pelayan.jpeg" alt="QR Pelayanan" /></div>
                 <a href="#" target="_blank" class="form-link">
                   <div class="form-link-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg></div>
                   <div class="form-link-t">
@@ -628,7 +718,7 @@
             <p class="body-text"><span class="hl">Aksi Kasih</span> adalah program nyata UK3 untuk menjangkau sesama melalui donasi, pelayanan sosial, dan kepedulian kepada lingkungan sekitar.</p>
             <div class="qris-section">
               <div class="qris-row">
-                <div class="qris-img"><img src="qris-uk3.jpeg" alt="QRIS" /></div>
+                <div class="qris-img" onclick="openQR('qris-uk3.jpeg','QRIS Aksi Kasih','Scan untuk berdonasi langsung ke UK3 UTM','Dukung program kasih kami — setiap donasi sangat berarti 🙏')"><img src="qris-uk3.jpeg" alt="QRIS" /></div>
                 <div class="bank-stack">
                   <div class="bank-card">
                     <div class="bank-label">BRI</div>
@@ -647,11 +737,20 @@
             <div class="divr"></div>
             <div class="subsect">Konfirmasi &amp; Info</div>
             <div class="cp-list">
-              <a href="https://wa.me/6282244760047?text=Halo%20UK3!%20Saya%20ingin%20berdonasi%20Aksi%20Kasih" target="_blank" class="cp-btn">
+              <a href="https://wa.me/6287756538895?text=Halo%20UK3!%20Saya%20ingin%20berdonasi%20Aksi%20Kasih" target="_blank" class="cp-btn">
                 <div class="cp-av g"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
                 <div class="cp-info">
-                  <span class="cp-name">Asep</span>
-                  <span class="cp-num">+62 822-4476-0047</span>
+                  <span class="cp-name">Imelda Novena</span>
+                  <span class="cp-num">+62 877-5653-8895</span>
+                  <span class="cp-role">CP Aksi Kasih</span>
+                </div>
+                <div class="cp-wa"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+              </a>
+              <a href="https://wa.me/6285272567047?text=Halo%20UK3!%20Saya%20ingin%20berdonasi%20Aksi%20Kasih" target="_blank" class="cp-btn">
+                <div class="cp-av b"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+                <div class="cp-info">
+                  <span class="cp-name">Lita Anggreni br Sembiring</span>
+                  <span class="cp-num">+62 852-7256-7047</span>
                   <span class="cp-role">CP Aksi Kasih</span>
                 </div>
                 <div class="cp-wa"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
@@ -678,7 +777,7 @@
             <p class="body-text"><span class="hl">UK3 Konseling</span> hadir sebagai ruang aman bagi kamu yang ingin berbagi, bercerita, atau mencari dukungan. Semua percakapan dijaga penuh kepercayaan &amp; kasih.</p>
             <div class="form-block">
               <div class="form-row">
-                <div class="qr-frame"><img src="qr-konseling.jpeg" alt="QR Konseling" /></div>
+                <div class="qr-frame" onclick="openQR('qr-konseling.jpeg','QR UK3 Konseling','Scan untuk mengisi formulir konseling online','Semua percakapan dijaga dengan kepercayaan &amp; kasih 💛')"><img src="qr-konseling.jpeg" alt="QR Konseling" /></div>
                 <a href="https://bit.ly/UKM_Uk3_KONSELING_2026" target="_blank" class="form-link">
                   <div class="form-link-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg></div>
                   <div class="form-link-t">
@@ -700,19 +799,56 @@
 
 </div><!-- /page -->
 
+<!-- QR ZOOM MODAL -->
+<div id="qr-modal" role="dialog" aria-modal="true">
+  <div class="qr-backdrop" onclick="closeQR()"></div>
+  <div class="qr-popup">
+    <div class="qr-popup-close" onclick="closeQR()">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </div>
+    <div class="qr-popup-badge">
+      <svg viewBox="0 0 24 24"><path d="M3 11h2v2H3zm0-4h2v2H3zm0 8h2v2H3zm4-4h14v2H7zm0-4h14v2H7zm0 8h14v2H7z"/></svg>
+      <span>QR Code</span>
+    </div>
+    <div class="qr-popup-title" id="qr-modal-title">—</div>
+    <div class="qr-popup-desc" id="qr-modal-desc">—</div>
+    <div class="qr-popup-img-wrap">
+      <img id="qr-modal-img" src="" alt="QR Code" />
+    </div>
+    <div class="qr-popup-hint" id="qr-modal-hint">Arahkan kamera HP ke QR di atas</div>
+  </div>
+</div>
+
 <script>
   function tog(id) {
     const item = document.getElementById('a-' + id);
     const wasOpen = item.classList.contains('open');
-
-    // Close all
     document.querySelectorAll('.acc').forEach(el => el.classList.remove('open'));
-
-    // Open clicked one if it was closed
-    if (!wasOpen) {
-      item.classList.add('open');
-    }
+    if (!wasOpen) item.classList.add('open');
   }
+
+  function openQR(src, title, desc, hint) {
+    const modal = document.getElementById('qr-modal');
+    document.getElementById('qr-modal-img').src = src;
+    document.getElementById('qr-modal-title').textContent = title;
+    document.getElementById('qr-modal-desc').innerHTML = desc;
+    document.getElementById('qr-modal-hint').innerHTML = hint || 'Arahkan kamera HP ke QR di atas';
+    modal.classList.remove('closing');
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeQR() {
+    const modal = document.getElementById('qr-modal');
+    modal.classList.add('closing');
+    setTimeout(() => {
+      modal.classList.remove('show', 'closing');
+      document.body.style.overflow = '';
+    }, 220);
+  }
+
+  // Close on Escape key
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeQR(); });
 </script>
 </body>
 </html>
