@@ -5,23 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>UK3 UTM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="logo-uk3.png" />
-  <!-- Open Graph / WhatsApp & Social Preview -->
-  <meta property="og:type"         content="website" />
-  <meta property="og:title"        content="UK3 UTM — Unit Kegiatan Kerohanian Kristen" />
-  <meta property="og:description"  content="Wadah persekutuan, pertumbuhan iman, dan pelayanan bagi mahasiswa Kristen di Universitas Trunojoyo Madura." />
-  <meta property="og:image"        content="https://uk3utm.netlify.app/og-image.jpg" />
-  <meta property="og:image:width"  content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:url"          content="https://uk3utm.netlify.app/" />
-  <meta property="og:site_name"    content="UK3 UTM" />
-  <!-- Twitter/X Card -->
-  <meta name="twitter:card"        content="summary_large_image" />
-  <meta name="twitter:title"       content="UK3 UTM — Unit Kegiatan Kerohanian Kristen" />
-  <meta name="twitter:description" content="Wadah persekutuan, pertumbuhan iman, dan pelayanan bagi mahasiswa Kristen di Universitas Trunojoyo Madura." />
-  <meta name="twitter:image"       content="https://uk3utm.netlify.app/og-image.jpg" />
-
+  <!-- Open Graph / WhatsApp Preview -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="UK3 UTM — Unit Kegiatan Kerohanian Kristen" />
+  <meta property="og:description" content="Wadah persekutuan, pertumbuhan iman, dan pelayanan bagi mahasiswa Kristen di Universitas Trunojoyo Madura." />
+  <meta property="og:image" content="https://uk3utm.netlify.app//logo-uk3.png" />
+  <meta property="og:url" content="https://domain-kamu.com" />
+  <meta property="og:site_name" content="UK3 UTM" />
   <style>
     :root {
       --gold: #C9A84C;
@@ -108,7 +100,7 @@
     .logo-inner img { width: 80px; height: 80px; object-fit: contain; padding: 4px; }
 
     .org-name {
-      font-family: 'Cinzel', serif;
+      font-family: 'Playfair Display', serif;
       font-size: 32px; font-weight: 900;
       color: var(--text);
       letter-spacing: .5px;
@@ -519,7 +511,7 @@
         </div>
         <span class="soc-label">YouTube</span>
       </a>
-      <a href="/cdn-cgi/l/email-protection#bdc8d68ec8c9d0fdd8d0dcd4d193ded2d0" class="soc-item">
+      <a href="mailto:uk3utm@email.com" class="soc-item">
         <div class="soc-icon">
           <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
         </div>
@@ -834,7 +826,7 @@
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
   function tog(id) {
     const item = document.getElementById('a-' + id);
     const wasOpen = item.classList.contains('open');
@@ -859,4 +851,11 @@
     setTimeout(() => {
       modal.classList.remove('show', 'closing');
       document.body.style.overflow = '';
-    },
+    }, 220);
+  }
+
+  // Close on Escape key
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeQR(); });
+</script>
+</body>
+</html>
