@@ -1,565 +1,718 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>UK3 UTM</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-:root{
-  --c1:#4A7FA5;--c2:#6B9AB8;--c3:#8CB4CC;--c7:#2B4A5E;
-  --bg:#111A20;--surface:#192530;--surface2:#1F3040;
-  --border:rgba(74,127,165,0.18);--border-h:rgba(107,154,184,0.42);
-  --text:#D8E8F0;--muted:rgba(184,203,216,0.52);
-  --green:#22C55E;--green-dim:rgba(34,197,94,0.12);
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;color:var(--text);overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 20% 0%,rgba(74,127,165,0.12) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 80% 100%,rgba(43,74,94,0.2) 0%,transparent 55%);pointer-events:none;z-index:0}
-.page{position:relative;z-index:1;max-width:430px;margin:0 auto;padding:36px 18px 100px}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>UK3 UTM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
-/* HEADER */
-.header{text-align:center;margin-bottom:28px;animation:fadeIn .7s ease both}
-@keyframes fadeIn{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes spin{to{transform:rotate(360deg)}}
+  <style>
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #E8C97A;
+      --gold-dim: rgba(201,168,76,.12);
+      --gold-border: rgba(201,168,76,.22);
+      --cream: #F5EFE0;
+      --bg: #0D0D0D;
+      --surface: #141414;
+      --surface2: #1A1A1A;
+      --text: #F0E8D8;
+      --muted: rgba(240,232,216,.45);
+      --green: #4CAF7D;
+      --green-dim: rgba(76,175,125,.1);
+      --green-border: rgba(76,175,125,.22);
+      --radius: 16px;
+    }
 
-.logo-wrap{width:86px;height:86px;margin:0 auto 14px;position:relative}
-.logo-wrap::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(var(--c1),var(--c3),var(--c7),var(--c1));animation:spin 10s linear infinite;z-index:0}
-.logo-inner{position:relative;z-index:1;width:86px;height:86px;border-radius:50%;background:var(--surface2);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden}
-.logo-fb{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#fff}
-/* LOGO: ganti .logo-fb dengan <img src="logo-uk3.png" style="width:100%;height:100%;object-fit:contain;padding:10px;filter:brightness(0)invert(1)"> */
-.org-name{font-family:'Cormorant Garamond',serif;font-size:29px;font-weight:700;color:#fff;letter-spacing:.4px}
-.org-sub{font-size:10.5px;font-weight:500;color:var(--muted);letter-spacing:2.2px;text-transform:uppercase;margin-top:5px}
-.hline{width:44px;height:1px;background:linear-gradient(90deg,transparent,var(--c1),transparent);margin:12px auto 0}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
-/* SOCIALS */
-.socials{margin-bottom:24px;animation:fadeUp .6s .12s ease both}
-.soc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
-.soc-item{display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
-.soc-item:hover{transform:translateY(-4px)}
-.soc-icon{width:56px;height:56px;border-radius:15px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all .25s}
-.soc-item:hover .soc-icon{border-color:var(--border-h);box-shadow:0 6px 22px rgba(74,127,165,.22)}
-.soc-icon svg{width:22px;height:22px;fill:var(--c3);transition:fill .2s}
-.soc-item:hover .soc-icon svg{fill:#fff}
-.soc-un{font-size:9px;font-weight:500;color:var(--muted);text-align:center;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-/* WA CP ROW */
-.wa-row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:13px 15px;text-decoration:none;transition:all .25s}
-.wa-row:hover{border-color:rgba(34,197,94,.35);background:var(--surface2)}
-.wa-av{width:40px;height:40px;border-radius:50%;background:var(--green-dim);border:1px solid rgba(34,197,94,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.wa-av svg{width:20px;height:20px;fill:var(--green)}
-.wa-info{flex:1}
-.wa-name{font-size:13.5px;font-weight:600;color:var(--text);display:block}
-.wa-num{font-size:11.5px;color:var(--muted);display:block;margin-top:1px}
-.wa-tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:600;color:var(--green);background:var(--green-dim);border:1px solid rgba(34,197,94,.2);border-radius:5px;padding:2px 7px;margin-top:4px;letter-spacing:.3px;text-transform:uppercase}
-.wa-arr{display:flex;align-items:center}
-.wa-arr svg{width:16px;height:16px;fill:var(--muted)}
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0; opacity: .35;
+    }
 
-/* ACCORDION */
-.sections{display:flex;flex-direction:column;gap:10px}
-.acc{border-radius:16px;border:1px solid var(--border);background:var(--surface);overflow:hidden;transition:border-color .25s;animation:fadeUp .5s ease both}
-.acc:hover{border-color:var(--border-h)}
-.acc.open{border-color:rgba(74,127,165,.38)}
-.acc:nth-child(1){animation-delay:.08s}.acc:nth-child(2){animation-delay:.16s}
-.acc:nth-child(3){animation-delay:.24s}.acc:nth-child(4){animation-delay:.32s}
-.acc:nth-child(5){animation-delay:.40s}.acc:nth-child(6){animation-delay:.48s}
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 50% -10%, rgba(201,168,76,.08) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 80% 110%, rgba(76,175,125,.05) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
 
-.acc-btn{width:100%;display:flex;align-items:center;gap:13px;padding:15px 17px;cursor:pointer;background:none;border:none;color:inherit;text-align:left;transition:background .2s}
-.acc-btn:hover{background:rgba(74,127,165,.06)}
-.acc-ibox{width:40px;height:40px;border-radius:12px;flex-shrink:0;background:rgba(74,127,165,.1);border:1px solid rgba(74,127,165,.2);display:flex;align-items:center;justify-content:center}
-.acc-ibox svg{width:20px;height:20px;fill:var(--c2)}
-.acc-meta{flex:1}
-.acc-title{font-size:14px;font-weight:600;color:var(--text);display:block}
-.acc-sub{font-size:11px;color:var(--muted);display:block;margin-top:2px}
-.acc-chev{color:var(--muted);transition:transform .35s cubic-bezier(.34,1.56,.64,1);flex-shrink:0}
-.acc-chev svg{width:18px;height:18px;fill:var(--muted);transition:fill .3s}
-.acc.open .acc-chev{transform:rotate(180deg)}
-.acc.open .acc-chev svg{fill:var(--c2)}
-.acc-body{max-height:0;overflow:hidden;transition:max-height .45s cubic-bezier(.4,0,.2,1),opacity .3s;opacity:0}
-.acc.open .acc-body{max-height:1100px;opacity:1}
-.acc-content{padding:0 17px 18px;border-top:1px solid var(--border)}
+    .page {
+      position: relative; z-index: 1;
+      max-width: 420px; margin: 0 auto;
+      padding: 44px 18px 100px;
+    }
 
-/* CONTENT */
-.btext{font-size:13px;line-height:1.75;color:var(--muted);margin-top:13px}
-.hl{color:var(--c3);font-weight:600}
+    /* ── ANIMATIONS ── */
+    @keyframes rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes shimmer { 0%,100% { opacity: .6; } 50% { opacity: 1; } }
 
-.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
-.chip{background:rgba(74,127,165,.1);border:1px solid rgba(74,127,165,.22);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:500;color:var(--c3)}
+    .rise-1 { animation: rise .6s cubic-bezier(.22,1,.36,1) both; }
+    .rise-2 { animation: rise .6s .1s cubic-bezier(.22,1,.36,1) both; }
+    .rise-3 { animation: rise .6s .2s cubic-bezier(.22,1,.36,1) both; }
+    .rise-4 { animation: rise .6s .3s cubic-bezier(.22,1,.36,1) both; }
+    .rise-5 { animation: rise .6s .4s cubic-bezier(.22,1,.36,1) both; }
+    .rise-6 { animation: rise .6s .5s cubic-bezier(.22,1,.36,1) both; }
+    .rise-7 { animation: rise .6s .6s cubic-bezier(.22,1,.36,1) both; }
 
-.irow{display:flex;align-items:center;gap:9px;background:rgba(74,127,165,.07);border:1px solid rgba(74,127,165,.16);border-radius:12px;padding:11px 13px;margin-top:11px}
-.irow-ico{width:32px;height:32px;border-radius:9px;background:rgba(74,127,165,.12);border:1px solid rgba(74,127,165,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.irow-ico svg{width:17px;height:17px;fill:var(--c2)}
-.irow-t{font-size:13.5px;font-weight:600;color:var(--text)}
-.irow-s{font-size:11px;color:var(--muted);margin-top:1px}
+    /* ── HEADER ── */
+    .header { text-align: center; margin-bottom: 36px; }
 
-/* REVIVE CARDS */
-.rcards{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px}
-.rcard{background:rgba(74,127,165,.07);border:1px solid rgba(74,127,165,.18);border-radius:11px;padding:11px}
-.rcard-header{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-.rcard-header svg{width:14px;height:14px;fill:var(--c2);flex-shrink:0}
-.rcard-l{font-size:10.5px;font-weight:700;color:var(--c2);letter-spacing:.4px;text-transform:uppercase}
-.rcard-t{font-size:11px;color:var(--muted);line-height:1.55}
+    .logo-ring {
+      width: 100px; height: 100px; margin: 0 auto 16px;
+      position: relative; display: flex; align-items: center; justify-content: center;
+    }
+    .logo-ring::before {
+      content: '';
+      position: absolute; inset: 0; border-radius: 50%;
+      background: conic-gradient(var(--gold), var(--gold-light), transparent, var(--gold));
+      animation: spin 12s linear infinite;
+    }
+    .logo-inner {
+      position: relative; width: 88px; height: 88px; border-radius: 50%;
+      background: #fff;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .logo-inner img { width: 80px; height: 80px; object-fit: contain; padding: 4px; }
 
-/* QR + LINK block */
-.action-block{margin-top:13px;display:flex;flex-direction:column;gap:9px}
-.qr-link-row{display:flex;gap:9px;align-items:stretch}
-.qrbox{width:90px;flex-shrink:0;background:#fff;border-radius:11px;padding:7px;min-height:90px;display:flex;align-items:center;justify-content:center}
-.qrph{width:100%;min-height:76px;background:#EBF3FA;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;font-size:8.5px;color:#4A7FA5;font-weight:700;text-align:center;letter-spacing:.4px}
-.qrph svg{width:30px;height:30px;fill:#4A7FA5}
-.link-col{flex:1;display:flex;flex-direction:column;gap:7px}
+    .org-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px; font-weight: 900;
+      color: var(--text);
+      letter-spacing: .5px;
+      line-height: 1;
+    }
+    .org-name span { color: var(--gold); }
 
-.lbtn{display:flex;align-items:center;gap:9px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:10px 12px;text-decoration:none;transition:all .25s;flex:1}
-.lbtn:hover{border-color:var(--border-h);background:rgba(74,127,165,.1)}
-.lbtn-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.lbtn-ic svg{width:16px;height:16px}
-.ic-green{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.2)}.ic-green svg{fill:var(--green)}
-.ic-blue{background:rgba(74,127,165,.12);border:1px solid rgba(74,127,165,.2)}.ic-blue svg{fill:var(--c2)}
-.lbtn-t{flex:1}
-.lbtn-ti{font-size:12px;font-weight:600;color:var(--text);display:block}
-.lbtn-su{font-size:10px;color:var(--muted);display:block;margin-top:1px}
-.lbtn-ar svg{width:14px;height:14px;fill:var(--muted)}
+    .org-tagline {
+      font-size: 10px; font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 3px; text-transform: uppercase;
+      margin-top: 6px;
+    }
 
-/* CP LIST */
-.cplist{display:flex;flex-direction:column;gap:7px;margin-top:9px}
-.cpbtn{display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:11px 13px;text-decoration:none;transition:all .25s}
-.cpbtn:hover{border-color:rgba(34,197,94,.3);transform:translateX(3px)}
-.cpav{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.cpav.g{background:var(--green-dim);border:1px solid rgba(34,197,94,.22)}
-.cpav.b{background:rgba(74,127,165,.15);border:1px solid rgba(74,127,165,.25)}
-.cpav svg{width:18px;height:18px}
-.cpav.g svg{fill:var(--green)}.cpav.b svg{fill:var(--c2)}
-.cpi{flex:1}
-.cp-n{font-size:13px;font-weight:600;color:var(--text);display:block}
-.cp-p{font-size:11px;color:var(--muted);display:block;margin-top:1px}
-.cp-r{display:inline-block;font-size:9px;font-weight:600;color:var(--c2);background:rgba(74,127,165,.1);border:1px solid rgba(74,127,165,.2);border-radius:5px;padding:2px 6px;margin-top:3px;letter-spacing:.3px}
-.cp-arr svg{width:14px;height:14px;fill:var(--green)}
+    .divider {
+      width: 60px; height: 1px; margin: 14px auto 0;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      animation: shimmer 3s ease infinite;
+    }
 
-/* AKSI KASIH — single QR + tabs */
-.pay-tabs{display:flex;gap:6px;margin-top:11px;margin-bottom:10px}
-.pay-tab{flex:1;padding:8px 6px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .22s;display:flex;align-items:center;justify-content:center;gap:6px;text-align:center}
-.pay-tab svg{width:14px;height:14px;fill:var(--muted);transition:fill .2s;flex-shrink:0}
-.pay-tab.active{border-color:var(--c1);background:rgba(74,127,165,.14);color:var(--c3)}
-.pay-tab.active svg{fill:var(--c3)}
-.pay-panel{display:none}.pay-panel.active{display:block}
-.pay-qr-row{display:flex;gap:10px;align-items:flex-start}
-.pay-qr-box{width:100px;flex-shrink:0;background:#fff;border-radius:11px;padding:7px;min-height:100px;display:flex;align-items:center;justify-content:center}
-.pay-info{flex:1}
-.bankcard{background:rgba(74,127,165,.07);border:1px solid rgba(74,127,165,.16);border-radius:11px;padding:12px 14px}
-.bk-row{display:flex;align-items:center;gap:9px;margin-bottom:2px}
-.bk-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.bk-ico.bri{background:rgba(0,80,180,.14);border:1px solid rgba(0,80,180,.22)}.bk-ico.bri svg{fill:#3B82F6;width:16px;height:16px}
-.bk-ico.dana{background:rgba(74,127,165,.13);border:1px solid rgba(74,127,165,.22)}.bk-ico.dana svg{fill:var(--c2);width:16px;height:16px}
-.bk-label{font-size:12.5px;font-weight:700;color:var(--text)}
-.bk-acc{font-size:13px;color:var(--text);font-family:monospace;letter-spacing:.5px;margin-top:7px;font-weight:600}
-.bk-holder{font-size:11px;color:var(--c3);margin-top:3px}
+    /* ── SOCIALS ── */
+    .socials { margin-bottom: 28px; }
 
-.divr{width:28px;height:1px;background:var(--border);margin:13px 0}
-.sect-label{font-size:10px;color:var(--muted);margin-bottom:7px;font-weight:600;letter-spacing:.6px;text-transform:uppercase}
+    .soc-strip {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+      margin-bottom: 12px;
+    }
 
-/* WA FAB */
-.wafab{position:fixed;bottom:21px;right:17px;z-index:50;text-decoration:none;animation:fadeUp 1s .8s ease both}
-.wafab-btn{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#15803D,#22C55E);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 26px rgba(34,197,94,.38);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
-.wafab-btn:hover{transform:scale(1.1) translateY(-3px);box-shadow:0 10px 34px rgba(34,197,94,.48)}
-.wafab-btn svg{width:25px;height:25px;fill:#fff}
+    .soc-item {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      text-decoration: none;
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    }
+    .soc-item:hover { transform: translateY(-5px); }
 
-.footer{text-align:center;margin-top:34px;font-size:10.5px;color:rgba(184,203,216,.18);letter-spacing:.4px;animation:fadeUp .8s 1s ease both}
-.footer b{color:rgba(74,127,165,.35);font-weight:500}
-</style>
+    .soc-icon {
+      width: 52px; height: 52px; border-radius: 15px;
+      background: var(--surface2);
+      border: 1px solid rgba(255,255,255,.06);
+      display: flex; align-items: center; justify-content: center;
+      transition: all .25s;
+      position: relative; overflow: hidden;
+    }
+    .soc-icon::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(201,168,76,.12), transparent);
+      opacity: 0; transition: opacity .25s;
+    }
+    .soc-item:hover .soc-icon { border-color: var(--gold-border); box-shadow: 0 4px 20px rgba(201,168,76,.15); }
+    .soc-item:hover .soc-icon::before { opacity: 1; }
+    .soc-icon svg { width: 20px; height: 20px; fill: rgba(240,232,216,.5); transition: fill .2s; position: relative; }
+    .soc-item:hover .soc-icon svg { fill: var(--gold-light); }
+    .soc-label { font-size: 8.5px; font-weight: 500; color: var(--muted); text-align: center; max-width: 54px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── WA BUTTON ── */
+    .wa-btn {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--green-border);
+      border-radius: 14px; padding: 13px 15px;
+      text-decoration: none;
+      color: var(--text); /* FIX: prevent blue link color */
+      transition: all .25s;
+    }
+    .wa-btn:hover { background: var(--surface2); border-color: rgba(76,175,125,.45); transform: translateX(2px); }
+
+    .wa-dot {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+      background: var(--green-dim); border: 1px solid var(--green-border);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .wa-dot svg { width: 20px; height: 20px; fill: var(--green); }
+    .wa-txt { flex: 1; }
+    .wa-name { font-size: 13.5px; font-weight: 600; display: block; color: var(--text); } /* FIX: explicit color */
+    .wa-num { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
+    .wa-arr svg { width: 16px; height: 16px; fill: var(--muted); }
+
+    /* ── SECTION HEADER ── */
+    .s-head {
+      font-size: 9px; font-weight: 600; letter-spacing: 2.5px;
+      text-transform: uppercase; color: var(--gold);
+      margin: 0 0 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .s-head::after { content: ''; flex: 1; height: 1px; background: var(--gold-border); }
+
+    /* ── ACCORDION ── */
+    .accordion { display: flex; flex-direction: column; gap: 8px; }
+
+    .acc {
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.06);
+      background: var(--surface);
+      overflow: hidden;
+      transition: border-color .25s, box-shadow .25s;
+    }
+    .acc:hover { border-color: rgba(255,255,255,.1); }
+    .acc.open {
+      border-color: var(--gold-border);
+      box-shadow: 0 0 0 1px rgba(201,168,76,.06), 0 8px 32px rgba(0,0,0,.4);
+    }
+
+    .acc-trigger {
+      width: 100%; display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; cursor: pointer;
+      background: none; border: none; color: inherit;
+      text-align: left;
+    }
+    .acc-trigger:hover { background: rgba(255,255,255,.02); }
+
+    .acc-icon {
+      width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+      background: var(--gold-dim); border: 1px solid var(--gold-border);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .acc-icon svg { width: 18px; height: 18px; fill: var(--gold); }
+
+    .acc-labels { flex: 1; }
+    .acc-title { font-size: 14px; font-weight: 600; display: block; color: var(--text); }
+    .acc-sub { font-size: 11px; color: var(--muted); display: block; margin-top: 1.5px; }
+
+    .acc-arrow { transition: transform .35s cubic-bezier(.34,1.56,.64,1); flex-shrink: 0; }
+    .acc-arrow svg { width: 18px; height: 18px; fill: var(--muted); }
+    .acc.open .acc-arrow { transform: rotate(180deg); }
+    .acc.open .acc-arrow svg { fill: var(--gold); }
+
+    /* FIX: accordion body — use grid-based approach for reliable open/close animation */
+    .acc-body {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows .4s cubic-bezier(.4,0,.2,1), opacity .3s;
+      opacity: 0;
+    }
+    .acc.open .acc-body {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+    .acc-body-inner {
+      overflow: hidden;
+    }
+
+    .acc-content {
+      padding: 0 16px 18px;
+      border-top: 1px solid rgba(255,255,255,.05);
+    }
+
+    /* ── CONTENT ATOMS ── */
+    .body-text {
+      font-size: 13px; line-height: 1.75; color: var(--muted);
+      margin-top: 14px;
+    }
+    .hl { color: var(--gold-light); font-weight: 600; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .tag {
+      font-size: 10.5px; font-weight: 500; color: var(--gold);
+      background: var(--gold-dim); border: 1px solid var(--gold-border);
+      border-radius: 99px; padding: 3px 10px;
+    }
+
+    /* Vision Mission */
+    .vm-stack { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .vm-card {
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 12px; padding: 13px;
+    }
+    .vm-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 7px;
+    }
+    .vm-badge svg { width: 13px; height: 13px; fill: var(--gold); }
+    .vm-text { font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+    .vm-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .vm-list li { display: flex; gap: 8px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .vm-list li::before { content: '·'; color: var(--gold); font-size: 16px; line-height: 1.2; flex-shrink: 0; }
+
+    /* Revive cards */
+    .r2col { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 11px; }
+    .rcard {
+      background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.07);
+      border-radius: 11px; padding: 11px;
+    }
+    .rcard-head { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+    .rcard-head svg { width: 13px; height: 13px; fill: var(--gold); }
+    .rcard-title { font-size: 10px; font-weight: 700; color: var(--gold); letter-spacing: .5px; text-transform: uppercase; }
+    .rcard-body { font-size: 11px; color: var(--muted); line-height: 1.55; }
+
+    .info-row {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--gold-dim); border: 1px solid var(--gold-border);
+      border-radius: 11px; padding: 11px 12px; margin-top: 10px;
+    }
+    .info-row-ic { width: 30px; height: 30px; border-radius: 8px; background: rgba(201,168,76,.12); border: 1px solid var(--gold-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .info-row-ic svg { width: 15px; height: 15px; fill: var(--gold); }
+    .info-row-t { font-size: 13px; font-weight: 600; color: var(--text); }
+    .info-row-s { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+
+    /* Form block */
+    .form-block { margin-top: 13px; display: flex; flex-direction: column; gap: 9px; }
+    .form-row { display: flex; gap: 9px; }
+    .qr-frame {
+      width: 86px; flex-shrink: 0; border-radius: 11px;
+      background: #fff; padding: 5px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .qr-frame img { width: 76px; height: 76px; object-fit: contain; display: block; }
+
+    .form-link {
+      flex: 1; display: flex; align-items: center; gap: 9px;
+      background: var(--surface2); border: 1px solid rgba(255,255,255,.07);
+      border-radius: 11px; padding: 12px 13px;
+      text-decoration: none;
+      color: var(--text); /* FIX: prevent blue link color */
+      transition: all .25s;
+    }
+    .form-link:hover { border-color: var(--gold-border); background: var(--gold-dim); }
+    .form-link-ic { width: 30px; height: 30px; border-radius: 8px; background: var(--gold-dim); border: 1px solid var(--gold-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .form-link-ic svg { width: 14px; height: 14px; fill: var(--gold); }
+    .form-link-t { flex: 1; }
+    .form-link-name { font-size: 12px; font-weight: 600; color: var(--text); display: block; } /* FIX: explicit color */
+    .form-link-hint { font-size: 10px; color: var(--muted); display: block; margin-top: 1px; }
+    .form-link-arr svg { width: 14px; height: 14px; fill: var(--muted); }
+
+    /* Contact person */
+    .cp-list { display: flex; flex-direction: column; gap: 7px; margin-top: 9px; }
+    .cp-btn {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface2); border: 1px solid rgba(255,255,255,.06);
+      border-radius: 12px; padding: 11px 13px;
+      text-decoration: none;
+      color: var(--text); /* FIX: prevent blue link color */
+      transition: all .25s;
+    }
+    .cp-btn:hover { border-color: var(--green-border); transform: translateX(3px); }
+
+    .cp-av {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cp-av.g { background: var(--green-dim); border: 1px solid var(--green-border); }
+    .cp-av.g svg { width: 17px; height: 17px; fill: var(--green); }
+    .cp-av.b { background: var(--gold-dim); border: 1px solid var(--gold-border); }
+    .cp-av.b svg { width: 17px; height: 17px; fill: var(--gold); }
+
+    .cp-info { flex: 1; }
+    .cp-name { font-size: 13px; font-weight: 600; color: var(--text); display: block; } /* FIX: explicit color */
+    .cp-num { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
+    .cp-role { display: inline-block; font-size: 9px; font-weight: 600; color: var(--gold); background: var(--gold-dim); border: 1px solid var(--gold-border); border-radius: 4px; padding: 1px 6px; margin-top: 3px; letter-spacing: .3px; }
+    .cp-wa svg { width: 14px; height: 14px; fill: var(--green); }
+
+    /* QRIS / donation */
+    .qris-section { margin-top: 13px; }
+    .qris-row { display: flex; gap: 12px; }
+    .qris-img { width: 108px; flex-shrink: 0; background: #fff; border-radius: 12px; padding: 6px; display: flex; align-items: center; justify-content: center; }
+    .qris-img img { width: 96px; height: 96px; object-fit: contain; }
+    .bank-stack { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .bank-card { background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.06); border-radius: 11px; padding: 10px 12px; }
+    .bank-label { font-size: 10px; font-weight: 700; color: var(--gold); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 3px; }
+    .bank-num { font-family: monospace; font-size: 12.5px; font-weight: 600; color: var(--text); letter-spacing: .5px; }
+    .bank-holder { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+    .qris-note { font-size: 10.5px; color: var(--muted); line-height: 1.5; background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.06); border-radius: 8px; padding: 7px 10px; margin-top: 6px; }
+
+    .divr { height: 1px; background: rgba(255,255,255,.05); margin: 14px 0 10px; }
+    .subsect { font-size: 9px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center; margin-top: 40px;
+      font-size: 10px; color: rgba(240,232,216,.15);
+      letter-spacing: .5px;
+    }
+    .footer strong { color: rgba(201,168,76,.3); font-weight: 500; }
+  </style>
 </head>
+
 <body>
 <div class="page">
 
-<!-- HEADER -->
-<div class="header">
-  <div class="logo-wrap">
-    <div class="logo-inner">
-      <!-- LOGO: ganti dengan <img src="logo-uk3.png" style="width:100%;height:100%;object-fit:contain;padding:10px;filter:brightness(0)invert(1)"> -->
-      <span class="logo-fb">UK3</span>
-    </div>
-  </div>
-  <div class="org-name">UK3 UTM</div>
-  <div class="org-sub">Unit Kegiatan Kerohanian Kristen</div>
-  <div class="hline"></div>
-</div>
-
-<!-- SOCIALS: 4 ikon (IG, FB, TikTok, YT) -->
-<div class="socials">
-  <div class="soc-grid">
-    <a href="https://www.instagram.com/km.uk3.utm/" target="_blank" class="soc-item">
-      <div class="soc-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+  <!-- HEADER -->
+  <div class="header rise-1">
+    <div class="logo-ring">
+      <div class="logo-inner">
+        <img src="logo-uk3.png" alt="Logo UK3 UTM" />
       </div>
-      <span class="soc-un">@km.uk3.utm</span>
+    </div>
+    <div class="org-name">UK3 <span>UTM</span></div>
+    <div class="org-tagline">Unit Kegiatan Kerohanian Kristen</div>
+    <div class="divider"></div>
+  </div>
+
+  <!-- SOCIALS -->
+  <div class="socials rise-2">
+    <div class="soc-strip">
+      <a href="https://www.instagram.com/km.uk3.utm/" target="_blank" class="soc-item">
+        <div class="soc-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+        </div>
+        <span class="soc-label">Instagram</span>
+      </a>
+      <a href="https://www.facebook.com/sekret.pelayan/" target="_blank" class="soc-item">
+        <div class="soc-icon">
+          <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </div>
+        <span class="soc-label">Facebook</span>
+      </a>
+      <a href="https://www.tiktok.com/@uk3utm" target="_blank" class="soc-item">
+        <div class="soc-icon">
+          <svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+        </div>
+        <span class="soc-label">TikTok</span>
+      </a>
+      <a href="https://www.youtube.com/channel/UClEp5tDx6hJgTuuolPNEq5w" target="_blank" class="soc-item">
+        <div class="soc-icon">
+          <svg viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+        </div>
+        <span class="soc-label">YouTube</span>
+      </a>
+      <a href="mailto:uk3utm@email.com" class="soc-item">
+        <div class="soc-icon">
+          <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        </div>
+        <span class="soc-label">Email</span>
+      </a>
+    </div>
+
+    <a href="https://wa.me/6282244760047?text=Halo%20UK3%20UTM!" target="_blank" class="wa-btn">
+      <div class="wa-dot">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      </div>
+      <div class="wa-txt">
+        <span class="wa-name">Asep</span>
+        <span class="wa-num">+62 822-4476-0047</span>
+      </div>
+      <div class="wa-arr"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
     </a>
-    <a href="https://www.facebook.com/sekret.pelayan/" target="_blank" class="soc-item">
-      <div class="soc-icon">
-        <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-      </div>
-      <span class="soc-un">sekret.pelayan</span>
-    </a>
-    <a href="https://www.tiktok.com/@uk3utm" target="_blank" class="soc-item">
-      <div class="soc-icon">
-        <svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
-      </div>
-      <span class="soc-un">@uk3utm</span>
-    </a>
-    <a href="https://www.youtube.com/channel/UClEp5tDx6hJgTuuolPNEq5w" target="_blank" class="soc-item">
-      <div class="soc-icon">
-        <svg viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-      </div>
-      <span class="soc-un">UK3 UTM</span>
-    </a>
   </div>
 
-  <!-- CP WHATSAPP — menggantikan baris email -->
-  <a href="https://wa.me/6282244760047?text=Halo%20UK3%20UTM!%20Ada%20yang%20ingin%20saya%20tanyakan%20%F0%9F%98%8A" target="_blank" class="wa-row">
-    <div class="wa-av">
-      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-    </div>
-    <div class="wa-info">
-      <span class="wa-name">Asep</span>
-      <span class="wa-num">+62 822-4476-0047</span>
-      <span class="wa-tag">CP Utama UK3</span>
-    </div>
-    <div class="wa-arr">
-      <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-    </div>
-  </a>
-</div>
+  <!-- ACCORDION SECTIONS -->
+  <div class="s-head rise-3">Informasi</div>
+  <div class="accordion rise-3">
 
-<!-- ACCORDION SECTIONS -->
-<div class="sections">
-
-  <!-- 1. TENTANG UK3 -->
-  <div class="acc" id="a-tentang">
-    <button class="acc-btn" onclick="tog('tentang')">
-      <div class="acc-ibox">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
-      </div>
-      <div class="acc-meta">
-        <span class="acc-title">Tentang UK3</span>
-        <span class="acc-sub">Siapa kami & apa yang kami lakukan</span>
-      </div>
-      <div class="acc-chev"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
-    </button>
-    <div class="acc-body" id="b-tentang">
-      <div class="acc-content">
-        <p class="btext"><span class="hl">Unit Kegiatan Kerohanian Kristen (UK3)</span> adalah organisasi kemahasiswaan Kristen resmi di <span class="hl">Universitas Trunojoyo Madura (UTM)</span> — wadah persekutuan, pertumbuhan iman, dan pelayanan bagi seluruh mahasiswa Kristiani.</p>
-        <div class="chips">
-          <span class="chip">UTM Madura</span>
-          <span class="chip">Iman &amp; Kasih</span>
-          <span class="chip">Pelayanan</span>
-          <span class="chip">Mahasiswa</span>
+    <!-- 1. TENTANG -->
+    <div class="acc" id="a-tentang">
+      <button class="acc-trigger" onclick="tog('tentang')">
+        <div class="acc-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></div>
+        <div class="acc-labels">
+          <span class="acc-title">Tentang UK3</span>
+          <span class="acc-sub">Siapa kami, visi &amp; misi</span>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 2. PD REVIVE -->
-  <div class="acc" id="a-revive">
-    <button class="acc-btn" onclick="tog('revive')">
-      <div class="acc-ibox">
-        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-      </div>
-      <div class="acc-meta">
-        <span class="acc-title">PD Revive</span>
-        <span class="acc-sub">Ibadah rutin setiap Senin</span>
-      </div>
-      <div class="acc-chev"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
-    </button>
-    <div class="acc-body" id="b-revive">
-      <div class="acc-content">
-        <p class="btext"><span class="hl">REVIVE</span> — <em>membangkitkan kembali</em>. Sebuah panggilan untuk memperbarui semangat dan kerinduan kepada Tuhan di tengah kesibukan kampus.</p>
-        <div class="rcards">
-          <div class="rcard">
-            <div class="rcard-header">
-              <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-              <span class="rcard-l">Kelompok Besar</span>
+        <div class="acc-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
+      </button>
+      <div class="acc-body" id="b-tentang">
+        <div class="acc-body-inner">
+          <div class="acc-content">
+            <p class="body-text">
+              <span class="hl">Unit Kegiatan Kerohanian Kristen (UK3)</span> adalah organisasi kemahasiswaan Kristen resmi di
+              <span class="hl">Universitas Trunojoyo Madura (UTM)</span> — wadah persekutuan, pertumbuhan iman, dan pelayanan bagi seluruh mahasiswa Kristen.
+            </p>
+            <div class="tags">
+              <span class="tag">UTM Madura</span>
+              <span class="tag">Iman &amp; Kasih</span>
+              <span class="tag">Pelayanan</span>
+              <span class="tag">Mahasiswa</span>
             </div>
-            <div class="rcard-t">Ibadah bersama seluruh anggota UK3 — pujian, penyembahan &amp; Firman Tuhan.</div>
-          </div>
-          <div class="rcard">
-            <div class="rcard-header">
-              <svg viewBox="0 0 24 24"><path d="M12 12.75c1.63 0 3.07.39 4.24.9 1.08.48 1.76 1.56 1.76 2.73V18H6v-1.61c0-1.18.68-2.26 1.76-2.73 1.17-.52 2.61-.91 4.24-.91zM4 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm1.13 1.1c-.37-.06-.74-.1-1.13-.1-.99 0-1.93.21-2.78.58C.48 14.9 0 15.62 0 16.43V18h4.5v-1.61c0-.83.23-1.61.63-2.29zM20 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm4 3.43c0-.81-.48-1.53-1.22-1.85A6.95 6.95 0 0 0 20 14c-.39 0-.76.04-1.13.1.4.68.63 1.46.63 2.29V18H24v-1.57zM12 6c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/></svg>
-              <span class="rcard-l">Kelompok Kecil</span>
-            </div>
-            <div class="rcard-t">Pemuridan &amp; pendalaman iman dalam kelompok kecil yang hangat &amp; intim.</div>
-          </div>
-        </div>
-        <div class="irow">
-          <div class="irow-ico">
-            <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-          </div>
-          <div>
-            <div class="irow-t">Setiap Hari Senin</div>
-            <div class="irow-s">Cek Instagram untuk info lokasi &amp; jam terbaru</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. PRAYER REQUEST -->
-  <div class="acc" id="a-prayer">
-    <button class="acc-btn" onclick="tog('prayer')">
-      <div class="acc-ibox">
-        <svg viewBox="0 0 24 24"><path d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.34 8-7 8-11.5C20 5.81 16.19 2 11.5 2zm1 14.5h-2v-2h2v2zm0-4h-2c0-3.25 3-3 3-5 0-1.1-.9-2-2-2s-2 .9-2 2h-2c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.5-3 2.75-3 5z"/></svg>
-      </div>
-      <div class="acc-meta">
-        <span class="acc-title">Prayer Request</span>
-        <span class="acc-sub">Kirim pokok doamu kepada kami</span>
-      </div>
-      <div class="acc-chev"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
-    </button>
-    <div class="acc-body" id="b-prayer">
-      <div class="acc-content">
-        <p class="btext">Kami percaya doa adalah kuasa. Bagikan pergumulan &amp; pokok doamu — kami akan mendoakanmu dengan sepenuh hati.</p>
-        <div class="action-block">
-          <div class="qr-link-row">
-            <div class="qrbox">
-              <!-- Ganti dengan: <img src="qr-prayer.png" style="width:100%;height:100%;object-fit:contain"> -->
-              <div class="qrph">
-                <svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13 1h-3v-3h-2v5h5v-5h-2v3zm-2 4h2v2h-2v-2zm2-2h2v2h-2v-2z"/></svg>
-                QR Form
-              </div>
-            </div>
-            <div class="link-col">
-              <!-- Ganti href="#" dengan link Google Form prayer request -->
-              <a href="#" target="_blank" class="lbtn">
-                <div class="lbtn-ic ic-blue"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg></div>
-                <div class="lbtn-t"><span class="lbtn-ti">Buka Google Form</span><span class="lbtn-su">Isi prayer request online</span></div>
-                <div class="lbtn-ar"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
-              </a>
-              <a href="https://wa.me/6282244760047?text=Halo%20UK3!%20Saya%20ingin%20mengirim%20prayer%20request" target="_blank" class="lbtn">
-                <div class="lbtn-ic ic-green"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
-                <div class="lbtn-t"><span class="lbtn-ti">Via WhatsApp</span><span class="lbtn-su">Asep · +62 822-4476-0047</span></div>
-                <div class="lbtn-ar"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. BERPELAYANAN -->
-  <div class="acc" id="a-pelayan">
-    <button class="acc-btn" onclick="tog('pelayan')">
-      <div class="acc-ibox">
-        <svg viewBox="0 0 24 24"><path d="M16.5 6.5c0 1.5-1 2.8-2.4 3.3L16.5 21l-4.5-2-4.5 2 2.4-11.2C8.5 9.3 7.5 8 7.5 6.5 7.5 4.6 9.1 3 11 3h2c1.9 0 3.5 1.6 3.5 3.5zM12 5c-.8 0-1.5.7-1.5 1.5S11.2 8 12 8s1.5-.7 1.5-1.5S12.8 5 12 5z"/></svg>
-      </div>
-      <div class="acc-meta">
-        <span class="acc-title">Ingin Berpelayanan?</span>
-        <span class="acc-sub">Bergabung &amp; wujudkan panggilanmu</span>
-      </div>
-      <div class="acc-chev"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
-    </button>
-    <div class="acc-body" id="b-pelayan">
-      <div class="acc-content">
-        <p class="btext">Jadilah bagian dari gerakan pelayanan UK3! Kami terbuka bagi semua mahasiswa Kristiani yang ingin melayani dan bertumbuh bersama.</p>
-        <div class="action-block">
-          <div class="qr-link-row">
-            <div class="qrbox">
-              <!-- Ganti dengan: <img src="qr-pelayanan.png" style="width:100%;height:100%;object-fit:contain"> -->
-              <div class="qrph">
-                <svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13 1h-3v-3h-2v5h5v-5h-2v3zm-2 4h2v2h-2v-2zm2-2h2v2h-2v-2z"/></svg>
-                QR Form
-              </div>
-            </div>
-            <div class="link-col">
-              <!-- Ganti href="#" dengan link Google Form pelayanan -->
-              <a href="#" target="_blank" class="lbtn">
-                <div class="lbtn-ic ic-blue"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg></div>
-                <div class="lbtn-t"><span class="lbtn-ti">Buka Google Form</span><span class="lbtn-su">Daftar pelayanan online</span></div>
-                <div class="lbtn-ar"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
-              </a>
-            </div>
-          </div>
-          <div class="cplist">
-            <a href="https://wa.me/6282244760047?text=Halo!%20Saya%20ingin%20bergabung%20berpelayanan%20di%20UK3" target="_blank" class="cpbtn">
-              <div class="cpav g"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
-              <div class="cpi"><span class="cp-n">Asep</span><span class="cp-p">+62 822-4476-0047</span><span class="cp-r">Koordinator Pelayanan</span></div>
-              <div class="cp-arr"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
-            </a>
-            <!-- CP 2 PLACEHOLDER — ganti nama, nomor & href wa.me -->
-            <a href="https://wa.me/62XXXXXXXXXX?text=Halo!%20Saya%20ingin%20bergabung%20berpelayanan%20di%20UK3" target="_blank" class="cpbtn">
-              <div class="cpav b"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
-              <div class="cpi"><span class="cp-n">[Nama CP 2]</span><span class="cp-p">+62 XXX-XXXX-XXXX</span><span class="cp-r">Koordinator Pelayanan</span></div>
-              <div class="cp-arr"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 5. AKSI KASIH -->
-  <div class="acc" id="a-kasih">
-    <button class="acc-btn" onclick="tog('kasih')">
-      <div class="acc-ibox">
-        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-      </div>
-      <div class="acc-meta">
-        <span class="acc-title">Aksi Kasih</span>
-        <span class="acc-sub">Berikan kasih yang nyata</span>
-      </div>
-      <div class="acc-chev"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
-    </button>
-    <div class="acc-body" id="b-kasih">
-      <div class="acc-content">
-        <p class="btext"><span class="hl">Aksi Kasih</span> adalah program nyata UK3 untuk menjangkau sesama — melalui donasi, pelayanan sosial, dan kepedulian kepada lingkungan sekitar. Setiap kontribusimu adalah wujud kasih yang hidup.</p>
-
-        <!-- TAB PILIH METODE -->
-        <div class="pay-tabs">
-          <button class="pay-tab active" onclick="switchTab('bri')">
-            <svg viewBox="0 0 24 24"><path d="M4 10h3v7H4zm6.5 0h3v7h-3zM2 19h20v3H2zm15-9h3v7h-3zM12 1L2 6v2h20V6z"/></svg>
-            BRI
-          </button>
-          <button class="pay-tab" onclick="switchTab('dana')">
-            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
-            DANA
-          </button>
-        </div>
-
-        <!-- PANEL BRI -->
-        <div class="pay-panel active" id="panel-bri">
-          <div class="pay-qr-row">
-            <div class="pay-qr-box">
-              <!-- Ganti dengan: <img src="qr-bri.png" style="width:100%;height:100%;object-fit:contain"> -->
-              <div class="qrph" style="min-height:86px">
-                <svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13 1h-3v-3h-2v5h5v-5h-2v3zm-2 4h2v2h-2v-2zm2-2h2v2h-2v-2z"/></svg>
-                QR BRI
-              </div>
-            </div>
-            <div class="pay-qr-info">
-              <div class="bankcard">
-                <div class="bk-row">
-                  <div class="bk-ico bri"><svg viewBox="0 0 24 24"><path d="M4 10h3v7H4zm6.5 0h3v7h-3zM2 19h20v3H2zm15-9h3v7h-3zM12 1L2 6v2h20V6z"/></svg></div>
-                  <span class="bk-label">BRI</span>
+            <div class="vm-stack">
+              <div class="vm-card">
+                <div class="vm-badge">
+                  <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+                  <span>Visi</span>
                 </div>
-                <!-- Ganti XXXX dan nama pemegang -->
-                <div class="bk-acc">XXXX-XXXX-XXXX</div>
-                <div class="bk-holder">a.n. [Nama Pemegang]</div>
+                <p class="vm-text">Membina karakter setiap mahasiswa Kristen UTM melalui persekutuan dan pelayanan untuk menjadi saksi-saksi Kristus sebagai Penggenapan Amanat Agung.</p>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- PANEL DANA -->
-        <div class="pay-panel" id="panel-dana">
-          <div class="pay-qr-row">
-            <div class="pay-qr-box">
-              <!-- Ganti dengan: <img src="qr-dana.png" style="width:100%;height:100%;object-fit:contain"> -->
-              <div class="qrph" style="min-height:86px">
-                <svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13 1h-3v-3h-2v5h5v-5h-2v3zm-2 4h2v2h-2v-2zm2-2h2v2h-2v-2z"/></svg>
-                QR DANA
-              </div>
-            </div>
-            <div class="pay-qr-info">
-              <div class="bankcard">
-                <div class="bk-row">
-                  <div class="bk-ico dana"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></div>
-                  <span class="bk-label">DANA</span>
+              <div class="vm-card">
+                <div class="vm-badge">
+                  <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                  <span>Misi</span>
                 </div>
-                <!-- Ganti nomor dan nama pemegang -->
-                <div class="bk-acc">+62 XXX-XXXX-XXXX</div>
-                <div class="bk-holder">a.n. [Nama Pemegang]</div>
+                <ul class="vm-list">
+                  <li>Membina setiap anggota untuk membangun hubungan pribadi dengan Tuhan melalui pengajaran dan pemuridan.</li>
+                  <li>Membina setiap anggota untuk memberikan pelayanan kasih di sekelilingnya.</li>
+                  <li>Membangun organisatoris yang tertib, handal dan bertanggung jawab pada Tuhan dan organisasi.</li>
+                </ul>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="divr"></div>
-        <div class="sect-label">Konfirmasi &amp; Info</div>
-        <a href="https://wa.me/6282244760047?text=Halo%20UK3!%20Saya%20ingin%20berdonasi%20Aksi%20Kasih" target="_blank" class="cpbtn">
-          <div class="cpav g"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
-          <div class="cpi"><span class="cp-n">Asep</span><span class="cp-p">+62 822-4476-0047</span><span class="cp-r">CP Aksi Kasih</span></div>
-          <div class="cp-arr"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- 6. UK3 KONSELING -->
-  <div class="acc" id="a-konseling">
-    <button class="acc-btn" onclick="tog('konseling')">
-      <div class="acc-ibox">
-        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/></svg>
-      </div>
-      <div class="acc-meta">
-        <span class="acc-title">UK3 Konseling</span>
-        <span class="acc-sub">Ceritakan, kami siap mendengar</span>
-      </div>
-      <div class="acc-chev"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
-    </button>
-    <div class="acc-body" id="b-konseling">
-      <div class="acc-content">
-        <p class="btext"><span class="hl">UK3 Konseling</span> hadir sebagai ruang aman bagi kamu yang ingin berbagi, bercerita, atau mencari dukungan. Semua percakapan dijaga dengan penuh kepercayaan &amp; kasih.</p>
-        <div class="action-block">
-          <div class="qr-link-row">
-            <div class="qrbox">
-              <!-- Ganti dengan: <img src="qr-konseling.png" style="width:100%;height:100%;object-fit:contain"> -->
-              <div class="qrph">
-                <svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13 1h-3v-3h-2v5h5v-5h-2v3zm-2 4h2v2h-2v-2zm2-2h2v2h-2v-2z"/></svg>
-                QR Form
-              </div>
-            </div>
-            <div class="link-col">
-              <!-- Ganti href="#" dengan link Google Form konseling -->
-              <a href="#" target="_blank" class="lbtn">
-                <div class="lbtn-ic ic-blue"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg></div>
-                <div class="lbtn-t"><span class="lbtn-ti">Buka Google Form</span><span class="lbtn-su">Formulir konseling online</span></div>
-                <div class="lbtn-ar"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
-              </a>
-              <a href="https://wa.me/6282244760047?text=Halo%20UK3!%20Saya%20ingin%20menggunakan%20layanan%20konseling" target="_blank" class="lbtn">
-                <div class="lbtn-ic ic-green"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
-                <div class="lbtn-t"><span class="lbtn-ti">Via WhatsApp</span><span class="lbtn-su">Asep · +62 822-4476-0047</span></div>
-                <div class="lbtn-ar"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
-              </a>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-</div><!-- /sections -->
+    <!-- 2. PD REVIVE -->
+    <div class="acc" id="a-revive">
+      <button class="acc-trigger" onclick="tog('revive')">
+        <div class="acc-icon"><svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div>
+        <div class="acc-labels">
+          <span class="acc-title">PD Revive</span>
+          <span class="acc-sub">Ibadah rutin setiap Senin</span>
+        </div>
+        <div class="acc-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
+      </button>
+      <div class="acc-body" id="b-revive">
+        <div class="acc-body-inner">
+          <div class="acc-content">
+            <p class="body-text"><span class="hl">REVIVE</span> — membangkitkan kembali semangat dan kerinduan kepada Tuhan di tengah kesibukan kampus.</p>
+            <div class="r2col">
+              <div class="rcard">
+                <div class="rcard-head">
+                  <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                  <span class="rcard-title">Kelompok Besar</span>
+                </div>
+                <div class="rcard-body">Ibadah bersama seluruh anggota — pujian, penyembahan &amp; Firman Tuhan.</div>
+              </div>
+              <div class="rcard">
+                <div class="rcard-head">
+                  <svg viewBox="0 0 24 24"><path d="M12 12.75c1.63 0 3.07.39 4.24.9 1.08.48 1.76 1.56 1.76 2.73V18H6v-1.61c0-1.18.68-2.26 1.76-2.73A9.04 9.04 0 0 1 12 12.75zM12 6c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/></svg>
+                  <span class="rcard-title">Kelompok Kecil</span>
+                </div>
+                <div class="rcard-body">Pemuridan &amp; pendalaman iman dalam kelompok kecil bersama kakak bimbing.</div>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-row-ic"><svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div>
+              <div>
+                <div class="info-row-t">Setiap Hari Senin</div>
+                <div class="info-row-s">Cek update terbaru untuk info lokasi &amp; jam</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<div class="footer">Made with care · <b>UK3 UTM</b> · Universitas Trunojoyo Madura</div>
-</div>
+    <!-- 3. PRAYER REQUEST -->
+    <div class="acc" id="a-prayer">
+      <button class="acc-trigger" onclick="tog('prayer')">
+        <div class="acc-icon"><svg viewBox="0 0 24 24"><path d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.34 8-7 8-11.5C20 5.81 16.19 2 11.5 2zm1 14.5h-2v-2h2v2zm0-4h-2c0-3.25 3-3 3-5 0-1.1-.9-2-2-2s-2 .9-2 2h-2c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.5-3 2.75-3 5z"/></svg></div>
+        <div class="acc-labels">
+          <span class="acc-title">Prayer Request</span>
+          <span class="acc-sub">Bagikan pergumulanmu, kami doakan</span>
+        </div>
+        <div class="acc-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
+      </button>
+      <div class="acc-body" id="b-prayer">
+        <div class="acc-body-inner">
+          <div class="acc-content">
+            <p class="body-text">Kami percaya doa adalah kuasa. Bagikan pergumulan &amp; pokok doamu — kami akan mendoakanmu dengan sepenuh hati.</p>
+            <div class="form-block">
+              <div class="form-row">
+                <div class="qr-frame"><img src="qr-prayer.jpeg" alt="QR Prayer Request" /></div>
+                <a href="#" target="_blank" class="form-link">
+                  <div class="form-link-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg></div>
+                  <div class="form-link-t">
+                    <span class="form-link-name">Buka Google Form</span>
+                    <span class="form-link-hint">Isi prayer request online</span>
+                  </div>
+                  <div class="form-link-arr"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<!-- WA FAB -->
-<a href="https://wa.me/6282244760047?text=Halo%20UK3%20UTM!%20Ada%20yang%20ingin%20saya%20tanyakan" target="_blank" class="wafab">
-  <div class="wafab-btn">
-    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-  </div>
-</a>
+    <!-- 4. PELAYANAN -->
+    <div class="acc" id="a-pelayan">
+      <button class="acc-trigger" onclick="tog('pelayan')">
+        <div class="acc-icon"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+        <div class="acc-labels">
+          <span class="acc-title">Ingin Berpelayanan?</span>
+          <span class="acc-sub">Bergabung &amp; wujudkan panggilanmu</span>
+        </div>
+        <div class="acc-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
+      </button>
+      <div class="acc-body" id="b-pelayan">
+        <div class="acc-body-inner">
+          <div class="acc-content">
+            <p class="body-text">Jadilah bagian dari gerakan pelayanan UK3! Terbuka bagi semua mahasiswa Kristiani yang ingin melayani dan bertumbuh bersama.</p>
+            <div class="form-block">
+              <div class="form-row">
+                <div class="qr-frame"><img src="qr-pelayan.jpeg" alt="QR Pelayanan" /></div>
+                <a href="#" target="_blank" class="form-link">
+                  <div class="form-link-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg></div>
+                  <div class="form-link-t">
+                    <span class="form-link-name">Buka Google Form</span>
+                    <span class="form-link-hint">Daftar pelayanan online</span>
+                  </div>
+                  <div class="form-link-arr"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
+                </a>
+              </div>
+              <div class="cp-list">
+                <a href="https://wa.me/6282236989390?text=Halo!%20Saya%20ingin%20bergabung%20berpelayanan%20di%20UK3" target="_blank" class="cp-btn">
+                  <div class="cp-av g"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+                  <div class="cp-info">
+                    <span class="cp-name">Arjun</span>
+                    <span class="cp-num">+62 822-3698-9390</span>
+                    <span class="cp-role">Koordinator Pelayanan</span>
+                  </div>
+                  <div class="cp-wa"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+                </a>
+                <a href="https://wa.me/6282267438601?text=Halo!%20Saya%20ingin%20bergabung%20berpelayanan%20di%20UK3" target="_blank" class="cp-btn">
+                  <div class="cp-av b"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+                  <div class="cp-info">
+                    <span class="cp-name">Nurhayani</span>
+                    <span class="cp-num">+62 822-6743-8601</span>
+                    <span class="cp-role">Koordinator Pelayanan</span>
+                  </div>
+                  <div class="cp-wa"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. AKSI KASIH -->
+    <div class="acc" id="a-kasih">
+      <button class="acc-trigger" onclick="tog('kasih')">
+        <div class="acc-icon"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+        <div class="acc-labels">
+          <span class="acc-title">Aksi Kasih</span>
+          <span class="acc-sub">Berikan kasih yang nyata</span>
+        </div>
+        <div class="acc-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
+      </button>
+      <div class="acc-body" id="b-kasih">
+        <div class="acc-body-inner">
+          <div class="acc-content">
+            <p class="body-text"><span class="hl">Aksi Kasih</span> adalah program nyata UK3 untuk menjangkau sesama melalui donasi, pelayanan sosial, dan kepedulian kepada lingkungan sekitar.</p>
+            <div class="qris-section">
+              <div class="qris-row">
+                <div class="qris-img"><img src="qris-uk3.jpeg" alt="QRIS" /></div>
+                <div class="bank-stack">
+                  <div class="bank-card">
+                    <div class="bank-label">BRI</div>
+                    <div class="bank-num">624901019687532</div>
+                    <div class="bank-holder">a.n. Imelda Novena</div>
+                  </div>
+                  <div class="bank-card">
+                    <div class="bank-label">DANA</div>
+                    <div class="bank-num">087756538895</div>
+                    <div class="bank-holder">a.n. Imelda Novena</div>
+                  </div>
+                </div>
+              </div>
+              <div class="qris-note">Scan QRIS atau transfer langsung via BRI / DANA di atas.</div>
+            </div>
+            <div class="divr"></div>
+            <div class="subsect">Konfirmasi &amp; Info</div>
+            <div class="cp-list">
+              <a href="https://wa.me/6282244760047?text=Halo%20UK3!%20Saya%20ingin%20berdonasi%20Aksi%20Kasih" target="_blank" class="cp-btn">
+                <div class="cp-av g"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+                <div class="cp-info">
+                  <span class="cp-name">Asep</span>
+                  <span class="cp-num">+62 822-4476-0047</span>
+                  <span class="cp-role">CP Aksi Kasih</span>
+                </div>
+                <div class="cp-wa"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. KONSELING -->
+    <div class="acc" id="a-konseling">
+      <button class="acc-trigger" onclick="tog('konseling')">
+        <div class="acc-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/></svg></div>
+        <div class="acc-labels">
+          <span class="acc-title">UK3 Konseling</span>
+          <span class="acc-sub">Ceritakan, kami siap mendengar</span>
+        </div>
+        <div class="acc-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
+      </button>
+      <div class="acc-body" id="b-konseling">
+        <div class="acc-body-inner">
+          <div class="acc-content">
+            <p class="body-text"><span class="hl">UK3 Konseling</span> hadir sebagai ruang aman bagi kamu yang ingin berbagi, bercerita, atau mencari dukungan. Semua percakapan dijaga penuh kepercayaan &amp; kasih.</p>
+            <div class="form-block">
+              <div class="form-row">
+                <div class="qr-frame"><img src="qr-konseling.jpeg" alt="QR Konseling" /></div>
+                <a href="https://bit.ly/UKM_Uk3_KONSELING_2026" target="_blank" class="form-link">
+                  <div class="form-link-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg></div>
+                  <div class="form-link-t">
+                    <span class="form-link-name">Buka Google Form</span>
+                    <span class="form-link-hint">Formulir konseling online</span>
+                  </div>
+                  <div class="form-link-arr"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /accordion -->
+
+  <div class="footer">Made with care · <strong>UK3 UTM</strong> · Universitas Trunojoyo Madura</div>
+
+</div><!-- /page -->
 
 <script>
-function tog(id){
-  const item=document.getElementById('a-'+id);
-  const body=document.getElementById('b-'+id);
-  const wasOpen=item.classList.contains('open');
-  document.querySelectorAll('.acc').forEach(el=>el.classList.remove('open'));
-  document.querySelectorAll('.acc-body').forEach(el=>{el.style.maxHeight=null});
-  if(!wasOpen){
-    item.classList.add('open');
-    body.style.maxHeight=body.scrollHeight+'px';
-  }
-}
+  function tog(id) {
+    const item = document.getElementById('a-' + id);
+    const wasOpen = item.classList.contains('open');
 
-function switchTab(method){
-  document.querySelectorAll('.pay-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.pay-panel').forEach(p=>p.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-  document.getElementById('panel-'+method).classList.add('active');
-  // Re-adjust accordion height
-  const openBody=document.querySelector('.acc.open .acc-body');
-  if(openBody) openBody.style.maxHeight=openBody.scrollHeight+'px';
-}
+    // Close all
+    document.querySelectorAll('.acc').forEach(el => el.classList.remove('open'));
+
+    // Open clicked one if it was closed
+    if (!wasOpen) {
+      item.classList.add('open');
+    }
+  }
 </script>
 </body>
 </html>
