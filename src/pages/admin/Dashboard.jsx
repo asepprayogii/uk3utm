@@ -105,6 +105,14 @@ export default function Dashboard() {
       statLabel: "mahasiswa",
     },
     {
+      label: "Kakak Bimbing",
+      desc: "Kelola data kakak bimbing per angkatan",
+      path: "/admin/kakak-bimbing",
+      roles: ["bph", "pembinaan"],
+      stat: "",
+      statLabel: "kakak bimbing",
+    },
+    {
       label: "Lokasi PD",
       desc: "Kelola zona lokasi Persekutuan Doa dengan peta interaktif",
       path: "/admin/lokasi",

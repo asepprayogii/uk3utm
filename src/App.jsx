@@ -24,6 +24,7 @@ import ManageLocations from "./pages/admin/ManageLocations";
 import ManageServices from "./pages/admin/ManageServices";
 import ManageAlbum from "./pages/admin/ManageAlbum";
 import ManageStudents from "./pages/admin/ManageStudents";
+import ManageMentors from "./pages/admin/ManageMentors";
 
 export default function App() {
   return (
@@ -95,6 +96,14 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={["bph", "pembinaan"]}>
               <ManageStudents />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/kakak-bimbing"
+          element={
+            <ProtectedRoute allowedRoles={["bph", "pembinaan"]}>
+              <ManageMentors />
             </ProtectedRoute>
           }
         />
