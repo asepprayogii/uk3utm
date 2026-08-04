@@ -3,6 +3,25 @@ import { supabase } from '../../lib/supabase'
 import Navbar from '../../components/Navbar'
 
 const DEPARTMENTS = ['Pembinaan', 'Dopiper', 'Penatalayanan', 'Minat Bakat']
+const DIVISIONS = {
+  'Pembinaan': ['Kelompok Besar', 'Kelompok Kecil'],
+  'Dopiper': ['Doa', 'Penginjilan', 'Pemerhati'],
+  'Penatalayanan': ['Infokom', 'Inventaris'],
+  'Minat Bakat': ['Creative Ministry', 'Musik', 'Olahraga'],
+}
+
+const BPH_ORDER = ['Ketua', 'Wakil Ketua', 'Sekretaris', 'Bendahara']
+
+function getAutoOrder(position, department, is_kadep) {
+  if (department === 'Pembina') return 0
+  if (department === 'Pembimbing') return 1
+  if (department === 'BPH') {
+    const idx = BPH_ORDER.findIndex(p => position.toLowerCase().includes(p.toLowerCase()))
+    return idx >= 0 ? 10 + idx : 14
+  }
+  if (is_kadep) return 20
+  return 30
+}
 
 export default function Kepengurusan() {
   const [committee, setCommittee] = useState([])
@@ -10,12 +29,14 @@ export default function Kepengurusan() {
 
   useEffect(() => {
     async function fetchData() {
-      const { data } = await supabase
-        .from('committee')
-        .select('*')
-        .order('level')
-        .order('order_index')
-      setCommittee(data ?? [])
+      const { data } = await supabase.from('committee').select('*')
+      const sorted = (data ?? []).sort((a, b) => {
+        const oA = getAutoOrder(a.position, a.department, a.is_kadep)
+        const oB = getAutoOrder(b.position, b.department, b.is_kadep)
+        if (oA !== oB) return oA - oB
+        return a.name.localeCompare(b.name)
+      })
+      setCommittee(sorted)
       setLoading(false)
     }
     fetchData()
@@ -25,71 +46,88 @@ export default function Kepengurusan() {
   const pembimbing = committee.filter(c => c.department === 'Pembimbing')
   const bph = committee.filter(c => c.department === 'BPH')
   const byDept = Object.fromEntries(
-    DEPARTMENTS.map(d => [d, committee.filter(c => c.department === d)])
+    DEPARTMENTS.map(dept => {
+      const members = committee.filter(c => c.department === dept)
+      const kadep = members.find(m => m.is_kadep)
+      const byDiv = Object.fromEntries(
+        (DIVISIONS[dept] ?? []).map(div => [
+          div, members.filter(m => !m.is_kadep && m.division === div)
+        ])
+      )
+      return [dept, { kadep, byDiv, members }]
+    })
   )
 
   function Avatar({ member, size = 'md' }) {
     const sz = {
       xl: 'w-24 h-24 text-3xl',
       lg: 'w-20 h-20 text-2xl',
-      md: 'w-14 h-14 text-lg',
+      md: 'w-16 h-16 text-xl',
       sm: 'w-12 h-12 text-base',
-    }[size] ?? 'w-14 h-14 text-lg'
-
+      xs: 'w-10 h-10 text-sm',
+    }[size]
     return member.photo_url ? (
       <img src={member.photo_url} alt={member.name}
-        className={`${sz} rounded-full object-cover mx-auto border-2 border-[#C9A84C]/30`} />
+        className={`${sz} rounded-full object-cover border-2 border-[#C9A84C]/30 flex-shrink-0`} />
     ) : (
-      <div className={`${sz} rounded-full bg-[#C9A84C]/20 border-2 border-[#C9A84C]/30 flex items-center justify-center mx-auto`}>
+      <div className={`${sz} rounded-full bg-[#C9A84C]/20 border-2 border-[#C9A84C]/30 flex items-center justify-center flex-shrink-0`}>
         <span className="text-[#C9A84C] font-bold">{member.name[0]}</span>
       </div>
     )
   }
 
-  function Card({ member, size = 'md', badge }) {
+  // Card untuk BPH — tampil besar di tengah
+  function BPHCard({ member }) {
     return (
-      <div className="text-center p-4 rounded-2xl border border-[#C9A84C]/20 bg-[#111827] hover:border-[#C9A84C]/40 transition-all">
-        <Avatar member={member} size={size} />
-        <div className="font-semibold mt-3 mb-0.5 text-sm">{member.name}</div>
-        <div className="text-[#C9A84C] text-xs mb-1">{member.position}</div>
-        {member.division && <div className="text-[#F5F0E8]/30 text-xs">{member.division}</div>}
+      <div className="text-center p-6 rounded-2xl border-2 border-[#C9A84C]/30 bg-[#111827] hover:border-[#C9A84C]/60 transition-all min-w-[150px]">
+        <div className="flex justify-center mb-3">
+          <Avatar member={member} size="lg" />
+        </div>
+        <div className="font-semibold text-sm mb-0.5">{member.name}</div>
+        <div className="text-[#C9A84C] text-xs">{member.position}</div>
+      </div>
+    )
+  }
+
+  // Row untuk departemen — foto kecil di kiri, nama & jabatan di kanan
+  function MemberRow({ member, badge, indent = false }) {
+    return (
+      <div className={`flex items-center gap-3 p-3 rounded-xl border border-[#C9A84C]/10 bg-[#111827] hover:border-[#C9A84C]/25 transition-all ${indent ? 'ml-6' : ''}`}>
+        <Avatar member={member} size="xs" />
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-sm">{member.name}</div>
+          <div className="text-[#C9A84C] text-xs">{member.position}</div>
+        </div>
         {badge && (
-          <div className="mt-2 inline-block text-xs bg-[#C9A84C]/10 text-[#C9A84C] px-2 py-0.5 rounded-full">
+          <span className="text-xs bg-[#C9A84C]/10 text-[#C9A84C] px-2 py-0.5 rounded-full flex-shrink-0">
             {badge}
-          </div>
+          </span>
         )}
+      </div>
+    )
+  }
+
+  function SectionTitle({ label, sub }) {
+    return (
+      <div className="flex items-center gap-4 mb-5">
+        <div className="h-px flex-1 bg-[#C9A84C]/10" />
+        <div className="text-center">
+          <div className="text-xs tracking-widest uppercase px-4 py-1.5 border border-[#C9A84C]/20 text-[#C9A84C] rounded-full bg-[#C9A84C]/5">
+            {label}
+          </div>
+          {sub && <div className="text-[#F5F0E8]/20 text-xs mt-1">{sub}</div>}
+        </div>
+        <div className="h-px flex-1 bg-[#C9A84C]/10" />
       </div>
     )
   }
 
   // Garis konektor vertikal
   function VLine() {
-    return (
-      <div className="flex justify-center my-2">
-        <div className="w-px h-8 bg-[#C9A84C]/30" />
-      </div>
-    )
+    return <div className="flex justify-center my-3"><div className="w-px h-8 bg-[#C9A84C]/20" /></div>
   }
 
-  // Garis konektor horizontal ke beberapa cabang
-  function HBranch({ count }) {
-    if (count <= 1) return <VLine />
-    return (
-      <div className="flex justify-center my-2">
-        <div className="relative w-full max-w-3xl">
-          <div className="w-px h-6 bg-[#C9A84C]/30 mx-auto" />
-          <div className="border-t border-[#C9A84C]/30 mx-8" />
-          <div className="flex justify-between px-8">
-            {Array.from({length: count}).map((_, i) => (
-              <div key={i} className="w-px h-6 bg-[#C9A84C]/30" />
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const activeDepts = DEPARTMENTS.filter(d => (byDept[d] ?? []).length > 0)
+  const activeDepts = DEPARTMENTS.filter(d => byDept[d].members.length > 0)
 
   return (
     <div className="min-h-screen bg-[#080d17] text-[#F5F0E8]">
@@ -109,20 +147,14 @@ export default function Kepengurusan() {
         )}
 
         {!loading && (
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col">
 
             {/* PEMBINA */}
             {pembina.length > 0 && (
               <>
-                <div className="w-full mb-2">
-                  <div className="text-center mb-3">
-                    <span className="text-xs tracking-widest uppercase px-4 py-1.5 border border-[#C9A84C]/20 text-[#C9A84C]/60 rounded-full">
-                      Pembina
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap justify-center gap-4">
-                    {pembina.map(m => <Card key={m.id} member={m} size="md" />)}
-                  </div>
+                <SectionTitle label="Pembina" />
+                <div className="flex flex-wrap justify-center gap-4 mb-4">
+                  {pembina.map(m => <BPHCard key={m.id} member={m} />)}
                 </div>
                 <VLine />
               </>
@@ -131,15 +163,9 @@ export default function Kepengurusan() {
             {/* PEMBIMBING */}
             {pembimbing.length > 0 && (
               <>
-                <div className="w-full mb-2">
-                  <div className="text-center mb-3">
-                    <span className="text-xs tracking-widest uppercase px-4 py-1.5 border border-[#C9A84C]/20 text-[#C9A84C]/60 rounded-full">
-                      Pembimbing
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap justify-center gap-4">
-                    {pembimbing.map(m => <Card key={m.id} member={m} size="md" />)}
-                  </div>
+                <SectionTitle label="Pembimbing" />
+                <div className="flex flex-wrap justify-center gap-4 mb-4">
+                  {pembimbing.map(m => <BPHCard key={m.id} member={m} />)}
                 </div>
                 <VLine />
               </>
@@ -148,85 +174,84 @@ export default function Kepengurusan() {
             {/* BPH */}
             {bph.length > 0 && (
               <>
-                <div className="w-full mb-2">
-                  <div className="text-center mb-3">
-                    <span className="text-xs tracking-widest uppercase px-4 py-1.5 border border-[#C9A84C]/30 text-[#C9A84C] rounded-full bg-[#C9A84C]/5">
-                      Badan Pengurus Harian
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap justify-center gap-4">
-                    {bph.map(m => (
-                      <Card key={m.id} member={m} size="lg" badge={m.is_kadep ? m.position : null} />
-                    ))}
-                  </div>
+                <SectionTitle label="Badan Pengurus Harian" />
+                <div className="flex flex-wrap justify-center gap-4 mb-4">
+                  {bph.map(m => <BPHCard key={m.id} member={m} />)}
                 </div>
-
-                {activeDepts.length > 0 && (
-                  <>
-                    <VLine />
-                    {/* Garis cabang ke departemen */}
-                    <div className="w-full max-w-3xl flex justify-center">
-                      <div className="relative w-full">
-                        <div className="border-t border-[#C9A84C]/30 w-full" />
-                        <div className={`flex justify-between`}>
-                          {activeDepts.map((_, i) => (
-                            <div key={i} className="w-px h-6 bg-[#C9A84C]/30" style={{
-                              marginLeft: i === 0 ? '12.5%' : undefined,
-                              marginRight: i === activeDepts.length - 1 ? '12.5%' : undefined,
-                              flex: i > 0 && i < activeDepts.length - 1 ? 1 : undefined,
-                              ...(activeDepts.length > 2 && { position: 'relative' })
-                            }} />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
+                {activeDepts.length > 0 && <VLine />}
               </>
             )}
 
-            {/* DEPARTEMEN */}
+            {/* DEPARTEMEN — grid */}
             {activeDepts.length > 0 && (
-              <div className={`w-full grid gap-8 mt-0`}
-                style={{gridTemplateColumns: `repeat(${Math.min(activeDepts.length, 4)}, 1fr)`}}>
+              <>
+                {/* Garis cabang horizontal */}
+                {activeDepts.length > 1 && (
+                  <div className="relative flex justify-center mb-0">
+                    <div className="w-3/4 border-t border-[#C9A84C]/20" />
+                  </div>
+                )}
 
-                {activeDepts.map(dept => {
-                  const members = byDept[dept] ?? []
-                  const kadep = members.find(m => m.is_kadep)
-                  const anggota = members.filter(m => !m.is_kadep)
+                <div className="grid gap-6 mt-0"
+                  style={{ gridTemplateColumns: `repeat(${Math.min(activeDepts.length, 2)}, 1fr)` }}>
 
-                  return (
-                    <div key={dept} className="flex flex-col items-center">
+                  {activeDepts.map(dept => {
+                    const { kadep, byDiv, members } = byDept[dept]
 
-                      {/* Label departemen */}
-                      <div className="text-center mb-3 px-3 py-1.5 border border-[#C9A84C]/20 rounded-full bg-[#0d1525]">
-                        <span className="text-xs text-[#C9A84C] tracking-wider">{dept}</span>
-                      </div>
+                    return (
+                      <div key={dept} className="pt-6">
+                        {/* Label departemen */}
+                        <div className="text-center mb-4">
+                          <span className="text-xs tracking-widest uppercase px-3 py-1.5 border border-[#C9A84C]/20 text-[#C9A84C] rounded-full bg-[#0d1525]">
+                            {dept}
+                          </span>
+                        </div>
 
-                      {/* Kepala Departemen */}
-                      {kadep && (
-                        <>
-                          <div className="w-full">
-                            <Card member={kadep} size="md" badge="Kepala Dept" />
-                          </div>
-                          {anggota.length > 0 && <VLine />}
-                        </>
-                      )}
+                        <div className="flex flex-col gap-2">
 
-                      {/* Anggota per divisi */}
-                      {anggota.length > 0 && (
-                        <div className="w-full flex flex-col gap-2">
-                          {anggota.map(m => (
-                            <Card key={m.id} member={m} size="sm" />
+                          {/* Kepala Departemen */}
+                          {kadep && (
+                            <MemberRow member={kadep} badge="Kadep" />
+                          )}
+
+                          {/* Anggota per divisi — indent ke dalam */}
+                          {(DIVISIONS[dept] ?? []).map(div => {
+                            const divMembers = byDiv[div] ?? []
+                            if (divMembers.length === 0) return null
+                            return (
+                              <div key={div}>
+                                {/* Label divisi */}
+                                <div className="flex items-center gap-2 my-2 pl-2">
+                                  <div className="w-3 h-px bg-[#C9A84C]/20" />
+                                  <span className="text-[#F5F0E8]/30 text-xs">{div}</span>
+                                </div>
+                                {/* Anggota divisi */}
+                                <div className="flex flex-col gap-1.5">
+                                  {divMembers.map(m => (
+                                    <MemberRow key={m.id} member={m} indent />
+                                  ))}
+                                </div>
+                              </div>
+                            )
+                          })}
+
+                          {/* Anggota tanpa divisi */}
+                          {members.filter(m => !m.is_kadep && !m.division).map(m => (
+                            <MemberRow key={m.id} member={m} />
                           ))}
                         </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
             )}
 
+            {committee.length === 0 && (
+              <div className="text-center text-[#F5F0E8]/30 py-20 text-sm">
+                Belum ada data kepengurusan.
+              </div>
+            )}
           </div>
         )}
       </div>
