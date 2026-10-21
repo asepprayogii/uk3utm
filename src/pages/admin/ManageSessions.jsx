@@ -3,6 +3,7 @@ import { Archive, ChevronDown, Copy, ExternalLink, Eye, MapPin, Plus, QrCode, Ro
 import { QRCodeSVG } from 'qrcode.react'
 import { supabase } from '../../lib/supabase'
 import { formatDate } from '../../lib/format'
+import { sessionState, todayWib } from '../../lib/sessions'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import { useUI } from '../../hooks/useUI'
 import AdminPage, { Card } from '../../components/admin/AdminPage'
@@ -13,7 +14,7 @@ import Modal from '../../components/ui/Modal'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
 
 const INITIAL = { sessions: [], archived: [], locations: [] }
-const today = () => new Date().toISOString().split('T')[0]
+const today = todayWib
 const generateToken = () => Math.random().toString(36).substring(2, 10) + Date.now().toString(36)
 const scanUrl = (token) => `${window.location.origin}/scan/${token}`
 
@@ -27,6 +28,7 @@ async function fetchAll() {
 }
 
 function SessionCard({ s, archived, onQr, onToggle, onArchive, onRestore, onDelete }) {
+  const state = sessionState(s)
   return (
     <Card className={`p-4 sm:p-5 ${archived ? 'opacity-80' : ''}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -41,12 +43,12 @@ function SessionCard({ s, archived, onQr, onToggle, onArchive, onRestore, onDele
             {archived && s.archived_at && <span>Diarsipkan {formatDate(s.archived_at)}</span>}
           </div>
         </div>
-        {archived ? <Badge tone="amber">Arsip</Badge> : <Badge tone={s.status === 'active' ? 'green' : 'gray'}>{s.status === 'active' ? '● Absensi dibuka' : '○ Ditutup'}</Badge>}
+        {archived ? <Badge tone="amber">Arsip</Badge> : <Badge tone={state === 'open' ? 'green' : state === 'expired' ? 'amber' : 'gray'}>{state === 'open' ? '● Absensi dibuka' : state === 'expired' ? 'Berakhir otomatis' : '○ Ditutup'}</Badge>}
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        {!archived && <Button size="sm" icon={QrCode} onClick={() => onQr(s)}>Tampilkan QR</Button>}
+        {!archived && state === 'open' && <Button size="sm" icon={QrCode} onClick={() => onQr(s)}>Tampilkan QR</Button>}
         <Button size="sm" variant="secondary" icon={Eye} to={`/admin/absensi/${s.id}`}>Lihat absensi</Button>
-        {!archived && <Button size="sm" variant="secondary" onClick={() => onToggle(s)}>{s.status === 'active' ? 'Tutup absensi' : 'Buka lagi'}</Button>}
+        {!archived && state !== 'expired' && <Button size="sm" variant="secondary" onClick={() => onToggle(s)}>{s.status === 'active' ? 'Tutup absensi' : 'Buka lagi'}</Button>}
         {!archived ? <Button size="sm" variant="ghost" icon={Archive} onClick={() => onArchive(s)}>Arsipkan</Button> : <Button size="sm" variant="secondary" icon={RotateCcw} onClick={() => onRestore(s)}>Pulihkan</Button>}
         <Button size="sm" variant="dangerSoft" icon={Trash2} onClick={() => onDelete(s)} aria-label={`Hapus permanen ${s.title}`} />
       </div>

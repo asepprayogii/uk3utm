@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { AlertTriangle, ArrowRight, CheckCircle2, Plus } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { todayWib } from '../../lib/sessions'
 import { structureIssues } from '../../lib/committee'
 import { ADMIN_GROUPS, ROLE_LABEL } from '../../lib/adminNav'
 import { useAuth } from '../../hooks/useAuth'
@@ -8,42 +9,39 @@ import { useAsyncData } from '../../hooks/useAsyncData'
 import AdminPage, { Card } from '../../components/admin/AdminPage'
 import { ErrorState, Loading } from '../../components/States'
 
-const INITIAL = { counts: {}, committee: [], content: {}, activeSessions: 0 }
+const INITIAL = { counts: {}, committee: [], activeSessions: 0 }
 const count = (table) => supabase.from(table).select('*', { count: 'exact', head: true })
 
 async function fetchDashboard() {
-  const keys = ['announcements', 'devotionals', 'albums', 'services', 'students', 'mentors']
+  const keys = ['announcements', 'devotionals', 'album_photos', 'services', 'students', 'mentors']
   const results = await Promise.allSettled([
     ...keys.map((k) => count(k)),
     supabase.from('committee').select('*'),
-    supabase.from('site_content').select('*'),
-    supabase.from('sessions').select('*', { count: 'exact', head: true }).eq('status', 'active').eq('archived', false),
+    supabase.from('sessions').select('*', { count: 'exact', head: true }).eq('status', 'active').eq('archived', false).gte('date', todayWib()),
   ])
   const ok = results.map((r) => (r.status === 'fulfilled' && !r.value.error ? r.value : null))
   if (ok.every((r) => r === null)) throw new Error('Data dashboard gagal dimuat.')
   const counts = Object.fromEntries(keys.map((k, i) => [k, ok[i]?.count ?? 0]))
   const committee = ok[keys.length]?.data ?? []
   counts.committee = committee.length
-  const content = Object.fromEntries((ok[keys.length + 1]?.data ?? []).map((r) => [r.key, r.value]))
-  return { counts, committee, content, activeSessions: ok[keys.length + 2]?.count ?? 0 }
+  return { counts, committee, activeSessions: ok[keys.length + 1]?.count ?? 0 }
 }
 
 const STAT_KEYS = {
   '/admin/pengumuman': 'announcements', '/admin/renungan': 'devotionals', '/admin/kepengurusan': 'committee',
-  '/admin/layanan': 'services', '/admin/album': 'albums', '/admin/mahasiswa': 'students', '/admin/kakak-bimbing': 'mentors',
+  '/admin/layanan': 'services', '/admin/galeri': 'album_photos', '/admin/mahasiswa': 'students', '/admin/kakak-bimbing': 'mentors',
 }
 
 export default function Dashboard() {
   const { profile, user } = useAuth()
   const role = profile?.role
   const { data, loading, error, retry } = useAsyncData(fetchDashboard, INITIAL)
-  const { counts, committee, content, activeSessions } = data
+  const { counts, committee, activeSessions } = data
 
   const todo = []
   if (['bph', 'infokom'].includes(role)) {
     if (!loading && !error) {
       for (const i of structureIssues(committee).filter((x) => !x.includes('foto'))) todo.push({ text: i, to: '/admin/kepengurusan', cta: 'Lengkapi' })
-      if (!content.vision || !content.mission || !content.about) todo.push({ text: 'Tentang, visi, atau misi di beranda belum diisi.', to: '/admin/situs', cta: 'Isi sekarang' })
     }
   }
   if (['bph', 'pembinaan'].includes(role) && activeSessions > 0) {

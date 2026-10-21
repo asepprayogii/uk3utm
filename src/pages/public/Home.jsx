@@ -3,17 +3,20 @@ import { ArrowRight, ExternalLink } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { excerpt, formatDate } from '../../lib/format'
 import { groupCommittee } from '../../lib/committee'
+import { fetchPhotos } from '../../lib/gallery'
+import { detectPlatform } from '../../lib/social'
 import { PUBLIC_NAV } from '../../lib/nav'
 import { useAsyncData } from '../../hooks/useAsyncData'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import { LogoMark } from '../../components/Logo'
+import SocialIcon from '../../components/SocialIcon'
 import Button from '../../components/ui/Button'
 import Avatar from '../../components/ui/Avatar'
 
 const DEFAULT_ABOUT =
   'Wadah mahasiswa Kristen Universitas Trunojoyo Madura untuk bertumbuh bersama dalam iman, persekutuan, dan pelayanan.'
-const INITIAL = { content: {}, announcements: [], devotionals: [], links: [], albums: [], committee: [] }
+const INITIAL = { content: {}, announcements: [], devotionals: [], links: [], photos: [], committee: [] }
 const QUICK = PUBLIC_NAV.filter((n) => n.to !== '/kepengurusan')
 
 // Satu query yang gagal tidak boleh merusak seluruh beranda.
@@ -23,18 +26,22 @@ async function fetchHome() {
     supabase.from('announcements').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false }).limit(3),
     supabase.from('devotionals').select('*').order('created_at', { ascending: false }).limit(3),
     supabase.from('links').select('*').order('order_index'),
-    supabase.from('albums').select('*').order('event_date', { ascending: false }).limit(4),
+    fetchPhotos(8),
     supabase.from('committee').select('*').eq('department', 'BPH'),
   ])
-  const rows = results.map((r) => (r.status === 'fulfilled' && !r.value.error ? (r.value.data ?? []) : null))
+  const rows = results.map((r) => {
+    if (r.status !== 'fulfilled') return null
+    if (Array.isArray(r.value)) return r.value
+    return r.value.error ? null : (r.value.data ?? [])
+  })
   if (rows.every((r) => r === null)) throw new Error('Semua permintaan data beranda gagal.')
-  const [contentRows, announcements, devotionals, links, albums, committee] = rows
+  const [contentRows, announcements, devotionals, links, photos, committee] = rows
   return {
     content: Object.fromEntries((contentRows ?? []).map((row) => [row.key, row.value])),
     announcements: announcements ?? [],
     devotionals: devotionals ?? [],
     links: links ?? [],
-    albums: albums ?? [],
+    photos: photos ?? [],
     committee: committee ?? [],
   }
 }
@@ -57,7 +64,7 @@ function Heading({ eyebrow, title, to, center = false }) {
 
 export default function Home() {
   const { data, loading, error } = useAsyncData(fetchHome, INITIAL)
-  const { content, announcements, devotionals, links, albums, committee } = data
+  const { content, announcements, devotionals, links, photos, committee } = data
   const missionItems = (content.mission ?? '').split('\n').map((m) => m.replace(/^[•-]\s*/, '').trim()).filter(Boolean)
   const bph = groupCommittee(committee).bph
 
@@ -205,17 +212,15 @@ export default function Home() {
           </section>
         )}
 
-        {/* ALBUM */}
-        {albums.length > 0 && (
+        {/* GALERI */}
+        {photos.length > 0 && (
           <section className="bg-paper-100 px-6 py-24">
             <div className="mx-auto max-w-6xl">
-              <Heading eyebrow="Kebersamaan" title="Album Kegiatan" to="/album" />
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                {albums.map((al) => (
-                  <Link key={al.id} to="/album" className="group relative aspect-square overflow-hidden rounded-2xl bg-brand-900">
-                    {al.cover_url && <img src={al.cover_url} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-                    <div className="absolute inset-0 bg-gradient-to-t from-brand-950/85 via-transparent to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-4 text-sm font-bold text-white">{al.title}</div>
+              <Heading eyebrow="Kebersamaan" title="Galeri" to="/galeri" />
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                {photos.map((p) => (
+                  <Link key={p.id} to="/galeri" className="group aspect-square overflow-hidden rounded-2xl bg-brand-900">
+                    <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   </Link>
                 ))}
               </div>
@@ -223,17 +228,18 @@ export default function Home() {
           </section>
         )}
 
-        {/* LINK */}
+        {/* SOSMED */}
         {links.length > 0 && (
           <section className="px-6 py-24">
             <div className="mx-auto max-w-xl">
-              <Heading center eyebrow="Terhubung" title="Hubungi & Ikuti Kami" />
+              <Heading center eyebrow="Terhubung" title="Ikuti & Hubungi Kami" />
               <div className="flex flex-col gap-3">
                 {links.map((l) => (
                   <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center justify-between rounded-xl border border-paper-300 bg-white px-5 py-4 font-semibold transition-all hover:border-brand-300 hover:bg-brand-50 hover:shadow-soft">
-                    <span>{l.label}</span>
-                    <ExternalLink size={16} className="text-brand-600" aria-hidden="true" />
+                    className="group flex items-center gap-4 rounded-xl border border-paper-300 bg-white px-4 py-3.5 font-semibold transition-all hover:border-brand-300 hover:bg-brand-50 hover:shadow-soft">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 group-hover:bg-brand-700 group-hover:text-white"><SocialIcon platform={detectPlatform(l.url)} /></span>
+                    <span className="flex-1">{l.label}</span>
+                    <ExternalLink size={16} className="text-ink-300 group-hover:text-brand-700" aria-hidden="true" />
                   </a>
                 ))}
               </div>

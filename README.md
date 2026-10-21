@@ -27,6 +27,10 @@ Palet ungu-emas-krem dari logo UK3 (`public/logo-uk3.png`). Token ada di `tailwi
 - `src/components/ui/` komponen dasar (Button, Field, Modal, Avatar, ImageUpload)
 - `src/context/UIProvider.jsx` toast dan dialog konfirmasi
 
+## Supaya Supabase tidak pause
+
+Paket gratis Supabase di-pause bila 7 hari tanpa aktivitas. Workflow `.github/workflows/keepalive-supabase.yml` mengirim satu permintaan baca tiap 3 hari. Setup sekali: di GitHub buka *Settings → Secrets and variables → Actions*, tambahkan `SUPABASE_URL` dan `SUPABASE_ANON_KEY` (isinya sama dengan `.env`), lalu jalankan manual sekali dari tab *Actions → Keepalive Supabase → Run workflow* untuk memastikan hasilnya hijau. GitHub menonaktifkan jadwal otomatis jika repo tidak ada aktivitas 60 hari; aktifkan kembali dari tab Actions bila itu terjadi.
+
 ## Teknologi
 
 React 19 · Vite · React Router · Tailwind CSS 3 · Supabase (Auth, Postgres, Storage, Realtime) · Leaflet · Vercel

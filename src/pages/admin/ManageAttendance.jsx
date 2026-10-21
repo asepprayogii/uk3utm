@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { ArrowLeft, Download, MapPin, Trash2, Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { formatDate, formatTime } from '../../lib/format'
+import { sessionState } from '../../lib/sessions'
 import { exportAttendancePdf } from '../../lib/exportAttendancePdf'
 import { useUI } from '../../hooks/useUI'
 import AdminPage, { Card } from '../../components/admin/AdminPage'
@@ -100,7 +101,7 @@ export default function ManageAttendance() {
           <div className="text-3xl font-bold text-brand-900">{attendances.length}</div>
           <div className="text-sm text-ink-500">peserta hadir · diperbarui otomatis saat ada yang absen</div>
         </div>
-        {session && <div className="ml-auto hidden sm:block"><Badge tone={session.status === 'active' ? 'green' : 'gray'}>{session.status === 'active' ? 'Absensi dibuka' : 'Ditutup'}</Badge></div>}
+        {session && <div className="ml-auto hidden sm:block"><Badge tone={sessionState(session) === 'open' ? 'green' : 'gray'}>{sessionState(session) === 'open' ? 'Absensi dibuka' : sessionState(session) === 'expired' ? 'Berakhir' : 'Ditutup'}</Badge></div>}
       </Card>
 
       {attendances.length === 0 && <Card><EmptyState icon={MapPin} title="Belum ada yang absen">Tampilkan QR dari halaman Sesi Absensi agar peserta bisa memindai.</EmptyState></Card>}

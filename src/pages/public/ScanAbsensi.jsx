@@ -5,6 +5,7 @@ import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { formatDate } from '../../lib/format'
+import { isExpired } from '../../lib/sessions'
 import { LogoMark } from '../../components/Logo'
 
 const SIGNATURE_HEIGHT = 160
@@ -146,6 +147,7 @@ export default function ScanAbsensi() {
 
       if (error || !data) return fail('Sesi tidak ditemukan atau link tidak valid.')
       if (data.status === 'closed') return fail('Sesi ini sudah ditutup oleh panitia.')
+      if (isExpired(data)) return fail('Sesi ini sudah berakhir. Absensi hanya dibuka pada hari kegiatan.')
 
       // Satu perangkat hanya boleh absen satu kali per sesi
       const { data: deviceExist } = await supabase

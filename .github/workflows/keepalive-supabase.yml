@@ -1,0 +1,32 @@
+# Menjaga project Supabase (paket gratis) tidak di-pause karena sepi pengunjung.
+# Cukup satu permintaan baca ke database tiap 3 hari.
+#
+# Setup satu kali: GitHub repo > Settings > Secrets and variables > Actions > New repository secret
+#   SUPABASE_URL       isi sama dengan VITE_SUPABASE_URL
+#   SUPABASE_ANON_KEY  isi sama dengan VITE_SUPABASE_ANON_KEY
+name: Keepalive Supabase
+
+on:
+  schedule:
+    - cron: '17 3 */3 * *' # tiap 3 hari, 10:17 WIB
+  workflow_dispatch: # bisa dijalankan manual dari tab Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Secret SUPABASE_URL / SUPABASE_ANON_KEY belum diisi." >&2
+            exit 1
+          fi
+          status=$(curl -sS -o /dev/null -w '%{http_code}' --retry 3 --retry-delay 5 \
+            "$SUPABASE_URL/rest/v1/site_content?select=key&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "Respons Supabase: $status"
+          [ "$status" = "200" ]

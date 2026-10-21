@@ -47,3 +47,8 @@ export function excerpt(text = '', max = 140) {
   const clean = String(text).replace(/\s+/g, ' ').trim()
   return clean.length > max ? `${clean.slice(0, max).trimEnd()}…` : clean
 }
+
+/** Masa kepengurusan mengikuti tahun berjalan, jadi tidak perlu diubah manual setiap tahun. */
+export function currentPeriod(date = new Date()) {
+  return String(date.getFullYear())
+}

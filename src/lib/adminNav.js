@@ -1,6 +1,6 @@
 import {
-  BookOpen, CalendarCheck, GraduationCap, HandHeart, Home, Images, LayoutDashboard,
-  Megaphone, MapPin, UserCheck, Users,
+  BookOpen, CalendarCheck, GraduationCap, HandHeart, Images, LayoutDashboard,
+  Megaphone, MapPin, Share2, UserCheck, Users,
 } from 'lucide-react'
 
 export const ROLES = {
@@ -24,8 +24,8 @@ export const ADMIN_GROUPS = [
       { to: '/admin/renungan', label: 'Renungan', desc: 'Renungan harian dan ayat', icon: BookOpen, roles: ROLES.INFOKOM },
       { to: '/admin/kepengurusan', label: 'Kepengurusan', desc: 'Susunan pengurus dan fotonya', icon: Users, roles: ROLES.INFOKOM },
       { to: '/admin/layanan', label: 'Layanan', desc: 'Layanan, kontak, dan QRIS', icon: HandHeart, roles: ROLES.INFOKOM },
-      { to: '/admin/album', label: 'Album', desc: 'Album dan foto kegiatan', icon: Images, roles: ROLES.INFOKOM },
-      { to: '/admin/situs', label: 'Beranda & Tautan', desc: 'Tentang, visi, misi, dan link', icon: Home, roles: ROLES.INFOKOM },
+      { to: '/admin/galeri', label: 'Galeri', desc: 'Foto kegiatan untuk galeri', icon: Images, roles: ROLES.INFOKOM },
+      { to: '/admin/tautan', label: 'Sosmed & Tautan', desc: 'Instagram, YouTube, WhatsApp, dll.', icon: Share2, roles: ROLES.INFOKOM },
     ],
   },
   {

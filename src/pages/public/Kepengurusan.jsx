@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { groupCommittee } from '../../lib/committee'
+import { bphRank, groupCommittee } from '../../lib/committee'
+import { currentPeriod } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
 import MemberCard from '../../components/committee/MemberCard'
@@ -9,102 +11,126 @@ import { EmptyState, ErrorState, Loading } from '../../components/States'
 const EMPTY = []
 const fetchCommittee = () => unwrap(supabase.from('committee').select('*')).then((rows) => rows ?? [])
 
-function GroupTitle({ children, sub }) {
+function Title({ children, sub }) {
   return (
-    <div className="mb-6 text-center">
-      <h2 className="font-display text-3xl font-bold text-brand-900">{children}</h2>
+    <div className="mb-8 text-center">
+      <h2 className="font-display text-3xl font-bold text-brand-900 sm:text-4xl">{children}</h2>
       {sub && <p className="mt-1 text-sm text-ink-500">{sub}</p>}
       <div className="mx-auto mt-3 h-0.5 w-12 rounded bg-gold-400" aria-hidden="true" />
     </div>
   )
 }
 
-function Grid({ members, highlightFirst = false }) {
+function Cards({ members, size = 'w-40 sm:w-48' }) {
   return (
-    <div className="flex flex-wrap justify-center gap-4">
-      {members.map((m, i) => (
-        <div key={m.id} className={highlightFirst && i === 0 ? 'w-full max-w-xs' : 'w-full max-w-[220px]'}>
-          <MemberCard member={m} highlight={highlightFirst && i === 0} />
-        </div>
+    <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+      {members.map((m) => (
+        <div key={m.id} className={size}><MemberCard member={m} /></div>
       ))}
+    </div>
+  )
+}
+
+function DepartmentPanel({ dept }) {
+  return (
+    <div className="rounded-3xl border border-paper-300 bg-white p-5 shadow-soft sm:p-8">
+      {dept.kadep.length > 0 && (
+        <div className="mb-8 flex flex-col items-center">
+          <div className="mb-3 text-[11px] font-bold tracking-widest text-gold-700 uppercase">Kepala Departemen</div>
+          <Cards members={dept.kadep} size="w-48 sm:w-56" />
+        </div>
+      )}
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        {dept.divisions.map((div) => (
+          <div key={div.name}>
+            <div className="mb-3 flex items-center gap-2 border-b border-paper-200 pb-2">
+              <span className="text-sm font-bold text-brand-800">Divisi {div.name}</span>
+              <span className="rounded-full bg-brand-50 px-2 text-xs font-semibold text-brand-700">{div.members.length}</span>
+            </div>
+            <div className="flex flex-col gap-2">
+              {div.members.map((m) => <MemberCard key={m.id} member={m} variant="row" />)}
+            </div>
+          </div>
+        ))}
+        {dept.others.length > 0 && (
+          <div>
+            <div className="mb-3 border-b border-paper-200 pb-2 text-sm font-bold text-brand-800">Anggota</div>
+            <div className="flex flex-col gap-2">
+              {dept.others.map((m) => <MemberCard key={m.id} member={m} variant="row" />)}
+            </div>
+          </div>
+        )}
+      </div>
+      {dept.kadep.length === 0 && dept.divisions.length === 0 && dept.others.length === 0 && (
+        <p className="text-center text-sm text-ink-400">Belum ada anggota.</p>
+      )}
     </div>
   )
 }
 
 export default function Kepengurusan() {
   const { data, loading, error, retry } = useAsyncData(fetchCommittee, EMPTY)
+  const [active, setActive] = useState(null)
   const g = groupCommittee(data)
-  const isEmpty = !loading && !error && data.length === 0
-  const hasKetua = g.bph[0] && /ketua/i.test(g.bph[0].position ?? '') && !/wakil/i.test(g.bph[0].position ?? '')
+  const empty = !loading && !error && data.length === 0
+
+  const ketua = g.bph.filter((m) => bphRank(m.position) < 110)
+  const bphLain = g.bph.filter((m) => bphRank(m.position) >= 110)
+  const shown = g.departments.find((d) => d.name === active) ?? g.departments[0]
 
   return (
     <PageLayout
-      eyebrow="Siapa Kami"
+      eyebrow={`Periode ${currentPeriod()}`}
       title="Kepengurusan"
-      description="Para pengurus yang melayani mahasiswa Kristen di Universitas Trunojoyo Madura."
+      description="Kenali para pengurus yang melayani mahasiswa Kristen di Universitas Trunojoyo Madura."
       width="max-w-6xl"
     >
       {loading && <Loading />}
       {error && <ErrorState message="Data kepengurusan gagal dimuat." onRetry={retry} />}
-      {isEmpty && <EmptyState icon={Users} title="Belum ada data pengurus">Struktur pengurus akan tampil di sini.</EmptyState>}
+      {empty && <EmptyState icon={Users} title="Belum ada data pengurus">Struktur pengurus akan tampil di sini.</EmptyState>}
 
       {!loading && !error && data.length > 0 && (
-        <div className="flex flex-col gap-16">
+        <div className="flex flex-col gap-20">
           {(g.pembina.length > 0 || g.pembimbing.length > 0) && (
-            <section>
-              <GroupTitle sub="Pendamping rohani dan akademik">Pembina & Pembimbing</GroupTitle>
-              <Grid members={[...g.pembina, ...g.pembimbing]} />
+            <section aria-labelledby="sec-pembina">
+              <Title sub="Pendamping rohani dan akademik"><span id="sec-pembina">Pembina & Pembimbing</span></Title>
+              <Cards members={[...g.pembina, ...g.pembimbing]} size="w-44 sm:w-52" />
             </section>
           )}
 
           {g.bph.length > 0 && (
-            <section>
-              <GroupTitle sub="Badan Pengurus Harian">BPH</GroupTitle>
-              <Grid members={g.bph} highlightFirst={hasKetua} />
+            <section aria-labelledby="sec-bph">
+              <Title sub="Badan Pengurus Harian"><span id="sec-bph">BPH</span></Title>
+              {ketua.length > 0 && (
+                <div className="flex flex-col items-center">
+                  <Cards members={ketua} size="w-56 sm:w-64" />
+                  {bphLain.length > 0 && <div className="h-8 w-px bg-gold-400/70" aria-hidden="true" />}
+                </div>
+              )}
+              {bphLain.length > 0 && <Cards members={bphLain} />}
             </section>
           )}
 
-          {g.departments.length > 0 && (
-            <section>
-              <GroupTitle sub="Pelayanan dijalankan melalui departemen dan divisi">Departemen</GroupTitle>
-              <div className="grid gap-6 md:grid-cols-2">
+          {g.departments.length > 0 && shown && (
+            <section aria-labelledby="sec-dept">
+              <Title sub="Pilih departemen untuk melihat anggotanya"><span id="sec-dept">Departemen</span></Title>
+              <div role="tablist" aria-label="Departemen" className="mb-6 flex flex-wrap justify-center gap-2">
                 {g.departments.map((d) => (
-                  <article key={d.name} className="overflow-hidden rounded-2xl border border-paper-300 bg-white shadow-soft">
-                    <header className="hero-bg flex items-center justify-between px-5 py-4 text-white">
-                      <h3 className="font-display text-2xl font-bold">{d.name}</h3>
-                      <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs">{d.total} orang</span>
-                    </header>
-                    <div className="flex flex-col gap-5 p-5">
-                      {d.kadep.map((m) => (
-                        <div key={m.id}>
-                          <div className="mb-2 text-[11px] font-bold tracking-widest text-gold-700 uppercase">Kepala Departemen</div>
-                          <MemberCard member={m} variant="row" />
-                        </div>
-                      ))}
-                      {d.divisions.map((div) => (
-                        <div key={div.name}>
-                          <div className="mb-2 text-[11px] font-bold tracking-widest text-brand-600 uppercase">Divisi {div.name}</div>
-                          <div className="grid gap-2 sm:grid-cols-2">
-                            {div.members.map((m) => (
-                              <MemberCard key={m.id} member={m} variant="row" />
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                      {d.others.length > 0 && (
-                        <div>
-                          <div className="mb-2 text-[11px] font-bold tracking-widest text-ink-500 uppercase">Anggota lainnya</div>
-                          <div className="grid gap-2 sm:grid-cols-2">
-                            {d.others.map((m) => (
-                              <MemberCard key={m.id} member={m} variant="row" />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </article>
+                  <button
+                    key={d.name}
+                    type="button"
+                    role="tab"
+                    aria-selected={shown.name === d.name}
+                    onClick={() => setActive(d.name)}
+                    className={`rounded-full border px-5 py-2 text-sm font-semibold transition-colors ${
+                      shown.name === d.name ? 'border-brand-700 bg-brand-700 text-white shadow-soft' : 'border-paper-300 bg-white text-ink-700 hover:bg-brand-50'
+                    }`}
+                  >
+                    {d.name} <span className="opacity-60">{d.total}</span>
+                  </button>
                 ))}
               </div>
+              <div role="tabpanel"><DepartmentPanel dept={shown} /></div>
             </section>
           )}
         </div>

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import AuthProvider from './context/AuthProvider'
 import UIProvider from './context/UIProvider'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -13,7 +13,7 @@ import Pengumuman from './pages/public/Pengumuman'
 import Renungan from './pages/public/Renungan'
 import Kepengurusan from './pages/public/Kepengurusan'
 import Layanan from './pages/public/Layanan'
-import Album from './pages/public/Album'
+import Galeri from './pages/public/Galeri'
 import NotFound from './pages/public/NotFound'
 
 // Dimuat on-demand supaya bundle awal pengunjung tetap kecil
@@ -23,12 +23,12 @@ const Dashboard = lazy(() => import('./pages/admin/Dashboard'))
 const ManageAnnouncements = lazy(() => import('./pages/admin/ManageAnnouncements'))
 const ManageDevotionals = lazy(() => import('./pages/admin/ManageDevotionals'))
 const ManageCommittee = lazy(() => import('./pages/admin/ManageCommittee'))
-const ManageSite = lazy(() => import('./pages/admin/ManageSite'))
+const ManageLinks = lazy(() => import('./pages/admin/ManageLinks'))
 const ManageSessions = lazy(() => import('./pages/admin/ManageSessions'))
 const ManageAttendance = lazy(() => import('./pages/admin/ManageAttendance'))
 const ManageLocations = lazy(() => import('./pages/admin/ManageLocations'))
 const ManageServices = lazy(() => import('./pages/admin/ManageServices'))
-const ManageAlbum = lazy(() => import('./pages/admin/ManageAlbum'))
+const ManageGallery = lazy(() => import('./pages/admin/ManageGallery'))
 const ManageStudents = lazy(() => import('./pages/admin/ManageStudents'))
 const ManageMentors = lazy(() => import('./pages/admin/ManageMentors'))
 
@@ -39,8 +39,8 @@ const ADMIN_ROUTES = [
   { path: 'renungan', roles: INFOKOM, Page: ManageDevotionals },
   { path: 'kepengurusan', roles: INFOKOM, Page: ManageCommittee },
   { path: 'layanan', roles: INFOKOM, Page: ManageServices },
-  { path: 'album', roles: INFOKOM, Page: ManageAlbum },
-  { path: 'situs', roles: INFOKOM, Page: ManageSite },
+  { path: 'galeri', roles: INFOKOM, Page: ManageGallery },
+  { path: 'tautan', roles: INFOKOM, Page: ManageLinks },
   { path: 'sesi', roles: PEMBINAAN, Page: ManageSessions },
   { path: 'absensi/:sessionId', roles: PEMBINAAN, Page: ManageAttendance },
   { path: 'mahasiswa', roles: PEMBINAAN, Page: ManageStudents },
@@ -61,7 +61,8 @@ export default function App() {
               <Route path="/renungan" element={<Renungan />} />
               <Route path="/kepengurusan" element={<Kepengurusan />} />
               <Route path="/layanan" element={<Layanan />} />
-              <Route path="/album" element={<Album />} />
+              <Route path="/galeri" element={<Galeri />} />
+              <Route path="/album" element={<Navigate to="/galeri" replace />} />
 
               {/* Absensi — tanpa login */}
               <Route path="/scan/:token" element={<ScanAbsensi />} />
