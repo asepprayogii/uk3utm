@@ -1,365 +1,155 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
+import { useCallback, useState } from 'react'
+import { Archive, ChevronDown, Copy, ExternalLink, Eye, MapPin, Plus, QrCode, RotateCcw, Trash2 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
+import { supabase } from '../../lib/supabase'
+import { formatDate } from '../../lib/format'
+import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
+import { useUI } from '../../hooks/useUI'
+import AdminPage, { Card } from '../../components/admin/AdminPage'
+import Badge from '../../components/ui/Badge'
+import Button from '../../components/ui/Button'
+import { Input, Select } from '../../components/ui/Field'
+import Modal from '../../components/ui/Modal'
+import { EmptyState, ErrorState, Loading } from '../../components/States'
+
+const INITIAL = { sessions: [], archived: [], locations: [] }
+const today = () => new Date().toISOString().split('T')[0]
+const generateToken = () => Math.random().toString(36).substring(2, 10) + Date.now().toString(36)
+const scanUrl = (token) => `${window.location.origin}/scan/${token}`
+
+async function fetchAll() {
+  const [s, a, l] = await Promise.all([
+    unwrap(supabase.from('sessions').select('*, locations(name)').eq('archived', false).order('created_at', { ascending: false })),
+    unwrap(supabase.from('sessions').select('*, locations(name)').eq('archived', true).order('archived_at', { ascending: false })),
+    unwrap(supabase.from('locations').select('*').order('name')),
+  ])
+  return { sessions: s ?? [], archived: a ?? [], locations: l ?? [] }
+}
+
+function SessionCard({ s, archived, onQr, onToggle, onArchive, onRestore, onDelete }) {
+  return (
+    <Card className={`p-4 sm:p-5 ${archived ? 'opacity-80' : ''}`}>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-bold text-ink-900">{s.title}</h3>
+            <Badge tone={s.type === 'event' ? 'gold' : 'brand'}>{s.type === 'event' ? 'Event' : 'Persekutuan Doa'}</Badge>
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-ink-500">
+            <span>{formatDate(s.date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+            {s.locations?.name && <span className="inline-flex items-center gap-1"><MapPin size={12} />{s.locations.name}</span>}
+            {archived && s.archived_at && <span>Diarsipkan {formatDate(s.archived_at)}</span>}
+          </div>
+        </div>
+        {archived ? <Badge tone="amber">Arsip</Badge> : <Badge tone={s.status === 'active' ? 'green' : 'gray'}>{s.status === 'active' ? '● Absensi dibuka' : '○ Ditutup'}</Badge>}
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {!archived && <Button size="sm" icon={QrCode} onClick={() => onQr(s)}>Tampilkan QR</Button>}
+        <Button size="sm" variant="secondary" icon={Eye} to={`/admin/absensi/${s.id}`}>Lihat absensi</Button>
+        {!archived && <Button size="sm" variant="secondary" onClick={() => onToggle(s)}>{s.status === 'active' ? 'Tutup absensi' : 'Buka lagi'}</Button>}
+        {!archived ? <Button size="sm" variant="ghost" icon={Archive} onClick={() => onArchive(s)}>Arsipkan</Button> : <Button size="sm" variant="secondary" icon={RotateCcw} onClick={() => onRestore(s)}>Pulihkan</Button>}
+        <Button size="sm" variant="dangerSoft" icon={Trash2} onClick={() => onDelete(s)} aria-label={`Hapus permanen ${s.title}`} />
+      </div>
+    </Card>
+  )
+}
 
 export default function ManageSessions() {
-  const [sessions, setSessions] = useState([])
-  const [archived, setArchived] = useState([])
-  const [locations, setLocations] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [showQR, setShowQR] = useState(null)
+  const { toast, confirm } = useUI()
+  const { data, loading, error, retry } = useAsyncData(fetchAll, INITIAL)
+  const [local, setLocal] = useState(null)
+  const { sessions, archived, locations } = local ?? data
+  const [formOpen, setFormOpen] = useState(false)
+  const [form, setForm] = useState({ title: '', date: today(), location_id: '', type: 'pd' })
+  const [saving, setSaving] = useState(false)
+  const [qr, setQr] = useState(null)
   const [showArchived, setShowArchived] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState(null)
-  const [form, setForm] = useState({
-    title: '',
-    date: new Date().toISOString().split('T')[0],
-    location_id: '',
-    type: 'pd'
-  })
 
-  useEffect(() => { fetchAll() }, [])
+  const refresh = useCallback(async () => {
+    try { setLocal(await fetchAll()) } catch (e) { toast.error(`Gagal memuat ulang: ${e.message}`) }
+  }, [toast])
 
-  async function fetchAll() {
-    const [sessRes, archRes, locRes] = await Promise.all([
-      supabase.from('sessions')
-        .select('*, locations(name)')
-        .eq('archived', false)
-        .order('created_at', { ascending: false }),
-      supabase.from('sessions')
-        .select('*, locations(name)')
-        .eq('archived', true)
-        .order('archived_at', { ascending: false }),
-      supabase.from('locations').select('*').order('name'),
-    ])
-    setSessions(sessRes.data ?? [])
-    setArchived(archRes.data ?? [])
-    setLocations(locRes.data ?? [])
-    if (locRes.data?.length > 0)
-      setForm(f => ({...f, location_id: locRes.data[0].id}))
-    setLoading(false)
+  const run = useCallback(async (fn, okMsg) => {
+    try { await fn(); if (okMsg) toast.success(okMsg); await refresh() } catch (e) { toast.error(`Gagal: ${e.message}`) }
+  }, [refresh, toast])
+
+  function openForm() {
+    setForm({ title: '', date: today(), location_id: locations[0]?.id ?? '', type: 'pd' })
+    setFormOpen(true)
   }
 
-  function generateToken() {
-    return Math.random().toString(36).substring(2, 10) + Date.now().toString(36)
-  }
-
-  async function handleSubmit(e) {
+  async function create(e) {
     e.preventDefault()
-    const token = generateToken()
-    await supabase.from('sessions').insert({
-      ...form,
-      token,
-      status: 'active',
-      archived: false,
-    })
-    setForm({
-      title: '',
-      date: new Date().toISOString().split('T')[0],
-      location_id: locations[0]?.id ?? '',
-      type: 'pd'
-    })
-    setShowForm(false)
-    fetchAll()
+    setSaving(true)
+    try {
+      const created = await unwrap(supabase.from('sessions').insert({ ...form, title: form.title.trim(), token: generateToken(), status: 'active', archived: false }).select('*, locations(name)').single())
+      setFormOpen(false)
+      toast.success('Sesi dibuat. Tampilkan QR ini kepada peserta.')
+      await refresh()
+      setQr(created)
+    } catch (err) { toast.error(`Gagal membuat sesi: ${err.message}`) } finally { setSaving(false) }
   }
 
-  async function toggleStatus(id, status) {
-    await supabase.from('sessions')
-      .update({ status: status === 'active' ? 'closed' : 'active' })
-      .eq('id', id)
-    fetchAll()
+  const toggle = (s) => run(() => unwrap(supabase.from('sessions').update({ status: s.status === 'active' ? 'closed' : 'active' }).eq('id', s.id)), s.status === 'active' ? 'Absensi ditutup.' : 'Absensi dibuka kembali.')
+  const archive = (s) => run(() => unwrap(supabase.from('sessions').update({ archived: true, archived_at: new Date().toISOString(), status: 'closed' }).eq('id', s.id)), 'Sesi diarsipkan.')
+  const restore = (s) => run(() => unwrap(supabase.from('sessions').update({ archived: false, archived_at: null }).eq('id', s.id)), 'Sesi dipulihkan.')
+  async function del(s) {
+    if (!(await confirm({ title: 'Hapus permanen?', message: `Sesi “${s.title}” dan semua data absensinya akan dihapus. Tidak bisa dibatalkan. Jika hanya ingin menyembunyikan, gunakan Arsipkan.`, confirmLabel: 'Ya, hapus permanen' }))) return
+    run(() => unwrap(supabase.from('sessions').delete().eq('id', s.id)), 'Sesi dihapus.')
   }
 
-  // ARSIP — sembunyikan tapi data tetap ada
-  async function handleArchive(id) {
-    await supabase.from('sessions').update({
-      archived: true,
-      archived_at: new Date().toISOString(),
-      status: 'closed'
-    }).eq('id', id)
-    fetchAll()
+  async function copyLink() {
+    try { await navigator.clipboard.writeText(scanUrl(qr.token)); toast.success('Link disalin.') } catch { toast.error('Tidak bisa menyalin otomatis.') }
   }
 
-  // PULIHKAN dari arsip
-  async function handleRestore(id) {
-    await supabase.from('sessions').update({
-      archived: false,
-      archived_at: null
-    }).eq('id', id)
-    fetchAll()
-  }
-
-  // HAPUS PERMANEN
-  async function handleDeletePermanent(id) {
-    await supabase.from('sessions').delete().eq('id', id)
-    setDeleteConfirm(null)
-    fetchAll()
-  }
-
-  const scanUrl = (token) => `${window.location.origin}/scan/${token}`
-
-  function SessionCard({ s, isArchived }) {
-    return (
-      <div className={`p-5 rounded-2xl border bg-[#111827] ${
-        isArchived ? 'border-[#F5F0E8]/5 opacity-70' : 'border-[#C9A84C]/15'
-      }`}>
-        <div className="flex justify-between items-start mb-3">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold">{s.title}</h3>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                s.type === 'event'
-                  ? 'bg-purple-500/20 text-purple-400'
-                  : 'bg-[#C9A84C]/20 text-[#C9A84C]'
-              }`}>
-                {s.type === 'event' ? 'Event' : 'PD'}
-              </span>
-            </div>
-            <div className="text-[#F5F0E8]/40 text-xs">
-              {new Date(s.date).toLocaleDateString('id-ID', {
-                weekday:'long', day:'numeric', month:'long', year:'numeric'
-              })}
-              {s.locations && ` · ${s.locations.name}`}
-            </div>
-            {isArchived && s.archived_at && (
-              <div className="text-[#F5F0E8]/20 text-xs mt-1">
-                Diarsipkan {new Date(s.archived_at).toLocaleDateString('id-ID')}
-              </div>
-            )}
-          </div>
-          {!isArchived && (
-            <span className={`text-xs px-3 py-1 rounded-full ${
-              s.status === 'active'
-                ? 'bg-green-500/20 text-green-400'
-                : 'bg-[#F5F0E8]/10 text-[#F5F0E8]/40'
-            }`}>
-              {s.status === 'active' ? '● Aktif' : '○ Tutup'}
-            </span>
-          )}
-          {isArchived && (
-            <span className="text-xs px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-500/60">
-              📦 Arsip
-            </span>
-          )}
-        </div>
-
-        <div className="flex gap-2 flex-wrap">
-          {!isArchived && (
-            <>
-              <button onClick={() => setShowQR(s)}
-                className="px-3 py-1.5 bg-[#C9A84C] text-[#080d17] font-semibold rounded-full text-xs hover:bg-[#D4B483] transition-all">
-                Tampilkan QR
-              </button>
-              <Link to={`/admin/absensi/${s.id}`}
-                className="px-3 py-1.5 border border-[#C9A84C]/30 text-[#C9A84C] rounded-full text-xs hover:bg-[#C9A84C]/10 transition-all">
-                Lihat Absensi
-              </Link>
-              <button onClick={() => toggleStatus(s.id, s.status)}
-                className="px-3 py-1.5 border border-[#F5F0E8]/20 text-[#F5F0E8]/60 rounded-full text-xs hover:bg-[#F5F0E8]/5 transition-all">
-                {s.status === 'active' ? 'Tutup Sesi' : 'Buka Lagi'}
-              </button>
-              <button onClick={() => handleArchive(s.id)}
-                className="px-3 py-1.5 border border-yellow-500/30 text-yellow-500/70 rounded-full text-xs hover:bg-yellow-500/10 transition-all">
-                📦 Arsip
-              </button>
-            </>
-          )}
-
-          {isArchived && (
-            <>
-              <Link to={`/admin/absensi/${s.id}`}
-                className="px-3 py-1.5 border border-[#C9A84C]/30 text-[#C9A84C] rounded-full text-xs hover:bg-[#C9A84C]/10 transition-all">
-                Lihat Absensi
-              </Link>
-              <button onClick={() => handleRestore(s.id)}
-                className="px-3 py-1.5 border border-green-500/30 text-green-400 rounded-full text-xs hover:bg-green-500/10 transition-all">
-                ↩ Pulihkan
-              </button>
-            </>
-          )}
-
-          {/* Hapus permanen selalu ada tapi lebih tersembunyi */}
-          <button onClick={() => setDeleteConfirm(s)}
-            className="px-3 py-1.5 border border-red-500/20 text-red-400/60 rounded-full text-xs hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/40 transition-all">
-            Hapus Permanen
-          </button>
-        </div>
-      </div>
-    )
-  }
+  const cardProps = { onQr: setQr, onToggle: toggle, onArchive: archive, onRestore: restore, onDelete: del }
 
   return (
-    <div className="min-h-screen bg-[#080d17] text-[#F5F0E8]">
+    <AdminPage title="Sesi Absensi" description="Buat sesi untuk setiap Persekutuan Doa atau event, lalu tampilkan QR agar peserta bisa absen dari ponsel." action={<Button icon={Plus} onClick={openForm}>Buat Sesi</Button>}>
+      {loading && <Loading />}
+      {error && <ErrorState message="Sesi gagal dimuat." onRetry={retry} />}
+      {!loading && !error && sessions.length === 0 && <Card><EmptyState icon={QrCode} title="Belum ada sesi" action={<Button icon={Plus} onClick={openForm}>Buat sesi pertama</Button>}>Setiap sesi punya QR unik untuk absensi.</EmptyState></Card>}
 
-      {/* TOPBAR */}
-      <div className="border-b border-[#C9A84C]/10 bg-[#0d1525]">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Link to="/admin" className="text-[#F5F0E8]/40 hover:text-[#C9A84C] text-sm transition-colors">
-              ← Dashboard
-            </Link>
-            <span className="text-[#F5F0E8]/20">/</span>
-            <span className="text-sm font-medium">Sesi PD</span>
-          </div>
-          <button onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 bg-[#C9A84C] text-[#080d17] font-semibold rounded-full text-xs hover:bg-[#D4B483] transition-all">
-            + Buat Sesi
+      <div className="flex flex-col gap-3">{sessions.map((s) => <SessionCard key={s.id} s={s} archived={false} {...cardProps} />)}</div>
+
+      {archived.length > 0 && (
+        <div className="mt-8">
+          <button type="button" onClick={() => setShowArchived((v) => !v)} aria-expanded={showArchived} className="mb-3 flex w-full items-center justify-between rounded-xl border border-paper-300 bg-white px-4 py-3 text-sm font-semibold text-ink-700 hover:bg-paper-50">
+            <span className="flex items-center gap-2"><Archive size={16} /> Arsip ({archived.length})</span>
+            <ChevronDown size={16} className={showArchived ? 'rotate-180' : ''} />
           </button>
+          {showArchived && <div className="flex flex-col gap-3">{archived.map((s) => <SessionCard key={s.id} s={s} archived {...cardProps} />)}</div>}
         </div>
-      </div>
+      )}
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
-
-        {/* FORM */}
-        {showForm && (
-          <div className="mb-8 p-6 rounded-2xl border border-[#C9A84C]/30 bg-[#111827]">
-            <h2 className="font-semibold mb-5 text-[#C9A84C]">Buat Sesi Baru</h2>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <input
-                type="text"
-                placeholder="Nama sesi (contoh: PD Revive Minggu 1)"
-                value={form.title}
-                onChange={e => setForm({...form, title: e.target.value})}
-                required
-                className="w-full bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] placeholder-[#F5F0E8]/20 focus:outline-none focus:border-[#C9A84C]/60"
-              />
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="text-xs text-[#F5F0E8]/40 mb-1 block">Jenis</label>
-                  <select value={form.type}
-                    onChange={e => setForm({...form, type: e.target.value})}
-                    className="w-full bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] focus:outline-none focus:border-[#C9A84C]/60">
-                    <option value="pd">Persekutuan Doa</option>
-                    <option value="event">Event</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs text-[#F5F0E8]/40 mb-1 block">Tanggal</label>
-                  <input type="date" value={form.date}
-                    onChange={e => setForm({...form, date: e.target.value})}
-                    required
-                    className="w-full bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] focus:outline-none focus:border-[#C9A84C]/60" />
-                </div>
-                <div>
-                  <label className="text-xs text-[#F5F0E8]/40 mb-1 block">Lokasi</label>
-                  <select value={form.location_id}
-                    onChange={e => setForm({...form, location_id: e.target.value})}
-                    required
-                    className="w-full bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] focus:outline-none focus:border-[#C9A84C]/60">
-                    {locations.map(l => (
-                      <option key={l.id} value={l.id}>{l.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <button type="submit"
-                  className="px-6 py-2.5 bg-[#C9A84C] text-[#080d17] font-semibold rounded-xl text-sm hover:bg-[#D4B483] transition-all">
-                  Buat & Generate QR
-                </button>
-                <button type="button" onClick={() => setShowForm(false)}
-                  className="px-6 py-2.5 border border-[#F5F0E8]/20 text-[#F5F0E8]/60 rounded-xl text-sm hover:bg-[#F5F0E8]/5 transition-all">
-                  Batal
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* QR MODAL */}
-        {showQR && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-6">
-            <div className="bg-[#111827] border border-[#C9A84C]/30 rounded-2xl p-8 max-w-sm w-full text-center">
-              <div className="text-[#C9A84C] text-xs tracking-widest uppercase mb-2">QR Absensi</div>
-              <h3 className="font-semibold mb-1">{showQR.title}</h3>
-              <div className={`text-xs mb-4 px-2 py-0.5 rounded-full inline-block ${
-                showQR.type === 'event'
-                  ? 'bg-purple-500/20 text-purple-400'
-                  : 'bg-[#C9A84C]/20 text-[#C9A84C]'
-              }`}>
-                {showQR.type === 'event' ? 'Event' : 'Persekutuan Doa'}
-              </div>
-              <div className="bg-white p-4 rounded-xl inline-block mb-4">
-                <QRCodeSVG value={scanUrl(showQR.token)} size={200} />
-              </div>
-              <div className="text-[#F5F0E8]/30 text-xs mb-6 break-all">{scanUrl(showQR.token)}</div>
-              <div className="flex gap-3 justify-center">
-                <button onClick={() => window.open(scanUrl(showQR.token), '_blank')}
-                  className="px-4 py-2 border border-[#C9A84C]/30 text-[#C9A84C] rounded-full text-xs hover:bg-[#C9A84C]/10 transition-all">
-                  Buka Link
-                </button>
-                <button onClick={() => setShowQR(null)}
-                  className="px-4 py-2 border border-[#F5F0E8]/20 text-[#F5F0E8]/60 rounded-full text-xs hover:bg-[#F5F0E8]/5 transition-all">
-                  Tutup
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* DELETE CONFIRM MODAL */}
-        {deleteConfirm && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-6">
-            <div className="bg-[#111827] border border-red-500/30 rounded-2xl p-6 max-w-sm w-full text-center">
-              <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto mb-4">
-                <span className="text-red-400 text-2xl">⚠</span>
-              </div>
-              <h3 className="font-semibold mb-2">Hapus Permanen?</h3>
-              <p className="text-[#F5F0E8]/50 text-sm mb-2">
-                Sesi <span className="text-[#F5F0E8] font-medium">"{deleteConfirm.title}"</span> akan dihapus beserta semua data absensinya.
-              </p>
-              <p className="text-red-400/70 text-xs mb-6">Tindakan ini tidak bisa dibatalkan!</p>
-              <div className="flex gap-3">
-                <button onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 border border-[#F5F0E8]/20 text-[#F5F0E8]/60 py-2.5 rounded-xl text-sm hover:bg-[#F5F0E8]/5 transition-all">
-                  Batal
-                </button>
-                <button onClick={() => handleDeletePermanent(deleteConfirm.id)}
-                  className="flex-1 bg-red-500 text-white py-2.5 rounded-xl text-sm hover:bg-red-600 transition-all">
-                  Ya, Hapus Permanen
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* SESI AKTIF */}
-        {loading ? (
-          <div className="text-center text-[#F5F0E8]/30 py-10 text-sm animate-pulse">Memuat...</div>
+      <Modal open={formOpen} onClose={() => !saving && setFormOpen(false)} title="Buat Sesi Baru"
+        footer={locations.length > 0 && <><Button variant="secondary" onClick={() => setFormOpen(false)} disabled={saving}>Batal</Button><Button type="submit" form="session-form" loading={saving}>Buat & tampilkan QR</Button></>}>
+        {locations.length === 0 ? (
+          <EmptyState icon={MapPin} title="Tambahkan lokasi dulu" action={<Button to="/admin/lokasi">Ke Lokasi Absensi</Button>}>Absensi memakai lokasi untuk memastikan peserta hadir di tempat. Buat minimal satu lokasi.</EmptyState>
         ) : (
-          <>
-            <div className="flex flex-col gap-4 mb-8">
-              {sessions.length === 0 ? (
-                <div className="text-center text-[#F5F0E8]/30 py-16 text-sm">
-                  Belum ada sesi. Klik "+ Buat Sesi" untuk memulai.
-                </div>
-              ) : (
-                sessions.map(s => <SessionCard key={s.id} s={s} isArchived={false} />)
-              )}
+          <form id="session-form" onSubmit={create} className="flex flex-col gap-4">
+            <Input label="Nama sesi" required placeholder="mis. PD Revive Minggu 1" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Select label="Jenis" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}><option value="pd">Persekutuan Doa</option><option value="event">Event</option></Select>
+              <Input label="Tanggal" type="date" required value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
             </div>
-
-            {/* ARSIP */}
-            {archived.length > 0 && (
-              <div>
-                <button
-                  onClick={() => setShowArchived(!showArchived)}
-                  className="w-full flex items-center justify-between px-5 py-3 rounded-xl border border-[#F5F0E8]/10 text-[#F5F0E8]/40 text-sm hover:bg-[#F5F0E8]/5 transition-all mb-4"
-                >
-                  <span>📦 Arsip Sesi ({archived.length})</span>
-                  <span>{showArchived ? '▲' : '▼'}</span>
-                </button>
-
-                {showArchived && (
-                  <div className="flex flex-col gap-4">
-                    {archived.map(s => <SessionCard key={s.id} s={s} isArchived={true} />)}
-                  </div>
-                )}
-              </div>
-            )}
-          </>
+            <Select label="Lokasi" required value={form.location_id} onChange={(e) => setForm({ ...form, location_id: e.target.value })}>
+              {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+            </Select>
+          </form>
         )}
-      </div>
-    </div>
+      </Modal>
+
+      <Modal open={!!qr} onClose={() => setQr(null)} title="QR Absensi" description={qr?.title} size="sm"
+        footer={<><Button variant="secondary" icon={Copy} onClick={copyLink}>Salin link</Button><Button variant="secondary" icon={ExternalLink} href={qr ? scanUrl(qr.token) : '#'} target="_blank" rel="noopener noreferrer">Buka</Button></>}>
+        {qr && (
+          <div className="text-center">
+            <div className="inline-block rounded-2xl border border-paper-300 bg-white p-4"><QRCodeSVG value={scanUrl(qr.token)} size={220} /></div>
+            <p className="mt-3 text-xs break-all text-ink-400">{scanUrl(qr.token)}</p>
+            <p className="mt-2 text-sm text-ink-500">Tampilkan di layar atau cetak. Peserta memindai dengan kamera ponsel.</p>
+          </div>
+        )}
+      </Modal>
+    </AdminPage>
   )
 }

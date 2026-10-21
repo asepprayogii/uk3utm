@@ -1,57 +1,52 @@
-import { Pin } from 'lucide-react'
+import { Megaphone, Pin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { formatDate } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
-import PageHeader from '../../components/PageHeader'
+import Badge from '../../components/ui/Badge'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
 
 const EMPTY = []
 
 const fetchAnnouncements = () =>
   unwrap(
-    supabase
-      .from('announcements')
-      .select('*')
-      .order('pinned', { ascending: false })
-      .order('created_at', { ascending: false }),
+    supabase.from('announcements').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false }),
   ).then((rows) => rows ?? [])
 
 export default function Pengumuman() {
   const { data, loading, error, retry } = useAsyncData(fetchAnnouncements, EMPTY)
 
   return (
-    <PageLayout>
-      <PageHeader eyebrow="Info" title="Pengumuman" />
-
+    <PageLayout eyebrow="Info Terbaru" title="Pengumuman" description="Jadwal, kegiatan, dan kabar terbaru dari UK3 UTM.">
       {loading && <Loading />}
       {error && <ErrorState message="Pengumuman gagal dimuat." onRetry={retry} />}
-      {!loading && !error && data.length === 0 && <EmptyState>Belum ada pengumuman.</EmptyState>}
+      {!loading && !error && data.length === 0 && (
+        <EmptyState icon={Megaphone} title="Belum ada pengumuman">Pengumuman baru akan muncul di sini.</EmptyState>
+      )}
 
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-6">
         {data.map((a) => (
           <article
             key={a.id}
-            className="rounded-2xl border border-gold-500/15 bg-navy-800 p-6 transition-colors hover:border-gold-500/30"
+            className={`overflow-hidden rounded-2xl border bg-white transition-shadow hover:shadow-lift ${
+              a.pinned ? 'border-gold-400' : 'border-paper-300'
+            }`}
           >
-            {a.pinned && (
-              <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-gold-500/20 px-2.5 py-0.5 text-xs text-gold-500">
-                <Pin size={12} aria-hidden="true" /> Disematkan
-              </span>
-            )}
-            {a.image_url && (
-              <img
-                src={a.image_url}
-                alt={a.title}
-                loading="lazy"
-                className="mb-4 h-48 w-full rounded-xl object-cover"
-              />
-            )}
-            <time dateTime={a.created_at} className="mb-2 block text-xs text-gold-500">
-              {formatDate(a.created_at)}
-            </time>
-            <h2 className="mb-2 text-lg font-semibold">{a.title}</h2>
-            <p className="whitespace-pre-line text-sm leading-relaxed text-cream/60">{a.content}</p>
+            {a.image_url && <img src={a.image_url} alt={a.title} loading="lazy" className="max-h-80 w-full object-cover" />}
+            <div className="p-6">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                {a.pinned && (
+                  <Badge tone="gold">
+                    <Pin size={11} aria-hidden="true" /> Disematkan
+                  </Badge>
+                )}
+                <time dateTime={a.created_at} className="text-xs font-medium text-ink-400">
+                  {formatDate(a.created_at)}
+                </time>
+              </div>
+              <h2 className="font-display text-2xl font-bold text-brand-900">{a.title}</h2>
+              <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-ink-700">{a.content}</p>
+            </div>
           </article>
         ))}
       </div>

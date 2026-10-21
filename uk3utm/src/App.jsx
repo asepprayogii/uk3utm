@@ -1,8 +1,11 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import AuthProvider from './context/AuthProvider'
+import UIProvider from './context/UIProvider'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminShell from './components/admin/AdminShell'
 import { Loading } from './components/States'
+import { ROLES } from './lib/adminNav'
 
 // Halaman publik (ringan, dimuat langsung)
 import Home from './pages/public/Home'
@@ -20,6 +23,7 @@ const Dashboard = lazy(() => import('./pages/admin/Dashboard'))
 const ManageAnnouncements = lazy(() => import('./pages/admin/ManageAnnouncements'))
 const ManageDevotionals = lazy(() => import('./pages/admin/ManageDevotionals'))
 const ManageCommittee = lazy(() => import('./pages/admin/ManageCommittee'))
+const ManageSite = lazy(() => import('./pages/admin/ManageSite'))
 const ManageSessions = lazy(() => import('./pages/admin/ManageSessions'))
 const ManageAttendance = lazy(() => import('./pages/admin/ManageAttendance'))
 const ManageLocations = lazy(() => import('./pages/admin/ManageLocations'))
@@ -28,58 +32,53 @@ const ManageAlbum = lazy(() => import('./pages/admin/ManageAlbum'))
 const ManageStudents = lazy(() => import('./pages/admin/ManageStudents'))
 const ManageMentors = lazy(() => import('./pages/admin/ManageMentors'))
 
-const ALL = ['bph', 'infokom', 'pembinaan']
-const INFOKOM = ['bph', 'infokom']
-const PEMBINAAN = ['bph', 'pembinaan']
+const { ALL, INFOKOM, PEMBINAAN } = ROLES
 
 const ADMIN_ROUTES = [
-  { path: '/admin', roles: ALL, Page: Dashboard },
-  { path: '/admin/pengumuman', roles: INFOKOM, Page: ManageAnnouncements },
-  { path: '/admin/renungan', roles: INFOKOM, Page: ManageDevotionals },
-  { path: '/admin/kepengurusan', roles: INFOKOM, Page: ManageCommittee },
-  { path: '/admin/layanan', roles: INFOKOM, Page: ManageServices },
-  { path: '/admin/album', roles: INFOKOM, Page: ManageAlbum },
-  { path: '/admin/sesi', roles: PEMBINAAN, Page: ManageSessions },
-  { path: '/admin/absensi/:sessionId', roles: PEMBINAAN, Page: ManageAttendance },
-  { path: '/admin/mahasiswa', roles: PEMBINAAN, Page: ManageStudents },
-  { path: '/admin/kakak-bimbing', roles: PEMBINAAN, Page: ManageMentors },
-  { path: '/admin/lokasi', roles: PEMBINAAN, Page: ManageLocations },
+  { path: 'pengumuman', roles: INFOKOM, Page: ManageAnnouncements },
+  { path: 'renungan', roles: INFOKOM, Page: ManageDevotionals },
+  { path: 'kepengurusan', roles: INFOKOM, Page: ManageCommittee },
+  { path: 'layanan', roles: INFOKOM, Page: ManageServices },
+  { path: 'album', roles: INFOKOM, Page: ManageAlbum },
+  { path: 'situs', roles: INFOKOM, Page: ManageSite },
+  { path: 'sesi', roles: PEMBINAAN, Page: ManageSessions },
+  { path: 'absensi/:sessionId', roles: PEMBINAAN, Page: ManageAttendance },
+  { path: 'mahasiswa', roles: PEMBINAAN, Page: ManageStudents },
+  { path: 'kakak-bimbing', roles: PEMBINAAN, Page: ManageMentors },
+  { path: 'lokasi', roles: PEMBINAAN, Page: ManageLocations },
 ]
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Suspense fallback={<Loading fullScreen />}>
-          <Routes>
-            {/* Publik */}
-            <Route path="/" element={<Home />} />
-            <Route path="/pengumuman" element={<Pengumuman />} />
-            <Route path="/renungan" element={<Renungan />} />
-            <Route path="/kepengurusan" element={<Kepengurusan />} />
-            <Route path="/layanan" element={<Layanan />} />
-            <Route path="/album" element={<Album />} />
+        <UIProvider>
+          <Suspense fallback={<Loading fullScreen />}>
+            <Routes>
+              {/* Publik */}
+              <Route path="/" element={<Home />} />
+              <Route path="/pengumuman" element={<Pengumuman />} />
+              <Route path="/renungan" element={<Renungan />} />
+              <Route path="/kepengurusan" element={<Kepengurusan />} />
+              <Route path="/layanan" element={<Layanan />} />
+              <Route path="/album" element={<Album />} />
 
-            {/* Absensi — tanpa login */}
-            <Route path="/scan/:token" element={<ScanAbsensi />} />
+              {/* Absensi — tanpa login */}
+              <Route path="/scan/:token" element={<ScanAbsensi />} />
 
-            {/* Admin */}
-            <Route path="/admin/login" element={<Login />} />
-            {ADMIN_ROUTES.map(({ path, roles, Page }) => (
-              <Route
-                key={path}
-                path={path}
-                element={
-                  <ProtectedRoute allowedRoles={roles}>
-                    <Page />
-                  </ProtectedRoute>
-                }
-              />
-            ))}
+              {/* Admin */}
+              <Route path="/admin/login" element={<Login />} />
+              <Route path="/admin" element={<ProtectedRoute><AdminShell /></ProtectedRoute>}>
+                <Route index element={<ProtectedRoute allowedRoles={ALL}><Dashboard /></ProtectedRoute>} />
+                {ADMIN_ROUTES.map(({ path, roles, Page }) => (
+                  <Route key={path} path={path} element={<ProtectedRoute allowedRoles={roles}><Page /></ProtectedRoute>} />
+                ))}
+              </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </UIProvider>
       </AuthProvider>
     </BrowserRouter>
   )

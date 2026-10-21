@@ -1,215 +1,111 @@
+import { Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { groupCommittee } from '../../lib/committee'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
-import PageHeader from '../../components/PageHeader'
+import MemberCard from '../../components/committee/MemberCard'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
 
-const DEPARTMENTS = ['Pembinaan', 'Dopiper', 'Penatalayanan', 'Minat Bakat']
-const DIVISIONS = {
-  Pembinaan: ['Kelompok Besar', 'Kelompok Kecil'],
-  Dopiper: ['Doa', 'Penginjilan', 'Pemerhati'],
-  Penatalayanan: ['Infokom', 'Inventaris'],
-  'Minat Bakat': ['Creative Ministry', 'Musik', 'Olahraga'],
-}
-
-const BPH_ORDER = ['Ketua', 'Wakil Ketua', 'Sekretaris', 'Bendahara']
 const EMPTY = []
+const fetchCommittee = () => unwrap(supabase.from('committee').select('*')).then((rows) => rows ?? [])
 
-function getAutoOrder(position = '', department, is_kadep) {
-  if (department === 'Pembina') return 0
-  if (department === 'Pembimbing') return 1
-  if (department === 'BPH') {
-    const idx = BPH_ORDER.findIndex((p) => position.toLowerCase().includes(p.toLowerCase()))
-    return idx >= 0 ? 10 + idx : 14
-  }
-  if (is_kadep) return 20
-  return 30
-}
-
-const fetchCommittee = () =>
-  unwrap(supabase.from('committee').select('*')).then((rows) =>
-    [...(rows ?? [])].sort((a, b) => {
-      const oA = getAutoOrder(a.position, a.department, a.is_kadep)
-      const oB = getAutoOrder(b.position, b.department, b.is_kadep)
-      if (oA !== oB) return oA - oB
-      return (a.name ?? '').localeCompare(b.name ?? '')
-    }),
-  )
-
-const AVATAR_SIZES = {
-  lg: 'w-20 h-20 text-2xl',
-  xs: 'w-10 h-10 text-sm',
-}
-
-function Avatar({ member, size = 'xs' }) {
-  const sz = AVATAR_SIZES[size]
-  return member.photo_url ? (
-    <img
-      src={member.photo_url}
-      alt={member.name}
-      loading="lazy"
-      className={`${sz} shrink-0 rounded-full border-2 border-gold-500/30 object-cover`}
-    />
-  ) : (
-    <div
-      aria-hidden="true"
-      className={`${sz} flex shrink-0 items-center justify-center rounded-full border-2 border-gold-500/30 bg-gold-500/20`}
-    >
-      <span className="font-bold text-gold-500">{member.name?.[0] ?? '?'}</span>
+function GroupTitle({ children, sub }) {
+  return (
+    <div className="mb-6 text-center">
+      <h2 className="font-display text-3xl font-bold text-brand-900">{children}</h2>
+      {sub && <p className="mt-1 text-sm text-ink-500">{sub}</p>}
+      <div className="mx-auto mt-3 h-0.5 w-12 rounded bg-gold-400" aria-hidden="true" />
     </div>
   )
 }
 
-// Kartu besar untuk Pembina, Pembimbing, dan BPH
-function FeaturedCard({ member }) {
+function Grid({ members, highlightFirst = false }) {
   return (
-    <div className="min-w-[150px] rounded-2xl border-2 border-gold-500/30 bg-navy-800 p-6 text-center transition-colors hover:border-gold-500/60">
-      <div className="mb-3 flex justify-center">
-        <Avatar member={member} size="lg" />
-      </div>
-      <div className="mb-0.5 text-sm font-semibold">{member.name}</div>
-      <div className="text-xs text-gold-500">{member.position}</div>
+    <div className="flex flex-wrap justify-center gap-4">
+      {members.map((m, i) => (
+        <div key={m.id} className={highlightFirst && i === 0 ? 'w-full max-w-xs' : 'w-full max-w-[220px]'}>
+          <MemberCard member={m} highlight={highlightFirst && i === 0} />
+        </div>
+      ))}
     </div>
-  )
-}
-
-function MemberRow({ member, badge, indent = false }) {
-  return (
-    <div
-      className={`flex items-center gap-3 rounded-xl border border-gold-500/10 bg-navy-800 p-3 transition-colors hover:border-gold-500/25 ${
-        indent ? 'ml-6' : ''
-      }`}
-    >
-      <Avatar member={member} />
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium">{member.name}</div>
-        <div className="text-xs text-gold-500">{member.position}</div>
-      </div>
-      {badge && <span className="shrink-0 rounded-full bg-gold-500/10 px-2 py-0.5 text-xs text-gold-500">{badge}</span>}
-    </div>
-  )
-}
-
-function SectionTitle({ label }) {
-  return (
-    <div className="mb-5 flex items-center gap-4">
-      <div className="h-px flex-1 bg-gold-500/10" />
-      <h2 className="rounded-full border border-gold-500/20 bg-gold-500/5 px-4 py-1.5 text-xs tracking-widest uppercase text-gold-500">
-        {label}
-      </h2>
-      <div className="h-px flex-1 bg-gold-500/10" />
-    </div>
-  )
-}
-
-function VLine() {
-  return (
-    <div className="my-3 flex justify-center" aria-hidden="true">
-      <div className="h-8 w-px bg-gold-500/20" />
-    </div>
-  )
-}
-
-function FeaturedGroup({ label, members, withLine }) {
-  if (members.length === 0) return null
-  return (
-    <>
-      <SectionTitle label={label} />
-      <div className="mb-4 flex flex-wrap justify-center gap-4">
-        {members.map((m) => (
-          <FeaturedCard key={m.id} member={m} />
-        ))}
-      </div>
-      {withLine && <VLine />}
-    </>
-  )
-}
-
-function Department({ dept, data }) {
-  const { kadep, byDiv, members } = data
-  const noDivision = members.filter((m) => !m.is_kadep && !m.division)
-
-  return (
-    <section className="pt-6" aria-label={`Departemen ${dept}`}>
-      <div className="mb-4 text-center">
-        <span className="rounded-full border border-gold-500/20 bg-navy-900 px-3 py-1.5 text-xs tracking-widest uppercase text-gold-500">
-          {dept}
-        </span>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        {kadep && <MemberRow member={kadep} badge="Kadep" />}
-
-        {(DIVISIONS[dept] ?? []).map((div) => {
-          const divMembers = byDiv[div] ?? []
-          if (divMembers.length === 0) return null
-          return (
-            <div key={div}>
-              <div className="my-2 flex items-center gap-2 pl-2">
-                <div className="h-px w-3 bg-gold-500/20" />
-                <span className="text-xs text-cream/40">{div}</span>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                {divMembers.map((m) => (
-                  <MemberRow key={m.id} member={m} indent />
-                ))}
-              </div>
-            </div>
-          )
-        })}
-
-        {noDivision.map((m) => (
-          <MemberRow key={m.id} member={m} />
-        ))}
-      </div>
-    </section>
   )
 }
 
 export default function Kepengurusan() {
-  const { data: committee, loading, error, retry } = useAsyncData(fetchCommittee, EMPTY)
-
-  const pembina = committee.filter((c) => c.department === 'Pembina')
-  const pembimbing = committee.filter((c) => c.department === 'Pembimbing')
-  const bph = committee.filter((c) => c.department === 'BPH')
-
-  const byDept = Object.fromEntries(
-    DEPARTMENTS.map((dept) => {
-      const members = committee.filter((c) => c.department === dept)
-      const kadep = members.find((m) => m.is_kadep)
-      const byDiv = Object.fromEntries(
-        (DIVISIONS[dept] ?? []).map((div) => [div, members.filter((m) => !m.is_kadep && m.division === div)]),
-      )
-      return [dept, { kadep, byDiv, members }]
-    }),
-  )
-  const activeDepts = DEPARTMENTS.filter((d) => byDept[d].members.length > 0)
+  const { data, loading, error, retry } = useAsyncData(fetchCommittee, EMPTY)
+  const g = groupCommittee(data)
+  const isEmpty = !loading && !error && data.length === 0
+  const hasKetua = g.bph[0] && /ketua/i.test(g.bph[0].position ?? '') && !/wakil/i.test(g.bph[0].position ?? '')
 
   return (
-    <PageLayout width="max-w-5xl">
-      <PageHeader
-        eyebrow="Struktur Organisasi"
-        title="Kepengurusan UK3 UTM"
-        subtitle="Periode 2025/2026"
-        className="mb-14"
-      />
-
+    <PageLayout
+      eyebrow="Siapa Kami"
+      title="Kepengurusan"
+      description="Para pengurus yang melayani mahasiswa Kristen di Universitas Trunojoyo Madura."
+      width="max-w-6xl"
+    >
       {loading && <Loading />}
       {error && <ErrorState message="Data kepengurusan gagal dimuat." onRetry={retry} />}
-      {!loading && !error && committee.length === 0 && <EmptyState>Belum ada data kepengurusan.</EmptyState>}
+      {isEmpty && <EmptyState icon={Users} title="Belum ada data pengurus">Struktur pengurus akan tampil di sini.</EmptyState>}
 
-      {!loading && !error && committee.length > 0 && (
-        <div className="flex flex-col">
-          <FeaturedGroup label="Pembina" members={pembina} withLine />
-          <FeaturedGroup label="Pembimbing" members={pembimbing} withLine />
-          <FeaturedGroup label="Badan Pengurus Harian" members={bph} withLine={activeDepts.length > 0} />
+      {!loading && !error && data.length > 0 && (
+        <div className="flex flex-col gap-16">
+          {(g.pembina.length > 0 || g.pembimbing.length > 0) && (
+            <section>
+              <GroupTitle sub="Pendamping rohani dan akademik">Pembina & Pembimbing</GroupTitle>
+              <Grid members={[...g.pembina, ...g.pembimbing]} />
+            </section>
+          )}
 
-          {activeDepts.length > 0 && (
-            <div className={`grid gap-x-8 gap-y-2 ${activeDepts.length > 1 ? 'md:grid-cols-2' : ''}`}>
-              {activeDepts.map((dept) => (
-                <Department key={dept} dept={dept} data={byDept[dept]} />
-              ))}
-            </div>
+          {g.bph.length > 0 && (
+            <section>
+              <GroupTitle sub="Badan Pengurus Harian">BPH</GroupTitle>
+              <Grid members={g.bph} highlightFirst={hasKetua} />
+            </section>
+          )}
+
+          {g.departments.length > 0 && (
+            <section>
+              <GroupTitle sub="Pelayanan dijalankan melalui departemen dan divisi">Departemen</GroupTitle>
+              <div className="grid gap-6 md:grid-cols-2">
+                {g.departments.map((d) => (
+                  <article key={d.name} className="overflow-hidden rounded-2xl border border-paper-300 bg-white shadow-soft">
+                    <header className="hero-bg flex items-center justify-between px-5 py-4 text-white">
+                      <h3 className="font-display text-2xl font-bold">{d.name}</h3>
+                      <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs">{d.total} orang</span>
+                    </header>
+                    <div className="flex flex-col gap-5 p-5">
+                      {d.kadep.map((m) => (
+                        <div key={m.id}>
+                          <div className="mb-2 text-[11px] font-bold tracking-widest text-gold-700 uppercase">Kepala Departemen</div>
+                          <MemberCard member={m} variant="row" />
+                        </div>
+                      ))}
+                      {d.divisions.map((div) => (
+                        <div key={div.name}>
+                          <div className="mb-2 text-[11px] font-bold tracking-widest text-brand-600 uppercase">Divisi {div.name}</div>
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            {div.members.map((m) => (
+                              <MemberCard key={m.id} member={m} variant="row" />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                      {d.others.length > 0 && (
+                        <div>
+                          <div className="mb-2 text-[11px] font-bold tracking-widest text-ink-500 uppercase">Anggota lainnya</div>
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            {d.others.map((m) => (
+                              <MemberCard key={m.id} member={m} variant="row" />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
           )}
         </div>
       )}

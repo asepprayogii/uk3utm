@@ -1,220 +1,109 @@
-import { useEffect, useState, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useState } from 'react'
+import { BookOpen, Pencil, Plus, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { removeByUrl } from '../../lib/storage'
+import { formatDate } from '../../lib/format'
+import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
+import { useImageField } from '../../hooks/useImageField'
+import { useUI } from '../../hooks/useUI'
+import AdminPage, { Card } from '../../components/admin/AdminPage'
+import Badge from '../../components/ui/Badge'
+import Button from '../../components/ui/Button'
+import { Input, Textarea } from '../../components/ui/Field'
+import ImageUpload from '../../components/ui/ImageUpload'
+import Modal from '../../components/ui/Modal'
+import { EmptyState, ErrorState, Loading } from '../../components/States'
+
+const EMPTY = []
+const BLANK = { title: '', verse: '', content: '' }
+const fetchAll = () =>
+  unwrap(supabase.from('devotionals').select('*').order('created_at', { ascending: false })).then((r) => r ?? [])
 
 export default function ManageDevotionals() {
-  const [devotionals, setDevotionals] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [editData, setEditData] = useState(null)
-  const [form, setForm] = useState({ title: '', content: '', verse: '' })
-  const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
-  const fileRef = useRef()
+  const { toast, confirm } = useUI()
+  const { data, loading, error, retry } = useAsyncData(fetchAll, EMPTY)
+  const [local, setLocal] = useState(null)
+  const list = local ?? data
+  const [modal, setModal] = useState(null)
+  const [form, setForm] = useState(BLANK)
+  const [saving, setSaving] = useState(false)
+  const image = useImageField(null)
 
-  useEffect(() => { fetchData() }, [])
+  const refresh = useCallback(async () => {
+    try { setLocal(await fetchAll()) } catch (e) { toast.error(`Gagal memuat ulang: ${e.message}`) }
+  }, [toast])
 
-  async function fetchData() {
-    const { data } = await supabase
-      .from('devotionals').select('*')
-      .order('created_at', { ascending: false })
-    setDevotionals(data ?? [])
-    setLoading(false)
+  function open(item = null) {
+    setForm(item ? { title: item.title, verse: item.verse ?? '', content: item.content } : BLANK)
+    image.reset(item?.image_url ?? null)
+    setModal({ editing: item })
   }
 
-  function openAdd() {
-    setEditData(null)
-    setForm({ title: '', content: '', verse: '' })
-    setImageFile(null)
-    setImagePreview(null)
-    setShowForm(true)
-  }
-
-  function openEdit(d) {
-    setEditData(d)
-    setForm({ title: d.title, content: d.content, verse: d.verse ?? '' })
-    setImageFile(null)
-    setImagePreview(d.image_url ?? null)
-    setShowForm(true)
-  }
-
-  function handleImage(e) {
-    const file = e.target.files[0]
-    if (!file) return
-    setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
-  }
-
-  async function handleSubmit(e) {
+  async function save(e) {
     e.preventDefault()
-    setUploading(true)
-
-    let image_url = editData?.image_url ?? null
-
-    if (imageFile) {
-      const ext = imageFile.name.split('.').pop()
-      const filename = `devotionals/${Date.now()}.${ext}`
-      const { error: uploadError } = await supabase.storage
-        .from('uk3-media').upload(filename, imageFile)
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage
-          .from('uk3-media').getPublicUrl(filename)
-        image_url = urlData.publicUrl
-      }
+    setSaving(true)
+    try {
+      const { url, changed, oldUrl } = await image.commit('devotionals')
+      const row = { title: form.title.trim(), content: form.content.trim(), verse: form.verse.trim(), image_url: url }
+      if (modal.editing) await unwrap(supabase.from('devotionals').update(row).eq('id', modal.editing.id))
+      else await unwrap(supabase.from('devotionals').insert(row))
+      if (changed && oldUrl) removeByUrl(oldUrl)
+      toast.success(modal.editing ? 'Renungan diperbarui.' : 'Renungan diterbitkan.')
+      setModal(null)
+      await refresh()
+    } catch (err) {
+      toast.error(`Gagal menyimpan: ${err.message}`)
+    } finally {
+      setSaving(false)
     }
-
-    if (editData) {
-      await supabase.from('devotionals')
-        .update({ ...form, image_url })
-        .eq('id', editData.id)
-    } else {
-      await supabase.from('devotionals')
-        .insert({ ...form, image_url })
-    }
-
-    setForm({ title: '', content: '', verse: '' })
-    setImageFile(null)
-    setImagePreview(null)
-    setEditData(null)
-    setShowForm(false)
-    setUploading(false)
-    fetchData()
   }
 
-  async function handleDelete(id) {
-    if (!confirm('Hapus renungan ini?')) return
-    await supabase.from('devotionals').delete().eq('id', id)
-    fetchData()
+  async function remove(a) {
+    if (!(await confirm({ title: 'Hapus renungan?', message: `“${a.title}” akan hilang dari website.`, confirmLabel: 'Ya, hapus' }))) return
+    try {
+      await unwrap(supabase.from('devotionals').delete().eq('id', a.id))
+      if (a.image_url) removeByUrl(a.image_url)
+      toast.success('Renungan dihapus.')
+      await refresh()
+    } catch (err) { toast.error(`Gagal menghapus: ${err.message}`) }
   }
 
   return (
-    <div className="min-h-screen bg-[#080d17] text-[#F5F0E8]">
-
-      <div className="border-b border-[#C9A84C]/10 bg-[#0d1525]">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Link to="/admin" className="text-[#F5F0E8]/40 hover:text-[#C9A84C] text-sm transition-colors">
-              ← Dashboard
-            </Link>
-            <span className="text-[#F5F0E8]/20">/</span>
-            <span className="text-sm font-medium">Renungan</span>
-          </div>
-          <button onClick={openAdd}
-            className="px-4 py-2 bg-[#C9A84C] text-[#080d17] font-semibold rounded-full text-xs hover:bg-[#D4B483] transition-all">
-            + Tambah
-          </button>
-        </div>
-      </div>
-
-      <div className="max-w-5xl mx-auto px-6 py-8">
-
-        {/* FORM MODAL */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-            <div className="bg-[#111827] border border-[#C9A84C]/30 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <h2 className="font-semibold mb-5 text-[#C9A84C]">
-                  {editData ? 'Edit Renungan' : 'Renungan Baru'}
-                </h2>
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                  <input
-                    type="text"
-                    placeholder="Judul renungan"
-                    value={form.title}
-                    onChange={e => setForm({...form, title: e.target.value})}
-                    required
-                    className="w-full bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] placeholder-[#F5F0E8]/20 focus:outline-none focus:border-[#C9A84C]/60"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Ayat Alkitab (contoh: Yohanes 3:16)"
-                    value={form.verse}
-                    onChange={e => setForm({...form, verse: e.target.value})}
-                    className="w-full bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] placeholder-[#F5F0E8]/20 focus:outline-none focus:border-[#C9A84C]/60"
-                  />
-                  <textarea
-                    placeholder="Isi renungan..."
-                    value={form.content}
-                    onChange={e => setForm({...form, content: e.target.value})}
-                    required
-                    rows={7}
-                    className="w-full bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] placeholder-[#F5F0E8]/20 focus:outline-none focus:border-[#C9A84C]/60 resize-none"
-                  />
-
-                  <div onClick={() => fileRef.current.click()}
-                    className="border-2 border-dashed border-[#C9A84C]/20 rounded-xl p-5 text-center cursor-pointer hover:border-[#C9A84C]/50 transition-all">
-                    {imagePreview ? (
-                      <div>
-                        <img src={imagePreview} className="max-h-40 mx-auto rounded-lg object-cover" />
-                        <div className="text-[#F5F0E8]/30 text-xs mt-2">Klik untuk ganti gambar</div>
-                      </div>
-                    ) : (
-                      <div className="text-[#F5F0E8]/30 text-sm">Klik untuk upload gambar (opsional)</div>
-                    )}
-                    <input ref={fileRef} type="file" accept="image/*" onChange={handleImage} className="hidden" />
-                  </div>
-
-                  {imagePreview && (
-                    <button type="button"
-                      onClick={() => { setImageFile(null); setImagePreview(null) }}
-                      className="text-red-400/60 text-xs hover:text-red-400 transition-colors text-left">
-                      ✕ Hapus gambar
-                    </button>
-                  )}
-
-                  <div className="flex gap-3 pt-2">
-                    <button type="submit" disabled={uploading}
-                      className="flex-1 bg-[#C9A84C] text-[#080d17] font-semibold py-3 rounded-xl text-sm hover:bg-[#D4B483] disabled:opacity-50 transition-all">
-                      {uploading ? 'Menyimpan...' : editData ? 'Simpan Perubahan' : 'Tambah'}
-                    </button>
-                    <button type="button"
-                      onClick={() => { setShowForm(false); setEditData(null); setImagePreview(null) }}
-                      className="flex-1 border border-[#F5F0E8]/20 text-[#F5F0E8]/60 py-3 rounded-xl text-sm hover:bg-[#F5F0E8]/5 transition-all">
-                      Batal
-                    </button>
-                  </div>
-                </form>
+    <AdminPage title="Renungan" description="Renungan dan ayat yang tampil di beranda dan halaman Renungan." action={<Button icon={Plus} onClick={() => open()}>Tulis Renungan</Button>}>
+      {loading && <Loading />}
+      {error && <ErrorState message="Renungan gagal dimuat." onRetry={retry} />}
+      {!loading && !error && list.length === 0 && (
+        <Card><EmptyState icon={BookOpen} title="Belum ada renungan" action={<Button icon={Plus} onClick={() => open()}>Tulis renungan pertama</Button>}>Bagikan firman untuk menguatkan sesama.</EmptyState></Card>
+      )}
+      <div className="flex flex-col gap-3">
+        {list.map((a) => (
+          <Card key={a.id} className="flex gap-4 p-4">
+            {a.image_url && <img src={a.image_url} alt="" className="h-24 w-24 shrink-0 rounded-xl object-cover" />}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-bold text-ink-900">{a.title}</h3>
+                {a.verse && <Badge tone="gold">{a.verse}</Badge>}
+              </div>
+              <p className="mt-1 line-clamp-2 text-sm text-ink-500">{a.content}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="mr-2 text-xs text-ink-400">{formatDate(a.created_at)}</span>
+                <Button size="sm" variant="secondary" icon={Pencil} onClick={() => open(a)}>Ubah</Button>
+                <Button size="sm" variant="dangerSoft" icon={Trash2} onClick={() => remove(a)}>Hapus</Button>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* LIST */}
-        <div className="flex flex-col gap-4">
-          {loading && <div className="text-center text-[#F5F0E8]/30 py-10 text-sm animate-pulse">Memuat...</div>}
-          {!loading && devotionals.length === 0 && (
-            <div className="text-center text-[#F5F0E8]/30 py-20 text-sm">
-              Belum ada renungan. Klik "+ Tambah".
-            </div>
-          )}
-          {devotionals.map(d => (
-            <div key={d.id} className="p-5 rounded-2xl border border-[#C9A84C]/15 bg-[#111827] flex gap-4">
-              {d.image_url && (
-                <img src={d.image_url} className="w-24 h-24 rounded-xl object-cover flex-shrink-0" />
-              )}
-              <div className="flex-1 min-w-0">
-                {d.verse && <div className="text-[#C9A84C] text-xs italic mb-1">"{d.verse}"</div>}
-                <h3 className="font-semibold text-sm mb-1">{d.title}</h3>
-                <p className="text-[#F5F0E8]/50 text-xs line-clamp-2 mb-2">{d.content}</p>
-                <div className="text-[#F5F0E8]/20 text-xs mb-3">
-                  {new Date(d.created_at).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => openEdit(d)}
-                    className="px-3 py-1 border border-[#C9A84C]/30 text-[#C9A84C] rounded-full text-xs hover:bg-[#C9A84C]/10 transition-all">
-                    Edit
-                  </button>
-                  <button onClick={() => handleDelete(d.id)}
-                    className="px-3 py-1 border border-red-500/30 text-red-400 rounded-full text-xs hover:bg-red-500/10 transition-all">
-                    Hapus
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+          </Card>
+        ))}
       </div>
-    </div>
+
+      <Modal open={!!modal} onClose={() => !saving && setModal(null)} title={modal?.editing ? 'Ubah Renungan' : 'Renungan Baru'}
+        footer={<><Button variant="secondary" onClick={() => setModal(null)} disabled={saving}>Batal</Button><Button type="submit" form="devotional-form" loading={saving}>{modal?.editing ? 'Simpan Perubahan' : 'Terbitkan'}</Button></>}>
+        <form id="devotional-form" onSubmit={save} className="flex flex-col gap-4">
+          <Input label="Judul" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          <Input label="Ayat (opsional)" placeholder="mis. Yohanes 3:16 — Karena begitu besar kasih Allah…" value={form.verse} onChange={(e) => setForm({ ...form, verse: e.target.value })} />
+          <Textarea label="Isi renungan" required rows={6} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} />
+          <ImageUpload field={image} label="Gambar (opsional)" />
+        </form>
+      </Modal>
+    </AdminPage>
   )
 }

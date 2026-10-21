@@ -6,12 +6,26 @@ Live: <https://uk3utm.vercel.app>
 ## Fitur
 
 **Publik**
-- Beranda, Pengumuman, Renungan, Kepengurusan, Album Kegiatan, dan Layanan (QRIS, formulir, kontak WhatsApp)
-- Absensi lewat QR (`/scan/:token`) tanpa login: verifikasi lokasi GPS, satu perangkat satu absen, tanda tangan digital
+- Beranda (hero berlogo, akses cepat, pengumuman, renungan, visi/misi, BPH, album, tautan)
+- Pengumuman, Renungan, Kepengurusan (bagan struktur), Album (galeri + lightbox), Layanan (QRIS, formulir, WhatsApp)
+- Absensi lewat QR (`/scan/:token`) tanpa login: verifikasi GPS, satu perangkat satu absen, tanda tangan digital
 
-**Panel admin** (`/admin`, login Supabase, akses berdasarkan role `bph`, `infokom`, `pembinaan`)
-- Kelola pengumuman, renungan, kepengurusan, layanan, dan album
-- Kelola sesi, lokasi, mahasiswa, kakak bimbing, dan rekap absensi (ekspor PDF/Excel)
+**Panel admin** (`/admin`, login Supabase, akses menurut role `bph`, `infokom`, `pembinaan`)
+- Sidebar sesuai role, dashboard dengan pengingat (mis. belum ada Ketua, visi kosong)
+- Kepengurusan: form bertahap (pilih posisi, jabatan, divisi), pratinjau langsung, validasi (Ketua ganda, Kepala Departemen ganda), urutan otomatis
+- Konten: pengumuman, renungan, layanan, album (unggah banyak foto), Beranda & Tautan (tentang, visi, misi, link)
+- Pembinaan: sesi + QR, lokasi (peta), mahasiswa (impor Excel), kakak bimbing, rekap absensi (PDF)
+
+## Desain
+
+Palet ungu-emas-krem dari logo UK3 (`public/logo-uk3.png`). Token ada di `tailwind.config.js` (`brand`, `gold`, `paper`, `ink`); font Plus Jakarta Sans dan Cormorant Garamond (self-hosted via `@fontsource`).
+
+## Struktur kode
+
+- `src/lib/committee.js` aturan struktur pengurus (urutan, validasi) — satu sumber untuk publik dan admin
+- `src/lib/adminNav.js` / `nav.js` definisi menu
+- `src/components/ui/` komponen dasar (Button, Field, Modal, Avatar, ImageUpload)
+- `src/context/UIProvider.jsx` toast dan dialog konfirmasi
 
 ## Teknologi
 

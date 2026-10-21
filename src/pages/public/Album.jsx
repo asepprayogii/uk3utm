@@ -1,159 +1,130 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Images, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import Navbar from '../../components/Navbar'
+import { formatDate } from '../../lib/format'
+import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
+import PageLayout from '../../components/PageLayout'
+import { EmptyState, ErrorState, Loading } from '../../components/States'
 
-export default function Album() {
-  const [albums, setAlbums] = useState([])
-  const [selected, setSelected] = useState(null)
-  const [photos, setPhotos] = useState([])
-  const [lightbox, setLightbox] = useState(null)
-  const [loading, setLoading] = useState(true)
+const EMPTY = []
+const fetchAlbums = () =>
+  unwrap(supabase.from('albums').select('*').order('event_date', { ascending: false })).then((rows) => rows ?? [])
+
+function Lightbox({ photos, index, onClose, onIndex }) {
+  const total = photos.length
+  const go = useCallback((d) => onIndex((index + d + total) % total), [index, total, onIndex])
 
   useEffect(() => {
-    async function fetch() {
-      const { data } = await supabase
-        .from('albums')
-        .select('*')
-        .order('event_date', { ascending: false })
-      setAlbums(data ?? [])
-      setLoading(false)
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose()
+      else if (e.key === 'ArrowRight') go(1)
+      else if (e.key === 'ArrowLeft') go(-1)
     }
-    fetch()
-  }, [])
+    window.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [onClose, go])
 
-  async function openAlbum(album) {
-    setSelected(album)
-    const { data } = await supabase
-      .from('album_photos')
-      .select('*')
-      .eq('album_id', album.id)
-      .order('order_index')
-    setPhotos(data ?? [])
-  }
+  const p = photos[index]
+  const btn = 'absolute flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25'
+  return (
+    <div role="dialog" aria-modal="true" aria-label="Pratinjau foto" className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-950/95 p-4" onClick={onClose}>
+      <figure className="flex max-h-full max-w-full flex-col items-center" onClick={(e) => e.stopPropagation()}>
+        <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} className="max-h-[80vh] max-w-full rounded-xl object-contain" />
+        <figcaption className="mt-3 text-center text-sm text-white/75">
+          {p.caption && <div className="mb-1">{p.caption}</div>}
+          <span className="text-xs text-white/50">{index + 1} / {total}</span>
+        </figcaption>
+      </figure>
+      <button type="button" onClick={onClose} aria-label="Tutup pratinjau" className={`${btn} top-4 right-4`}><X size={20} /></button>
+      {total > 1 && (
+        <>
+          <button type="button" onClick={(e) => { e.stopPropagation(); go(-1) }} aria-label="Foto sebelumnya" className={`${btn} left-3 top-1/2 -translate-y-1/2`}><ChevronLeft size={22} /></button>
+          <button type="button" onClick={(e) => { e.stopPropagation(); go(1) }} aria-label="Foto berikutnya" className={`${btn} right-3 top-1/2 -translate-y-1/2`}><ChevronRight size={22} /></button>
+        </>
+      )}
+    </div>
+  )
+}
+
+function AlbumPhotos({ album, onBack }) {
+  const [index, setIndex] = useState(null)
+  const closeLightbox = useCallback(() => setIndex(null), [])
+  const fetchPhotos = useCallback(
+    () => unwrap(supabase.from('album_photos').select('*').eq('album_id', album.id).order('order_index')).then((rows) => rows ?? []),
+    [album.id],
+  )
+  const { data: photos, loading, error, retry } = useAsyncData(fetchPhotos, EMPTY)
 
   return (
-    <div className="min-h-screen bg-[#080d17] text-[#F5F0E8]">
-      <Navbar />
-
-      {/* LIGHTBOX */}
-      {lightbox && (
-        <div
-          className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4"
-          onClick={() => setLightbox(null)}
-        >
-          <img
-            src={lightbox}
-            alt="foto"
-            className="max-w-full max-h-full object-contain rounded-xl"
-            onClick={e => e.stopPropagation()}
-          />
-          <button
-            onClick={() => setLightbox(null)}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white text-xl hover:bg-white/20 transition-all"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
-      <div className="max-w-5xl mx-auto px-5 pt-28 pb-20">
-
-        {/* BACK */}
-        {selected && (
-          <button
-            onClick={() => { setSelected(null); setPhotos([]) }}
-            className="mb-6 text-[#C9A84C] text-sm hover:underline flex items-center gap-2"
-          >
-            ← Kembali ke Album
-          </button>
+    <>
+      {index !== null && <Lightbox photos={photos} index={index} onClose={closeLightbox} onIndex={setIndex} />}
+      <button type="button" onClick={onBack} className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-brand-700 hover:underline">
+        <ArrowLeft size={16} aria-hidden="true" /> Semua album
+      </button>
+      <div className="mb-8">
+        <h2 className="font-display text-4xl font-bold text-brand-900">{album.title}</h2>
+        {album.event_date && (
+          <div className="mt-1 text-sm text-gold-700">{formatDate(album.event_date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
         )}
-
-        {!selected ? (
-          <>
-            <div className="text-center mb-10">
-              <div className="text-[#C9A84C] text-xs tracking-widest uppercase mb-2">Momen Bersama</div>
-              <h1 className="text-3xl font-bold" style={{fontFamily:'Cinzel,serif'}}>Album Kegiatan</h1>
-            </div>
-
-            {loading && (
-              <div className="text-center text-[#F5F0E8]/30 py-20 animate-pulse text-sm">Memuat...</div>
-            )}
-            {!loading && albums.length === 0 && (
-              <div className="text-center text-[#F5F0E8]/30 py-20 text-sm">Belum ada album.</div>
-            )}
-
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {albums.map(a => (
-                <div
-                  key={a.id}
-                  onClick={() => openAlbum(a)}
-                  className="rounded-2xl border border-[#C9A84C]/10 bg-[#111827] overflow-hidden cursor-pointer hover:border-[#C9A84C]/40 transition-all group"
-                >
-                  {a.cover_url ? (
-                    <div className="aspect-square overflow-hidden">
-                      <img
-                        src={a.cover_url}
-                        alt={a.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  ) : (
-                    <div className="aspect-square bg-[#C9A84C]/5 flex items-center justify-center">
-                      <span className="text-4xl">🖼️</span>
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <h3 className="font-semibold text-sm mb-1 line-clamp-1">{a.title}</h3>
-                    {a.event_date && (
-                      <div className="text-[#F5F0E8]/30 text-xs">
-                        {new Date(a.event_date).toLocaleDateString('id-ID', {
-                          day: 'numeric', month: 'long', year: 'numeric'
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold mb-1">{selected.title}</h1>
-              {selected.event_date && (
-                <div className="text-[#F5F0E8]/40 text-sm">
-                  {new Date(selected.event_date).toLocaleDateString('id-ID', {
-                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-                  })}
-                </div>
-              )}
-              {selected.description && (
-                <p className="text-[#F5F0E8]/60 text-sm mt-3 leading-relaxed">{selected.description}</p>
-              )}
-            </div>
-
-            {photos.length === 0 && (
-              <div className="text-center text-[#F5F0E8]/30 py-20 text-sm">Belum ada foto.</div>
-            )}
-
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {photos.map(p => (
-                <div
-                  key={p.id}
-                  onClick={() => setLightbox(p.photo_url)}
-                  className="aspect-square rounded-xl overflow-hidden cursor-zoom-in group"
-                >
-                  <img
-                    src={p.photo_url}
-                    alt={p.caption ?? ''}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+        {album.description && <p className="mt-3 max-w-2xl text-ink-700">{album.description}</p>}
       </div>
-    </div>
+
+      {loading && <Loading />}
+      {error && <ErrorState message="Foto gagal dimuat." onRetry={retry} />}
+      {!loading && !error && photos.length === 0 && <EmptyState icon={Images} title="Belum ada foto">Foto album ini belum ditambahkan.</EmptyState>}
+
+      <div className="columns-2 gap-3 md:columns-3">
+        {photos.map((p, i) => (
+          <button key={p.id} type="button" onClick={() => setIndex(i)} className="group mb-3 block w-full cursor-zoom-in overflow-hidden rounded-xl bg-paper-200">
+            <img src={p.photo_url} alt={p.caption || `Foto ${album.title}`} loading="lazy" className="w-full transition-transform duration-300 group-hover:scale-[1.03]" />
+          </button>
+        ))}
+      </div>
+    </>
+  )
+}
+
+export default function Album() {
+  const { data: albums, loading, error, retry } = useAsyncData(fetchAlbums, EMPTY)
+  const [selected, setSelected] = useState(null)
+
+  return (
+    <PageLayout
+      eyebrow="Momen Bersama"
+      title="Album Kegiatan"
+      description="Dokumentasi kebersamaan kami dalam ibadah, pelayanan, dan kegiatan."
+      width="max-w-6xl"
+    >
+      {selected ? (
+        <AlbumPhotos album={selected} onBack={() => setSelected(null)} />
+      ) : (
+        <>
+          {loading && <Loading />}
+          {error && <ErrorState message="Album gagal dimuat." onRetry={retry} />}
+          {!loading && !error && albums.length === 0 && <EmptyState icon={Images} title="Belum ada album">Album kegiatan akan tampil di sini.</EmptyState>}
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            {albums.map((a) => (
+              <button key={a.id} type="button" onClick={() => { setSelected(a); window.scrollTo({ top: 0 }) }} className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-brand-900 text-left">
+                {a.cover_url ? (
+                  <img src={a.cover_url} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                ) : (
+                  <div className="flex h-full items-center justify-center"><Images size={40} className="text-white/30" aria-hidden="true" /></div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-950/90 via-brand-950/10 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                  <h3 className="line-clamp-2 font-bold">{a.title}</h3>
+                  {a.event_date && <div className="mt-0.5 text-xs text-white/65">{formatDate(a.event_date)}</div>}
+                </div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </PageLayout>
   )
 }

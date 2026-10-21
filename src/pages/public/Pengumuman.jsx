@@ -1,50 +1,55 @@
-import { useEffect, useState } from 'react'
+import { Megaphone, Pin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import Navbar from '../../components/Navbar'
+import { formatDate } from '../../lib/format'
+import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
+import PageLayout from '../../components/PageLayout'
+import Badge from '../../components/ui/Badge'
+import { EmptyState, ErrorState, Loading } from '../../components/States'
+
+const EMPTY = []
+
+const fetchAnnouncements = () =>
+  unwrap(
+    supabase.from('announcements').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false }),
+  ).then((rows) => rows ?? [])
 
 export default function Pengumuman() {
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    supabase.from('announcements').select('*')
-      .order('pinned', { ascending: false })
-      .order('created_at', { ascending: false })
-      .then(({ data }) => { setData(data ?? []); setLoading(false) })
-  }, [])
+  const { data, loading, error, retry } = useAsyncData(fetchAnnouncements, EMPTY)
 
   return (
-    <div className="min-h-screen bg-[#080d17] text-[#F5F0E8]">
-      <Navbar />
-      <div className="max-w-4xl mx-auto px-6 pt-28 pb-20">
-        <div className="text-center mb-12">
-          <div className="text-[#C9A84C] text-xs tracking-widest uppercase mb-2">Info</div>
-          <h1 className="text-3xl font-bold" style={{fontFamily:'Cinzel,serif'}}>Pengumuman</h1>
-        </div>
+    <PageLayout eyebrow="Info Terbaru" title="Pengumuman" description="Jadwal, kegiatan, dan kabar terbaru dari UK3 UTM.">
+      {loading && <Loading />}
+      {error && <ErrorState message="Pengumuman gagal dimuat." onRetry={retry} />}
+      {!loading && !error && data.length === 0 && (
+        <EmptyState icon={Megaphone} title="Belum ada pengumuman">Pengumuman baru akan muncul di sini.</EmptyState>
+      )}
 
-        {loading && <div className="text-center text-[#F5F0E8]/30 animate-pulse">Memuat...</div>}
-
-        <div className="flex flex-col gap-5">
-          {data.map(a => (
-            <div key={a.id} className="p-6 rounded-2xl border border-[#C9A84C]/15 bg-[#111827] hover:border-[#C9A84C]/30 transition-all">
-              {a.pinned && (
-                <span className="text-xs bg-[#C9A84C]/20 text-[#C9A84C] px-2 py-0.5 rounded-full mb-3 inline-block">?? Pinned</span>
-              )}
-              {a.image_url && (
-                <img src={a.image_url} alt={a.title} className="w-full h-48 object-cover rounded-xl mb-4" />
-              )}
-              <div className="text-[#C9A84C] text-xs mb-2">
-                {new Date(a.created_at).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}
+      <div className="flex flex-col gap-6">
+        {data.map((a) => (
+          <article
+            key={a.id}
+            className={`overflow-hidden rounded-2xl border bg-white transition-shadow hover:shadow-lift ${
+              a.pinned ? 'border-gold-400' : 'border-paper-300'
+            }`}
+          >
+            {a.image_url && <img src={a.image_url} alt={a.title} loading="lazy" className="max-h-80 w-full object-cover" />}
+            <div className="p-6">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                {a.pinned && (
+                  <Badge tone="gold">
+                    <Pin size={11} aria-hidden="true" /> Disematkan
+                  </Badge>
+                )}
+                <time dateTime={a.created_at} className="text-xs font-medium text-ink-400">
+                  {formatDate(a.created_at)}
+                </time>
               </div>
-              <h2 className="font-semibold text-lg mb-2">{a.title}</h2>
-              <p className="text-[#F5F0E8]/60 text-sm leading-relaxed whitespace-pre-line">{a.content}</p>
+              <h2 className="font-display text-2xl font-bold text-brand-900">{a.title}</h2>
+              <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-ink-700">{a.content}</p>
             </div>
-          ))}
-          {!loading && data.length === 0 && (
-            <div className="text-center text-[#F5F0E8]/30 py-20 text-sm">Belum ada pengumuman.</div>
-          )}
-        </div>
+          </article>
+        ))}
       </div>
-    </div>
+    </PageLayout>
   )
 }

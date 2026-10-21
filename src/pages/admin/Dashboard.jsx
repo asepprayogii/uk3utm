@@ -1,193 +1,110 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../../lib/supabase";
-import { useAuth } from "../../hooks/useAuth";
+import { Link } from 'react-router-dom'
+import { AlertTriangle, ArrowRight, CheckCircle2, Plus } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
+import { structureIssues } from '../../lib/committee'
+import { ADMIN_GROUPS, ROLE_LABEL } from '../../lib/adminNav'
+import { useAuth } from '../../hooks/useAuth'
+import { useAsyncData } from '../../hooks/useAsyncData'
+import AdminPage, { Card } from '../../components/admin/AdminPage'
+import { ErrorState, Loading } from '../../components/States'
+
+const INITIAL = { counts: {}, committee: [], content: {}, activeSessions: 0 }
+const count = (table) => supabase.from(table).select('*', { count: 'exact', head: true })
+
+async function fetchDashboard() {
+  const keys = ['announcements', 'devotionals', 'albums', 'services', 'students', 'mentors']
+  const results = await Promise.allSettled([
+    ...keys.map((k) => count(k)),
+    supabase.from('committee').select('*'),
+    supabase.from('site_content').select('*'),
+    supabase.from('sessions').select('*', { count: 'exact', head: true }).eq('status', 'active').eq('archived', false),
+  ])
+  const ok = results.map((r) => (r.status === 'fulfilled' && !r.value.error ? r.value : null))
+  if (ok.every((r) => r === null)) throw new Error('Data dashboard gagal dimuat.')
+  const counts = Object.fromEntries(keys.map((k, i) => [k, ok[i]?.count ?? 0]))
+  const committee = ok[keys.length]?.data ?? []
+  counts.committee = committee.length
+  const content = Object.fromEntries((ok[keys.length + 1]?.data ?? []).map((r) => [r.key, r.value]))
+  return { counts, committee, content, activeSessions: ok[keys.length + 2]?.count ?? 0 }
+}
+
+const STAT_KEYS = {
+  '/admin/pengumuman': 'announcements', '/admin/renungan': 'devotionals', '/admin/kepengurusan': 'committee',
+  '/admin/layanan': 'services', '/admin/album': 'albums', '/admin/mahasiswa': 'students', '/admin/kakak-bimbing': 'mentors',
+}
 
 export default function Dashboard() {
-  const { profile } = useAuth();
-  const navigate = useNavigate();
-  const [stats, setStats] = useState({
-    announcements: 0,
-    devotionals: 0,
-    committee: 0,
-    sessions: 0,
-    students: 0,
-  });
+  const { profile, user } = useAuth()
+  const role = profile?.role
+  const { data, loading, error, retry } = useAsyncData(fetchDashboard, INITIAL)
+  const { counts, committee, content, activeSessions } = data
 
-  useEffect(() => {
-    async function fetchStats() {
-      const [a, d, c, s, m] = await Promise.all([
-        supabase.from("announcements").select("*", { count: "exact", head: true }),
-        supabase.from("devotionals").select("*", { count: "exact", head: true }),
-        supabase.from("committee").select("*", { count: "exact", head: true }),
-        supabase.from("sessions").select("*", { count: "exact", head: true }),
-        supabase.from("students").select("*", { count: "exact", head: true }),
-      ]);
-      setStats((prev) => ({
-        ...prev,
-        announcements: a.count ?? 0,
-        devotionals: d.count ?? 0,
-        committee: c.count ?? 0,
-        sessions: s.count ?? 0,
-        students: m.count ?? 0,
-      }));
+  const todo = []
+  if (['bph', 'infokom'].includes(role)) {
+    if (!loading && !error) {
+      for (const i of structureIssues(committee).filter((x) => !x.includes('foto'))) todo.push({ text: i, to: '/admin/kepengurusan', cta: 'Lengkapi' })
+      if (!content.vision || !content.mission || !content.about) todo.push({ text: 'Tentang, visi, atau misi di beranda belum diisi.', to: '/admin/situs', cta: 'Isi sekarang' })
     }
-    fetchStats();
-  }, []);
-
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    navigate("/admin/login");
+  }
+  if (['bph', 'pembinaan'].includes(role) && activeSessions > 0) {
+    todo.push({ text: `${activeSessions} sesi absensi masih terbuka.`, to: '/admin/sesi', cta: 'Kelola sesi', info: true })
   }
 
-  const roleLabel = {
-    bph: "BPH",
-    infokom: "Infokom",
-    pembinaan: "Pembinaan",
-    viewer: "Viewer",
-  };
-
-  const menus = [
-    {
-      label: "Pengumuman",
-      desc: "Kelola pengumuman yang tampil di website",
-      path: "/admin/pengumuman",
-      roles: ["bph", "infokom"],
-      stat: stats.announcements,
-      statLabel: "pengumuman",
-    },
-    {
-      label: "Renungan",
-      desc: "Kelola artikel renungan harian",
-      path: "/admin/renungan",
-      roles: ["bph", "infokom"],
-      stat: stats.devotionals,
-      statLabel: "renungan",
-    },
-    {
-      label: "Kepengurusan",
-      desc: "Kelola data pengurus dan struktur organisasi",
-      path: "/admin/kepengurusan",
-      roles: ["bph", "infokom"],
-      stat: stats.committee,
-      statLabel: "pengurus",
-    },
-    {
-      label: "Layanan",
-      desc: "Kelola layanan, CP WhatsApp, dan form untuk anggota",
-      path: "/admin/layanan",
-      roles: ["bph", "infokom"],
-      stat: "",
-      statLabel: "layanan",
-    },
-    {
-      label: "Album Kegiatan",
-      desc: "Upload dan kelola foto kegiatan UK3",
-      path: "/admin/album",
-      roles: ["bph", "infokom"],
-      stat: "",
-      statLabel: "album",
-    },
-    {
-      label: "Sesi PD",
-      desc: "Buat sesi Persekutuan Doa dan generate QR absensi",
-      path: "/admin/sesi",
-      roles: ["bph", "pembinaan"],
-      stat: stats.sessions,
-      statLabel: "sesi",
-    },
-    {
-      label: "Data Mahasiswa",
-      desc: "Upload dan kelola data mahasiswa serta kakak bimbing",
-      path: "/admin/mahasiswa",
-      roles: ["bph", "pembinaan"],
-      stat: "",
-      statLabel: "mahasiswa",
-    },
-    {
-      label: "Kakak Bimbing",
-      desc: "Kelola data kakak bimbing per angkatan",
-      path: "/admin/kakak-bimbing",
-      roles: ["bph", "pembinaan"],
-      stat: "",
-      statLabel: "kakak bimbing",
-    },
-    {
-      label: "Lokasi PD",
-      desc: "Kelola zona lokasi Persekutuan Doa dengan peta interaktif",
-      path: "/admin/lokasi",
-      roles: ["bph", "pembinaan"],
-      stat: "",
-      statLabel: "lokasi",
-    },
-  ];
-
-  const accessibleMenus = menus.filter((m) => m.roles.includes(profile?.role));
+  const name = (user?.email ?? '').split('@')[0]
 
   return (
-    <div className="min-h-screen bg-[#080d17] text-[#F5F0E8]">
-      {/* TOPBAR */}
-      <div className="border-b border-[#C9A84C]/10 bg-[#0d1525]">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#C9A84C]/20 flex items-center justify-center border border-[#C9A84C]/40">
-              <span className="text-[#C9A84C] text-xs font-bold">UK3</span>
-            </div>
-            <div>
-              <div className="text-sm font-semibold">Admin Panel</div>
-              <div className="text-xs text-[#F5F0E8]/40">UK3 UTM</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <div className="text-sm font-medium">{profile?.name ?? "Admin"}</div>
-              <div className="text-xs text-[#C9A84C]">{roleLabel[profile?.role] ?? "Admin"}</div>
-            </div>
-            <button onClick={handleLogout} className="px-4 py-1.5 border border-[#C9A84C]/30 text-[#C9A84C] rounded-full text-xs hover:bg-[#C9A84C]/10 transition-all">
-              Keluar
-            </button>
-          </div>
-        </div>
-      </div>
+    <AdminPage title={`Halo, ${name} 👋`} description={`Anda masuk sebagai ${ROLE_LABEL[role] ?? role}. Pilih menu di bawah untuk mulai mengelola.`}>
+      {loading && <Loading />}
+      {error && <ErrorState message="Ringkasan gagal dimuat." onRetry={retry} />}
 
-      {/* CONTENT */}
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        {/* Greeting */}
-        <div className="mb-10">
-          <h1 className="text-2xl font-bold mb-1" style={{ fontFamily: "Cinzel,serif" }}>
-            Selamat datang, {profile?.name?.split(" ")[0] ?? "Admin"}
-          </h1>
-          <p className="text-[#F5F0E8]/40 text-sm">Kelola konten website dan absensi UK3 UTM dari sini.</p>
-        </div>
+      {!loading && !error && (
+        <>
+          <Card className="mb-8 p-5">
+            <h2 className="mb-3 text-sm font-bold tracking-wide text-brand-800 uppercase">Perlu perhatian</h2>
+            {todo.length === 0 ? (
+              <div className="flex items-center gap-2 text-sm text-green-700"><CheckCircle2 size={18} /> Semua beres. Tidak ada yang perlu dilengkapi.</div>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {todo.map((t) => (
+                  <li key={t.text} className={`flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm ${t.info ? 'bg-brand-50 text-brand-900' : 'bg-amber-50 text-amber-900'}`}>
+                    <span className="flex items-center gap-2"><AlertTriangle size={16} className="shrink-0" /> {t.text}</span>
+                    <Link to={t.to} className="shrink-0 font-bold underline-offset-2 hover:underline">{t.cta} →</Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
 
-        {/* Menu Cards */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-5">
-          {accessibleMenus.map((menu) => (
-            <Link key={menu.path} to={menu.path} className="group p-6 rounded-2xl border border-[#C9A84C]/15 bg-[#111827] hover:border-[#C9A84C]/40 hover:bg-[#1a2438] transition-all">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="font-semibold text-lg group-hover:text-[#C9A84C] transition-colors">{menu.label}</h2>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-[#C9A84C]">{menu.stat}</div>
-                  <div className="text-xs text-[#F5F0E8]/30">{menu.statLabel}</div>
+          {ADMIN_GROUPS.filter((g) => g.label !== 'Ringkasan').map((g) => {
+            const items = g.items.filter((i) => i.roles.includes(role))
+            if (items.length === 0) return null
+            return (
+              <section key={g.label} className="mb-8">
+                <h2 className="mb-3 text-sm font-bold tracking-wide text-ink-500 uppercase">{g.label}</h2>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {items.map(({ to, label, desc, icon: Icon }) => {
+                    const n = counts[STAT_KEYS[to]]
+                    return (
+                      <Link key={to} to={to} className="group flex items-start gap-4 rounded-2xl border border-paper-300 bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-lift">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 group-hover:bg-brand-700 group-hover:text-white"><Icon size={20} /></span>
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-center justify-between gap-2">
+                            <span className="font-bold text-ink-900">{label}</span>
+                            {n !== undefined && <span className="rounded-full bg-paper-100 px-2 py-0.5 text-xs font-bold text-ink-700">{n}</span>}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-ink-500">{desc}</span>
+                        </span>
+                        <ArrowRight size={16} className="mt-1 shrink-0 text-ink-300 group-hover:text-brand-700" />
+                      </Link>
+                    )
+                  })}
                 </div>
-              </div>
-              <p className="text-[#F5F0E8]/50 text-sm">{menu.desc}</p>
-              <div className="mt-4 text-[#C9A84C] text-xs">Kelola →</div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Link ke website publik */}
-        <div className="mt-8 p-5 rounded-2xl border border-[#C9A84C]/10 bg-[#111827] flex justify-between items-center">
-          <div>
-            <div className="text-sm font-medium mb-1">Lihat Website Publik</div>
-            <div className="text-xs text-[#F5F0E8]/40">Tampilan yang dilihat pengunjung</div>
-          </div>
-          <Link to="/" target="_blank" className="px-4 py-2 border border-[#C9A84C]/30 text-[#C9A84C] rounded-full text-xs hover:bg-[#C9A84C]/10 transition-all">
-            Buka →
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
+              </section>
+            )
+          })}
+          <p className="flex items-center gap-1 text-xs text-ink-400"><Plus size={12} /> Tip: tombol “Tambah” ada di pojok kanan atas setiap halaman.</p>
+        </>
+      )}
+    </AdminPage>
+  )
 }

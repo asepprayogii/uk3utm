@@ -1,61 +1,115 @@
-import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from 'react'
+import { Link, NavLink } from 'react-router-dom'
+import { ChevronRight, Menu, X } from 'lucide-react'
+import { PUBLIC_NAV } from '../lib/nav'
+import { Brand } from './Logo'
 
+// Selalu berada di atas area ungu (hero / banner halaman): transparan dengan teks putih,
+// lalu berubah putih bersih saat halaman digulir.
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
-  const location = useLocation();
+  const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(() => typeof window !== 'undefined' && window.scrollY > 16)
 
-  const links = [
-    { to: "/pengumuman", label: "Pengumuman" },
-    { to: "/renungan", label: "Renungan" },
-    { to: "/kepengurusan", label: "Kepengurusan" },
-    { to: "/album", label: "Album" },
-    { to: "/layanan", label: "Layanan" },
-  ];
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 16)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => e.key === 'Escape' && setOpen(false)
+    window.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [open])
+
+  const solid = scrolled || open
+  const close = () => setOpen(false)
+
+  const desktopLink = ({ isActive }) =>
+    `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+      isActive
+        ? solid ? 'bg-brand-50 text-brand-700' : 'bg-white/15 text-white'
+        : solid ? 'text-ink-700 hover:bg-paper-100 hover:text-brand-700' : 'text-white/80 hover:bg-white/10 hover:text-white'
+    }`
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-[#080d17]/90 backdrop-blur border-b border-[#C9A84C]/10">
-      <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#C9A84C]/20 flex items-center justify-center border border-[#C9A84C]/40">
-            <span className="text-[#C9A84C] text-xs font-bold">UK3</span>
-          </div>
-          <span className="text-[#F5F0E8] font-semibold text-sm tracking-wide">UK3 UTM</span>
+    <header
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+        solid ? 'bg-white/95 shadow-soft backdrop-blur' : 'bg-transparent'
+      }`}
+    >
+      <nav aria-label="Navigasi utama" className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-6">
+        <Link to="/" onClick={close} aria-label="UK3 UTM, ke beranda">
+          <Brand light={!solid} />
         </Link>
 
-        {/* Desktop */}
-        <div className="hidden md:flex items-center gap-8 text-sm">
-          {links.map((l) => (
-            <Link key={l.to} to={l.to} className={`transition-colors ${location.pathname === l.to ? "text-[#C9A84C]" : "text-[#F5F0E8]/60 hover:text-[#C9A84C]"}`}>
+        <div className="hidden items-center gap-1 lg:flex">
+          {PUBLIC_NAV.map((l) => (
+            <NavLink key={l.to} to={l.to} className={desktopLink}>
               {l.label}
-            </Link>
+            </NavLink>
           ))}
-          <Link to="/admin/login" className="px-4 py-1.5 border border-[#C9A84C]/40 text-[#C9A84C] rounded-full hover:bg-[#C9A84C]/10 transition-all text-xs">
+          <Link
+            to="/admin/login"
+            className={`ml-3 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors ${
+              solid ? 'border-brand-200 text-brand-700 hover:bg-brand-50' : 'border-white/30 text-white hover:bg-white/10'
+            }`}
+          >
             Admin
           </Link>
         </div>
 
-        {/* Mobile hamburger */}
-        <button onClick={() => setOpen(!open)} className="md:hidden text-[#F5F0E8]/60">
-          <div className="w-5 h-0.5 bg-current mb-1" />
-          <div className="w-5 h-0.5 bg-current mb-1" />
-          <div className="w-5 h-0.5 bg-current" />
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-label={open ? 'Tutup menu' : 'Buka menu'}
+          aria-expanded={open}
+          aria-controls="mobile-menu"
+          className={`rounded-lg p-2 transition-colors lg:hidden ${solid ? 'text-ink-900 hover:bg-paper-100' : 'text-white hover:bg-white/10'}`}
+        >
+          {open ? <X size={24} /> : <Menu size={24} />}
         </button>
-      </div>
+      </nav>
 
-      {/* Mobile menu */}
       {open && (
-        <div className="md:hidden bg-[#0d1525] border-t border-[#C9A84C]/10 px-6 py-4 flex flex-col gap-4">
-          {links.map((l) => (
-            <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="text-sm text-[#F5F0E8]/60 hover:text-[#C9A84C] transition-colors">
-              {l.label}
-            </Link>
-          ))}
-          <Link to="/admin/login" onClick={() => setOpen(false)} className="text-sm text-[#C9A84C]">
-            Admin →
+        <div id="mobile-menu" className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-paper-200 bg-white px-4 pt-3 pb-6 lg:hidden">
+          <ul className="flex flex-col">
+            {PUBLIC_NAV.map(({ to, label, desc, icon: Icon }) => (
+              <li key={to}>
+                <NavLink
+                  to={to}
+                  onClick={close}
+                  className={({ isActive }) =>
+                    `flex items-center gap-4 rounded-xl px-3 py-3 transition-colors ${isActive ? 'bg-brand-50' : 'hover:bg-paper-100'}`
+                  }
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+                    <Icon size={20} aria-hidden="true" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-bold text-ink-900">{label}</span>
+                    <span className="block truncate text-xs text-ink-500">{desc}</span>
+                  </span>
+                  <ChevronRight size={16} className="text-ink-300" aria-hidden="true" />
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+          <Link
+            to="/admin/login"
+            onClick={close}
+            className="mt-4 block rounded-xl border border-brand-200 py-3 text-center text-sm font-semibold text-brand-700"
+          >
+            Masuk sebagai pengurus
           </Link>
         </div>
       )}
-    </nav>
-  );
+    </header>
+  )
 }

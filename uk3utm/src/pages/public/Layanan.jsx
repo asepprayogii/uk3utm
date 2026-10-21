@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import {
   Heart,
   HandHeart,
@@ -15,7 +15,7 @@ import { supabase } from '../../lib/supabase'
 import { toWaNumber } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
-import PageHeader from '../../components/PageHeader'
+import Modal from '../../components/ui/Modal'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
 
 const ICON_MAP = { HandHeart, BookOpen, MessageCircle, Heart, Package, Megaphone, Music, Dumbbell, Palette, Users }
@@ -37,61 +37,29 @@ function waLink(number, title) {
 }
 
 function QrisModal({ data, onClose }) {
-  const closeRef = useRef(null)
-
-  useEffect(() => {
-    closeRef.current?.focus()
-    const onKey = (e) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prevOverflow
-    }
-  }, [onClose])
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={`QRIS ${data.title}`}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-6"
-      onClick={onClose}
-    >
-      <div className="w-full max-w-xs rounded-2xl bg-white p-4 text-center" onClick={(e) => e.stopPropagation()}>
-        <div className="mb-3 text-sm font-semibold text-navy-950">{data.title}</div>
-        <img src={data.url} alt={`Kode QRIS ${data.title}`} className="w-full rounded-xl object-contain" />
-        <div className="mt-3 text-xs text-navy-950/50">Scan QRIS untuk berdonasi</div>
-        <button
-          ref={closeRef}
-          type="button"
-          onClick={onClose}
-          className="mt-4 rounded-full bg-navy-950 px-6 py-2 text-sm text-white"
-        >
-          Tutup
-        </button>
-      </div>
-    </div>
+    <Modal open onClose={onClose} title={`QRIS ${data.title}`} size="sm">
+      <img src={data.url} alt={`Kode QRIS ${data.title}`} className="w-full rounded-xl object-contain" />
+      <p className="mt-3 text-center text-xs text-ink-500">Scan QRIS ini dengan aplikasi bank atau e-wallet.</p>
+    </Modal>
   )
 }
 
-const actionBase =
-  'flex items-center gap-3 rounded-xl border p-3 text-left transition-colors w-full'
-const actionGold = `${actionBase} border-gold-500/20 hover:border-gold-500/50 hover:bg-gold-500/5`
-const actionGreen = `${actionBase} border-green-500/20 hover:border-green-500/40 hover:bg-green-500/5`
+const actionBase = 'flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors'
+const actionGold = `${actionBase} border-paper-300 hover:border-brand-300 hover:bg-brand-50`
+const actionGreen = `${actionBase} border-green-200 hover:border-green-400 hover:bg-green-50`
 
 function ContactLink({ number, name, title }) {
   return (
     <a href={waLink(number, title)} target="_blank" rel="noopener noreferrer" className={actionGreen}>
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-500/10">
-        <MessageCircle size={16} className="text-green-400" aria-hidden="true" />
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100">
+        <MessageCircle size={16} className="text-green-600" aria-hidden="true" />
       </div>
       <div className="flex-1">
-        <div className="text-sm font-medium">{name || 'Contact Person'}</div>
-        <div className="text-xs text-cream/40">{number}</div>
+        <div className="text-sm font-semibold text-ink-900">{name || 'Contact Person'}</div>
+        <div className="text-xs text-ink-500">{number}</div>
       </div>
-      <span className="text-xs font-medium text-green-400">WhatsApp →</span>
+      <span className="text-xs font-semibold text-green-600">WhatsApp →</span>
     </a>
   )
 }
@@ -100,18 +68,18 @@ function ServiceCard({ service: s, onOpenQris }) {
   const hasAction = s.cp_wa || s.cp_wa2 || s.form_url || s.qris_url
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-gold-500/15 bg-navy-800">
+    <article className="overflow-hidden rounded-2xl border border-paper-300 bg-white">
       {s.image_url && <img src={s.image_url} alt={s.title} loading="lazy" className="h-44 w-full object-cover" />}
 
       <div className="p-6">
         <div className="mb-3 flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gold-500/20 bg-gold-500/10">
-            <ServiceIcon iconKey={s.icon} className="h-5 w-5 text-gold-500" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-100 bg-brand-50">
+            <ServiceIcon iconKey={s.icon} className="h-5 w-5 text-brand-700" />
           </div>
-          <h2 className="text-lg font-semibold">{s.title}</h2>
+          <h2 className="text-lg font-bold text-ink-900">{s.title}</h2>
         </div>
 
-        {s.description && <p className="mb-5 text-sm leading-relaxed text-cream/50">{s.description}</p>}
+        {s.description && <p className="mb-5 text-sm leading-relaxed text-ink-500">{s.description}</p>}
 
         <div className="flex flex-col gap-3">
           {s.qris_url && (
@@ -120,23 +88,23 @@ function ServiceCard({ service: s, onOpenQris }) {
                 <img src={s.qris_url} alt="" loading="lazy" className="h-full w-full object-contain p-1" />
               </div>
               <div className="flex-1">
-                <div className="text-sm font-medium">Scan QRIS / Barcode</div>
-                <div className="text-xs text-cream/40">Tap untuk memperbesar</div>
+                <div className="text-sm font-semibold text-ink-900">Scan QRIS / Barcode</div>
+                <div className="text-xs text-ink-500">Tap untuk memperbesar</div>
               </div>
-              <span className="text-xs text-gold-500">→</span>
+              <span className="text-xs text-brand-700">→</span>
             </button>
           )}
 
           {s.form_url && (
             <a href={s.form_url} target="_blank" rel="noopener noreferrer" className={actionGold}>
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-500/10">
-                <BookOpen size={16} className="text-gold-500" aria-hidden="true" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50">
+                <BookOpen size={16} className="text-brand-700" aria-hidden="true" />
               </div>
               <div className="flex-1">
-                <div className="text-sm font-medium">Isi Formulir Online</div>
-                <div className="text-xs text-cream/40">Buka Google Form</div>
+                <div className="text-sm font-semibold text-ink-900">Isi Formulir Online</div>
+                <div className="text-xs text-ink-500">Buka Google Form</div>
               </div>
-              <span className="text-xs text-gold-500">→</span>
+              <span className="text-xs text-brand-700">→</span>
             </a>
           )}
 
@@ -144,7 +112,7 @@ function ServiceCard({ service: s, onOpenQris }) {
           {s.cp_wa2 && <ContactLink number={s.cp_wa2} name={s.cp_name2} title={s.title} />}
 
           {!hasAction && (
-            <div className="py-2 text-center text-xs text-cream/30">Info kontak akan segera ditambahkan</div>
+            <div className="py-2 text-center text-xs text-ink-400">Info kontak akan segera ditambahkan</div>
           )}
         </div>
       </div>
@@ -157,20 +125,12 @@ export default function Layanan() {
   const [qris, setQris] = useState(null)
 
   return (
-    <PageLayout width="max-w-2xl">
-      <PageHeader
-        eyebrow="Kami Ada Untukmu"
-        title="Layanan UK3"
-        subtitle="Hubungi kami untuk berbagai kebutuhan rohani dan organisasi."
-      />
-
+    <PageLayout eyebrow="Kami Ada Untukmu" title="Layanan UK3" description="Hubungi kami untuk kebutuhan rohani dan organisasi." width="max-w-3xl">
       {qris && <QrisModal data={qris} onClose={() => setQris(null)} />}
-
       {loading && <Loading />}
       {error && <ErrorState message="Layanan gagal dimuat." onRetry={retry} />}
-      {!loading && !error && services.length === 0 && <EmptyState>Belum ada layanan aktif.</EmptyState>}
-
-      <div className="flex flex-col gap-5">
+      {!loading && !error && services.length === 0 && <EmptyState icon={HandHeart} title="Belum ada layanan aktif">Layanan akan tampil di sini.</EmptyState>}
+      <div className="flex flex-col gap-6">
         {services.map((s) => (
           <ServiceCard key={s.id} service={s} onOpenQris={setQris} />
         ))}

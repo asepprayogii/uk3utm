@@ -1,12 +1,19 @@
-import { useEffect, useState, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useState } from 'react'
+import { BookOpen, Dumbbell, EyeOff, HandHeart, Heart, MessageCircle, Megaphone, Music, Package, Palette, Pencil, Plus, Trash2, Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import {
-  Heart, HandHeart, BookOpen, MessageCircle,
-  Package, Megaphone, Music, Dumbbell, Palette, Users
-} from 'lucide-react'
+import { removeByUrl } from '../../lib/storage'
+import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
+import { useImageField } from '../../hooks/useImageField'
+import { useUI } from '../../hooks/useUI'
+import AdminPage, { Card } from '../../components/admin/AdminPage'
+import Badge from '../../components/ui/Badge'
+import Button from '../../components/ui/Button'
+import { Input, Textarea, Toggle } from '../../components/ui/Field'
+import ImageUpload from '../../components/ui/ImageUpload'
+import Modal from '../../components/ui/Modal'
+import { EmptyState, ErrorState, Loading } from '../../components/States'
 
-const SERVICE_ICONS = [
+const ICONS = [
   { key: 'HandHeart', label: 'Pelayanan', Icon: HandHeart },
   { key: 'BookOpen', label: 'Doa/Rohani', Icon: BookOpen },
   { key: 'MessageCircle', label: 'Konseling', Icon: MessageCircle },
@@ -18,285 +25,126 @@ const SERVICE_ICONS = [
   { key: 'Palette', label: 'Kreatif', Icon: Palette },
   { key: 'Users', label: 'Komunitas', Icon: Users },
 ]
+const iconOf = (key) => (ICONS.find((i) => i.key === key) ?? ICONS[0]).Icon
 
-function ServiceIcon({ iconKey, className }) {
-  const found = SERVICE_ICONS.find(i => i.key === iconKey)
-  if (!found) return <HandHeart className={className} />
-  const { Icon } = found
-  return <Icon className={className} />
-}
+const EMPTY = []
+const blank = (n = 0) => ({ title: '', description: '', icon: 'HandHeart', cp_name: '', cp_wa: '', cp_name2: '', cp_wa2: '', form_url: '', order_index: n, is_active: true })
+const fetchAll = () => unwrap(supabase.from('services').select('*').order('order_index')).then((r) => r ?? [])
 
 export default function ManageServices() {
-  const [services, setServices] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [editItem, setEditItem] = useState(null)
-  const [form, setForm] = useState({
-    title: '', description: '', icon: 'HandHeart',
-    cp_name: '', cp_wa: '', cp_name2: '', cp_wa2: '',
-    form_url: '', order_index: 0, is_active: true
-  })
-  const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
-  const [qrisFile, setQrisFile] = useState(null)
-  const [qrisPreview, setQrisPreview] = useState(null)
+  const { toast, confirm } = useUI()
+  const { data, loading, error, retry } = useAsyncData(fetchAll, EMPTY)
+  const [local, setLocal] = useState(null)
+  const list = local ?? data
+  const [modal, setModal] = useState(null)
+  const [form, setForm] = useState(blank())
   const [saving, setSaving] = useState(false)
-  const imageRef = useRef()
-  const qrisRef = useRef()
+  const image = useImageField(null)
+  const qris = useImageField(null)
 
-  useEffect(() => { fetchData() }, [])
+  const refresh = useCallback(async () => {
+    try { setLocal(await fetchAll()) } catch (e) { toast.error(`Gagal memuat ulang: ${e.message}`) }
+  }, [toast])
 
-  async function fetchData() {
-    const { data } = await supabase.from('services').select('*').order('order_index')
-    setServices(data ?? [])
-    setLoading(false)
+  function open(item = null) {
+    setForm(item ? {
+      title: item.title, description: item.description ?? '', icon: item.icon ?? 'HandHeart', cp_name: item.cp_name ?? '', cp_wa: item.cp_wa ?? '',
+      cp_name2: item.cp_name2 ?? '', cp_wa2: item.cp_wa2 ?? '', form_url: item.form_url ?? '', order_index: item.order_index ?? 0, is_active: item.is_active !== false,
+    } : blank(list.length))
+    image.reset(item?.image_url ?? null)
+    qris.reset(item?.qris_url ?? null)
+    setModal({ editing: item })
   }
 
-  function openEdit(s) {
-    setEditItem(s)
-    setForm({
-      title: s.title, description: s.description ?? '',
-      icon: s.icon ?? 'HandHeart', cp_name: s.cp_name ?? '',
-      cp_wa: s.cp_wa ?? '', cp_name2: s.cp_name2 ?? '',
-      cp_wa2: s.cp_wa2 ?? '', form_url: s.form_url ?? '',
-      order_index: s.order_index ?? 0, is_active: s.is_active
-    })
-    setImagePreview(s.image_url ?? null)
-    setQrisPreview(s.qris_url ?? null)
-    setImageFile(null)
-    setQrisFile(null)
-  }
-
-  function openAdd() {
-    setEditItem({})
-    setForm({
-      title: '', description: '', icon: 'HandHeart',
-      cp_name: '', cp_wa: '', cp_name2: '', cp_wa2: '',
-      form_url: '', order_index: services.length, is_active: true
-    })
-    setImagePreview(null)
-    setQrisPreview(null)
-    setImageFile(null)
-    setQrisFile(null)
-  }
-
-  async function uploadFile(file, folder) {
-    const ext = file.name.split('.').pop()
-    const filename = `${folder}/${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from('uk3-media').upload(filename, file)
-    if (error) return null
-    const { data } = supabase.storage.from('uk3-media').getPublicUrl(filename)
-    return data.publicUrl
-  }
-
-  async function handleSave(e) {
+  async function save(e) {
     e.preventDefault()
     setSaving(true)
-
-    const payload = { ...form }
-
-    if (imageFile) {
-      const url = await uploadFile(imageFile, 'services/images')
-      if (url) payload.image_url = url
-    } else if (editItem?.id) {
-      payload.image_url = editItem.image_url ?? null
-    }
-
-    if (qrisFile) {
-      const url = await uploadFile(qrisFile, 'services/qris')
-      if (url) payload.qris_url = url
-    } else if (editItem?.id) {
-      payload.qris_url = editItem.qris_url ?? null
-    }
-
-    if (editItem?.id) {
-      await supabase.from('services').update(payload).eq('id', editItem.id)
-    } else {
-      await supabase.from('services').insert(payload)
-    }
-
-    setEditItem(null)
-    setSaving(false)
-    fetchData()
+    try {
+      const img = await image.commit('services/images')
+      const q = await qris.commit('services/qris')
+      const row = { ...form, title: form.title.trim(), order_index: Number(form.order_index) || 0, image_url: img.url, qris_url: q.url }
+      if (modal.editing) await unwrap(supabase.from('services').update(row).eq('id', modal.editing.id))
+      else await unwrap(supabase.from('services').insert(row))
+      if (img.changed && img.oldUrl) removeByUrl(img.oldUrl)
+      if (q.changed && q.oldUrl) removeByUrl(q.oldUrl)
+      toast.success('Layanan disimpan.')
+      setModal(null)
+      await refresh()
+    } catch (err) { toast.error(`Gagal menyimpan: ${err.message}`) } finally { setSaving(false) }
   }
 
-  async function handleDelete(id) {
-    if (!confirm('Hapus layanan ini?')) return
-    await supabase.from('services').delete().eq('id', id)
-    fetchData()
+  async function remove(s) {
+    if (!(await confirm({ title: `Hapus layanan “${s.title}”?`, message: 'Layanan ini akan hilang dari website.', confirmLabel: 'Ya, hapus' }))) return
+    try {
+      await unwrap(supabase.from('services').delete().eq('id', s.id))
+      if (s.image_url) removeByUrl(s.image_url)
+      if (s.qris_url) removeByUrl(s.qris_url)
+      toast.success('Layanan dihapus.')
+      await refresh()
+    } catch (err) { toast.error(`Gagal menghapus: ${err.message}`) }
   }
 
   return (
-    <div className="min-h-screen bg-[#080d17] text-[#F5F0E8]">
-      <div className="border-b border-[#C9A84C]/10 bg-[#0d1525]">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Link to="/admin" className="text-[#F5F0E8]/40 hover:text-[#C9A84C] text-sm transition-colors">
-              ← Dashboard
-            </Link>
-            <span className="text-[#F5F0E8]/20">/</span>
-            <span className="text-sm font-medium">Layanan</span>
-          </div>
-          <button onClick={openAdd}
-            className="px-4 py-2 bg-[#C9A84C] text-[#080d17] font-semibold rounded-full text-xs hover:bg-[#D4B483] transition-all">
-            + Tambah
-          </button>
-        </div>
-      </div>
+    <AdminPage title="Layanan" description="Layanan yang tampil di halaman Layanan: kontak WhatsApp, formulir, dan QRIS donasi." action={<Button icon={Plus} onClick={() => open()}>Tambah Layanan</Button>}>
+      {loading && <Loading />}
+      {error && <ErrorState message="Layanan gagal dimuat." onRetry={retry} />}
+      {!loading && !error && list.length === 0 && <Card><EmptyState icon={HandHeart} title="Belum ada layanan" action={<Button icon={Plus} onClick={() => open()}>Tambah layanan</Button>}>Contoh: Konseling, Permohonan Doa, Persembahan.</EmptyState></Card>}
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
-
-        {/* FORM MODAL */}
-        {editItem !== null && (
-          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-[#111827] border border-[#C9A84C]/30 rounded-2xl w-full max-w-lg my-4">
-              <div className="p-6">
-                <h2 className="font-semibold text-[#C9A84C] mb-5">
-                  {editItem.id ? 'Edit Layanan' : 'Tambah Layanan'}
-                </h2>
-                <form onSubmit={handleSave} className="flex flex-col gap-4">
-
-                  <input type="text" placeholder="Nama layanan" value={form.title}
-                    onChange={e => setForm({...form, title: e.target.value})} required
-                    className="w-full bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] placeholder-[#F5F0E8]/20 focus:outline-none focus:border-[#C9A84C]/60" />
-
-                  <textarea placeholder="Deskripsi singkat" value={form.description}
-                    onChange={e => setForm({...form, description: e.target.value})} rows={2}
-                    className="w-full bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] placeholder-[#F5F0E8]/20 focus:outline-none focus:border-[#C9A84C]/60 resize-none" />
-
-                  {/* Pilih Icon */}
-                  <div>
-                    <div className="text-xs text-[#F5F0E8]/40 mb-2">Icon</div>
-                    <div className="grid grid-cols-5 gap-2">
-                      {SERVICE_ICONS.map(({ key, label, Icon }) => (
-                        <button key={key} type="button"
-                          onClick={() => setForm({...form, icon: key})}
-                          className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all ${
-                            form.icon === key
-                              ? 'border-[#C9A84C] bg-[#C9A84C]/10'
-                              : 'border-[#F5F0E8]/10 hover:border-[#C9A84C]/30 hover:bg-[#F5F0E8]/5'
-                          }`}>
-                          <Icon size={18} className={form.icon === key ? 'text-[#C9A84C]' : 'text-[#F5F0E8]/50'} />
-                          <span className="text-[8px] text-[#F5F0E8]/40">{label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Upload Gambar */}
-                  <div>
-                    <div className="text-xs text-[#F5F0E8]/40 mb-2">Gambar layanan (opsional)</div>
-                    <div onClick={() => imageRef.current.click()}
-                      className="border-2 border-dashed border-[#C9A84C]/20 rounded-xl p-4 text-center cursor-pointer hover:border-[#C9A84C]/50 transition-all">
-                      {imagePreview ? (
-                        <img src={imagePreview} className="max-h-32 mx-auto rounded-lg object-cover" />
-                      ) : (
-                        <div className="text-[#F5F0E8]/30 text-xs py-4">Klik untuk upload gambar</div>
-                      )}
-                      <input ref={imageRef} type="file" accept="image/*" className="hidden"
-                        onChange={e => {
-                          const f = e.target.files[0]
-                          if (f) { setImageFile(f); setImagePreview(URL.createObjectURL(f)) }
-                        }} />
-                    </div>
-                  </div>
-
-                  {/* Upload QRIS */}
-                  <div>
-                    <div className="text-xs text-[#F5F0E8]/40 mb-2">QRIS / Barcode donasi (opsional)</div>
-                    <div onClick={() => qrisRef.current.click()}
-                      className="border-2 border-dashed border-[#C9A84C]/20 rounded-xl p-4 text-center cursor-pointer hover:border-[#C9A84C]/50 transition-all">
-                      {qrisPreview ? (
-                        <img src={qrisPreview} className="max-h-40 mx-auto rounded-lg object-contain bg-white p-2" />
-                      ) : (
-                        <div className="text-[#F5F0E8]/30 text-xs py-4">Klik untuk upload QRIS / Barcode</div>
-                      )}
-                      <input ref={qrisRef} type="file" accept="image/*" className="hidden"
-                        onChange={e => {
-                          const f = e.target.files[0]
-                          if (f) { setQrisFile(f); setQrisPreview(URL.createObjectURL(f)) }
-                        }} />
-                    </div>
-                  </div>
-
-                  <input type="text" placeholder="Link Google Form (opsional)" value={form.form_url}
-                    onChange={e => setForm({...form, form_url: e.target.value})}
-                    className="w-full bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] placeholder-[#F5F0E8]/20 focus:outline-none focus:border-[#C9A84C]/60" />
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <input type="text" placeholder="Nama CP 1" value={form.cp_name}
-                      onChange={e => setForm({...form, cp_name: e.target.value})}
-                      className="bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] placeholder-[#F5F0E8]/20 focus:outline-none focus:border-[#C9A84C]/60" />
-                    <input type="text" placeholder="No WA CP 1 (628xxx)" value={form.cp_wa}
-                      onChange={e => setForm({...form, cp_wa: e.target.value})}
-                      className="bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] placeholder-[#F5F0E8]/20 focus:outline-none focus:border-[#C9A84C]/60" />
-                    <input type="text" placeholder="Nama CP 2 (opsional)" value={form.cp_name2}
-                      onChange={e => setForm({...form, cp_name2: e.target.value})}
-                      className="bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] placeholder-[#F5F0E8]/20 focus:outline-none focus:border-[#C9A84C]/60" />
-                    <input type="text" placeholder="No WA CP 2 (opsional)" value={form.cp_wa2}
-                      onChange={e => setForm({...form, cp_wa2: e.target.value})}
-                      className="bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-sm text-[#F5F0E8] placeholder-[#F5F0E8]/20 focus:outline-none focus:border-[#C9A84C]/60" />
-                  </div>
-
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={form.is_active}
-                      onChange={e => setForm({...form, is_active: e.target.checked})}
-                      className="accent-[#C9A84C]" />
-                    <span className="text-sm text-[#F5F0E8]/60">Tampilkan di website</span>
-                  </label>
-
-                  <div className="flex gap-3 pt-2">
-                    <button type="submit" disabled={saving}
-                      className="flex-1 bg-[#C9A84C] text-[#080d17] font-semibold py-3 rounded-xl text-sm hover:bg-[#D4B483] disabled:opacity-50 transition-all">
-                      {saving ? 'Menyimpan...' : 'Simpan'}
-                    </button>
-                    <button type="button" onClick={() => setEditItem(null)}
-                      className="flex-1 border border-[#F5F0E8]/20 text-[#F5F0E8]/60 py-3 rounded-xl text-sm hover:bg-[#F5F0E8]/5 transition-all">
-                      Batal
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* LIST */}
-        <div className="flex flex-col gap-4">
-          {loading && <div className="text-center text-[#F5F0E8]/30 py-10 animate-pulse text-sm">Memuat...</div>}
-          {services.map(s => (
-            <div key={s.id} className="p-5 rounded-2xl border border-[#C9A84C]/15 bg-[#111827] flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[#C9A84C]/10 border border-[#C9A84C]/20 flex items-center justify-center flex-shrink-0">
-                <ServiceIcon iconKey={s.icon} className="w-5 h-5 text-[#C9A84C]" />
-              </div>
-              {s.image_url && (
-                <img src={s.image_url} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <h3 className="font-semibold text-sm">{s.title}</h3>
-                  {!s.is_active && (
-                    <span className="text-xs bg-[#F5F0E8]/10 text-[#F5F0E8]/30 px-2 py-0.5 rounded-full">Hidden</span>
-                  )}
-                  {s.qris_url && (
-                    <span className="text-xs bg-[#C9A84C]/10 text-[#C9A84C] px-2 py-0.5 rounded-full">QRIS ✓</span>
-                  )}
+      <div className="grid gap-3 md:grid-cols-2">
+        {list.map((s) => {
+          const Icon = iconOf(s.icon)
+          return (
+            <Card key={s.id} className={`flex flex-col gap-3 p-4 ${s.is_active === false ? 'opacity-70' : ''}`}>
+              <div className="flex items-start gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700"><Icon size={20} /></span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2"><h3 className="font-bold text-ink-900">{s.title}</h3>{s.is_active === false && <Badge tone="gray" icon={EyeOff}>Disembunyikan</Badge>}</div>
+                  <p className="line-clamp-2 text-sm text-ink-500">{s.description || 'Tanpa deskripsi'}</p>
                 </div>
-                {s.cp_name && <div className="text-xs text-[#F5F0E8]/40">CP: {s.cp_name} · {s.cp_wa}</div>}
               </div>
-              <div className="flex gap-2 flex-shrink-0">
-                <button onClick={() => openEdit(s)}
-                  className="px-3 py-1.5 border border-[#C9A84C]/30 text-[#C9A84C] rounded-full text-xs hover:bg-[#C9A84C]/10 transition-all">
-                  Edit
-                </button>
-                <button onClick={() => handleDelete(s.id)}
-                  className="px-3 py-1.5 border border-red-500/30 text-red-400 rounded-full text-xs hover:bg-red-500/10 transition-all">
-                  Hapus
-                </button>
+              <div className="flex flex-wrap gap-1.5 text-xs">
+                {s.cp_wa && <Badge tone="green">WhatsApp</Badge>}{s.form_url && <Badge tone="brand">Formulir</Badge>}{s.qris_url && <Badge tone="gold">QRIS</Badge>}
               </div>
-            </div>
-          ))}
-        </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="secondary" icon={Pencil} onClick={() => open(s)}>Ubah</Button>
+                <Button size="sm" variant="dangerSoft" icon={Trash2} onClick={() => remove(s)}>Hapus</Button>
+              </div>
+            </Card>
+          )
+        })}
       </div>
-    </div>
+
+      <Modal open={!!modal} onClose={() => !saving && setModal(null)} title={modal?.editing ? 'Ubah Layanan' : 'Layanan Baru'} size="lg"
+        footer={<><Button variant="secondary" onClick={() => setModal(null)} disabled={saving}>Batal</Button><Button type="submit" form="service-form" loading={saving}>Simpan</Button></>}>
+        <form id="service-form" onSubmit={save} className="flex flex-col gap-5">
+          <Input label="Nama layanan" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          <Textarea label="Deskripsi" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <div>
+            <div className="mb-1.5 text-xs font-semibold text-ink-700">Ikon</div>
+            <div className="grid grid-cols-5 gap-2">
+              {ICONS.map(({ key, label, Icon }) => (
+                <button key={key} type="button" title={label} aria-label={label} aria-pressed={form.icon === key} onClick={() => setForm({ ...form, icon: key })}
+                  className={`flex h-11 items-center justify-center rounded-xl border ${form.icon === key ? 'border-brand-700 bg-brand-50 text-brand-700 ring-1 ring-brand-700' : 'border-paper-300 text-ink-500 hover:bg-paper-50'}`}><Icon size={20} /></button>
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input label="Kontak 1 — nama" value={form.cp_name} onChange={(e) => setForm({ ...form, cp_name: e.target.value })} />
+            <Input label="Kontak 1 — WhatsApp" placeholder="08xxxxxxxxxx" inputMode="tel" value={form.cp_wa} onChange={(e) => setForm({ ...form, cp_wa: e.target.value })} />
+            <Input label="Kontak 2 — nama" value={form.cp_name2} onChange={(e) => setForm({ ...form, cp_name2: e.target.value })} />
+            <Input label="Kontak 2 — WhatsApp" placeholder="08xxxxxxxxxx" inputMode="tel" value={form.cp_wa2} onChange={(e) => setForm({ ...form, cp_wa2: e.target.value })} />
+          </div>
+          <Input label="Link formulir (opsional)" type="url" placeholder="https://forms.gle/…" value={form.form_url} onChange={(e) => setForm({ ...form, form_url: e.target.value })} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <ImageUpload field={image} label="Gambar (opsional)" />
+            <ImageUpload field={qris} label="QRIS / barcode (opsional)" shape="square" lossless hint="Disimpan tanpa kompres lossy agar tetap terbaca." />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input label="Urutan tampil" type="number" min="0" hint="Angka kecil tampil lebih dulu." value={form.order_index} onChange={(e) => setForm({ ...form, order_index: e.target.value })} />
+            <Toggle label="Tampilkan di website" checked={form.is_active} onChange={(v) => setForm({ ...form, is_active: v })} />
+          </div>
+        </form>
+      </Modal>
+    </AdminPage>
   )
 }

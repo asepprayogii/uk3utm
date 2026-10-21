@@ -1,23 +1,31 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks/useAuth'
+import { LogoMark } from '../../components/Logo'
+import Button from '../../components/ui/Button'
+import { Input } from '../../components/ui/Field'
 
 export default function Login() {
+  const { user, loading: authLoading } = useAuth()
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [show, setShow] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const navigate = useNavigate()
+
+  // Sudah masuk? Langsung ke dashboard.
+  if (!authLoading && user) return <Navigate to="/admin" replace />
 
   async function handleLogin(e) {
     e.preventDefault()
     setLoading(true)
     setError('')
-
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (error) {
-      setError('Email atau password salah.')
+    const { error: err } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+    if (err) {
+      setError('Email atau kata sandi salah. Periksa lagi, lalu coba kembali.')
       setLoading(false)
     } else {
       navigate('/admin')
@@ -25,66 +33,35 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#080d17] flex items-center justify-center px-6">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#C9A84C]/5 rounded-full blur-3xl" />
-      </div>
+    <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
+      <aside className="hero-bg pattern-cross relative hidden flex-col items-center justify-center p-12 text-center text-white lg:flex">
+        <div className="absolute inset-0 m-auto h-96 w-96 rounded-full bg-gold-400/20 blur-3xl" aria-hidden="true" />
+        <LogoMark size={260} className="relative drop-shadow-2xl" />
+        <h2 className="relative mt-8 font-display text-5xl font-bold">UK3 UTM</h2>
+        <p className="relative mt-3 max-w-sm text-white/70">Panel pengurus untuk mengelola website, kepengurusan, dan absensi persekutuan.</p>
+      </aside>
 
-      <div className="relative w-full max-w-md">
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#C9A84C]/40 bg-[#C9A84C]/10 mb-4">
-            <span className="text-[#C9A84C] text-xl font-bold" style={{fontFamily:'Cinzel,serif'}}>UK3</span>
-          </div>
-          <h1 className="text-2xl font-bold text-[#F5F0E8]" style={{fontFamily:'Cinzel,serif'}}>Admin Panel</h1>
-          <p className="text-[#F5F0E8]/40 text-sm mt-1">UK3 UTM — Masuk sebagai pengurus</p>
-        </div>
+      <main className="flex items-center justify-center bg-paper-50 px-6 py-12">
+        <div className="w-full max-w-sm">
+          <Link to="/" className="mb-8 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline"><ArrowLeft size={15} /> Kembali ke situs</Link>
+          <LogoMark size={56} className="mb-4 lg:hidden" />
+          <h1 className="font-display text-4xl font-bold text-brand-900">Masuk Pengurus</h1>
+          <p className="mt-1 mb-8 text-sm text-ink-500">Gunakan akun yang diberikan oleh BPH.</p>
 
-        <div className="bg-[#111827] border border-[#C9A84C]/20 rounded-2xl p-8">
-          <form onSubmit={handleLogin} className="flex flex-col gap-5">
-            <div>
-              <label className="text-[#F5F0E8]/60 text-xs tracking-widest uppercase block mb-2">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                placeholder="email@utm.ac.id"
-                className="w-full bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-[#F5F0E8] text-sm placeholder-[#F5F0E8]/20 focus:outline-none focus:border-[#C9A84C]/60 transition-colors"
-              />
+          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+            <Input label="Email" type="email" icon={Mail} required autoComplete="username" placeholder="nama@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <div className="relative">
+              <Input label="Kata sandi" type={show ? 'text' : 'password'} icon={Lock} required autoComplete="current-password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pr-11" />
+              <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'} className="absolute right-2 bottom-[7px] rounded-lg p-1.5 text-ink-400 hover:text-ink-900">
+                {show ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
-
-            <div>
-              <label className="text-[#F5F0E8]/60 text-xs tracking-widest uppercase block mb-2">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                className="w-full bg-[#0d1525] border border-[#C9A84C]/20 rounded-xl px-4 py-3 text-[#F5F0E8] text-sm placeholder-[#F5F0E8]/20 focus:outline-none focus:border-[#C9A84C]/60 transition-colors"
-              />
-            </div>
-
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-red-400 text-sm">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#C9A84C] text-[#080d17] font-semibold py-3 rounded-xl hover:bg-[#D4B483] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm mt-1"
-            >
-              {loading ? 'Masuk...' : 'Masuk'}
-            </button>
+            {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
+            <Button type="submit" size="lg" loading={loading} className="mt-2 w-full">Masuk</Button>
           </form>
+          <p className="mt-6 text-center text-xs text-ink-400">Lupa kata sandi? Hubungi BPH atau Infokom.</p>
         </div>
-
-        <p className="text-center text-[#F5F0E8]/20 text-xs mt-6">
-          Hanya pengurus yang memiliki akun yang bisa masuk.
-        </p>
-      </div>
+      </main>
     </div>
   )
 }

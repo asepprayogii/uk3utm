@@ -5,6 +5,7 @@ import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { formatDate } from '../../lib/format'
+import { LogoMark } from '../../components/Logo'
 
 const SIGNATURE_HEIGHT = 160
 
@@ -54,29 +55,29 @@ function slugify(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'tanpa-nama'
 }
 
-const labelClass = 'mb-2 block text-xs tracking-widest uppercase text-cream/50'
+const labelClass = 'mb-2 block text-xs tracking-widest uppercase text-ink-500'
 const inputBase =
-  'w-full rounded-xl border px-4 py-3 text-sm text-cream placeholder-cream/20 transition-colors focus:outline-none'
-const inputEditable = `${inputBase} border-gold-500/20 bg-navy-900 focus:border-gold-500/60`
-const inputLocked = `${inputBase} cursor-not-allowed border-green-500/30 bg-green-500/5`
+  'w-full rounded-xl border px-4 py-3 text-sm text-ink-900 placeholder-ink-300 transition-colors focus:outline-none'
+const inputEditable = `${inputBase} border-paper-300 bg-white focus:border-brand-500`
+const inputLocked = `${inputBase} cursor-not-allowed border-green-300 bg-green-50`
 const dropdownClass =
-  'absolute top-full right-0 left-0 z-10 mt-1 overflow-hidden rounded-xl border border-gold-500/20 bg-navy-900 shadow-xl'
+  'absolute top-full right-0 left-0 z-10 mt-1 overflow-hidden rounded-xl border border-paper-300 bg-white shadow-xl'
 const optionClass =
-  'w-full border-b border-gold-500/10 px-4 py-3 text-left text-sm transition-colors last:border-0 hover:bg-gold-500/10'
+  'w-full border-b border-paper-200 px-4 py-3 text-left text-sm transition-colors last:border-0 hover:bg-brand-50'
 
 function CenteredScreen({ children }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-navy-950 px-6 text-cream">
-      <div className="w-full max-w-sm text-center">{children}</div>
+    <main className="flex min-h-screen items-center justify-center bg-paper-100 px-6 text-ink-900">
+      <div className="w-full max-w-sm text-center"><LogoMark size={56} className="mx-auto mb-6" />{children}</div>
     </main>
   )
 }
 
 function StatusIcon({ tone, children }) {
   const tones = {
-    red: 'border-red-500/30 bg-red-500/10 text-red-400',
-    green: 'border-green-500/30 bg-green-500/10 text-green-400',
-    gold: 'border-gold-500/30 bg-gold-500/10 text-gold-500 animate-pulse',
+    red: 'border-red-300 bg-red-50 text-red-700',
+    green: 'border-green-300 bg-green-50 text-green-700',
+    gold: 'border-brand-200 bg-brand-50 text-brand-700 animate-pulse',
   }
   return (
     <div
@@ -370,7 +371,7 @@ export default function ScanAbsensi() {
   if (step === 'loading')
     return (
       <CenteredScreen>
-        <div role="status" className="animate-pulse text-sm tracking-widest uppercase text-gold-500">
+        <div role="status" className="animate-pulse text-sm tracking-widest uppercase text-brand-700">
           Memverifikasi...
         </div>
       </CenteredScreen>
@@ -381,13 +382,13 @@ export default function ScanAbsensi() {
       <CenteredScreen>
         <StatusIcon tone="red">✕</StatusIcon>
         <h1 className="mb-3 text-lg font-semibold">Tidak Dapat Absen</h1>
-        <p role="alert" className="text-sm leading-relaxed text-cream/60">
+        <p role="alert" className="text-sm leading-relaxed text-ink-500">
           {errorMsg}
         </p>
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="mt-8 rounded-full border border-gold-500/40 px-6 py-2 text-xs text-gold-500 transition-colors hover:bg-gold-500/10"
+          className="mt-8 rounded-full border border-brand-300 px-6 py-2 text-xs text-brand-700 transition-colors hover:bg-brand-50"
         >
           Muat ulang
         </button>
@@ -401,7 +402,7 @@ export default function ScanAbsensi() {
           <MapPin size={28} />
         </StatusIcon>
         <h1 className="mb-3 text-lg font-semibold">Memverifikasi Lokasi</h1>
-        <p role="status" className="text-sm text-cream/50">
+        <p role="status" className="text-sm text-ink-500">
           Izinkan akses lokasi saat browser meminta.
         </p>
       </CenteredScreen>
@@ -412,36 +413,36 @@ export default function ScanAbsensi() {
       <CenteredScreen>
         <StatusIcon tone="green">✓</StatusIcon>
         <h1 className="mb-2 text-lg font-semibold">Absensi Berhasil!</h1>
-        <p className="mb-1 text-sm text-cream/60">
-          Selamat datang, <span className="font-medium text-gold-500">{nameQuery}</span>!
+        <p className="mb-1 text-sm text-ink-500">
+          Selamat datang, <span className="font-medium text-brand-700">{nameQuery}</span>!
         </p>
-        <p className="text-xs text-cream/40">{session?.title}</p>
+        <p className="text-xs text-ink-400">{session?.title}</p>
       </CenteredScreen>
     )
 
   const hasMentorFromData = !!selectedStudent?.kakak_bimbing
 
   return (
-    <main className="min-h-screen bg-navy-950 px-5 py-10 text-cream sm:px-6">
+    <main className="min-h-screen bg-paper-100 px-5 py-10 text-ink-900 sm:px-6">
       <div className="mx-auto max-w-md">
         {/* Header */}
         <div className="mb-8 text-center">
           <img src="/logo-uk3.png" alt="Logo UK3 UTM" width="64" height="64" className="mx-auto mb-4 h-16 w-16 object-contain" />
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-xs text-green-400">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-green-300 bg-green-50 px-3 py-1 text-xs text-green-700">
             ● Lokasi Terverifikasi
           </div>
           <h1 className="mb-1 text-xl font-bold">{session?.title}</h1>
-          <p className="text-sm text-cream/50">
+          <p className="text-sm text-ink-500">
             {session && formatDate(session.date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
           {location && (
-            <p className="mt-1 inline-flex items-center gap-1 text-xs text-cream/40">
+            <p className="mt-1 inline-flex items-center gap-1 text-xs text-ink-400">
               <MapPin size={12} aria-hidden="true" /> {location.name}
             </p>
           )}
         </div>
 
-        <div className="rounded-2xl border border-gold-500/20 bg-navy-800 p-6">
+        <div className="rounded-2xl border border-paper-300 bg-white p-6">
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             {/* Nama dengan autocomplete */}
             <div className="relative">
@@ -464,7 +465,7 @@ export default function ScanAbsensi() {
                   {suggestions.map((s) => (
                     <button key={s.id} type="button" onClick={() => selectStudent(s)} className={optionClass}>
                       <div className="font-medium">{s.name}</div>
-                      <div className="mt-0.5 text-xs text-cream/40">
+                      <div className="mt-0.5 text-xs text-ink-400">
                         {s.nim ? `NIM: ${s.nim}` : 'NIM belum terdaftar'}
                         {s.prodi && ` · ${s.prodi}`}
                       </div>
@@ -476,7 +477,7 @@ export default function ScanAbsensi() {
                       setSuggestions([])
                       setSelectedStudent(null)
                     }}
-                    className="w-full px-4 py-3 text-left text-xs text-cream/40 transition-colors hover:bg-cream/5"
+                    className="w-full px-4 py-3 text-left text-xs text-ink-400 transition-colors hover:bg-paper-100"
                   >
                     Nama saya tidak ada dalam daftar →
                   </button>
@@ -487,7 +488,7 @@ export default function ScanAbsensi() {
             {/* NIM */}
             <div>
               <label htmlFor="absen-nim" className={labelClass}>
-                NIM {nimLocked && <span className="normal-case text-green-400">✓ Terverifikasi</span>}
+                NIM {nimLocked && <span className="normal-case text-green-700">✓ Terverifikasi</span>}
               </label>
               <input
                 id="absen-nim"
@@ -501,14 +502,14 @@ export default function ScanAbsensi() {
                 placeholder={nimLocked ? '' : 'Masukkan NIM kamu'}
                 className={nimLocked ? inputLocked : inputEditable}
               />
-              {nim.length >= 2 && <div className="mt-1 text-xs text-gold-500">Angkatan: {getAngkatan(nim)}</div>}
+              {nim.length >= 2 && <div className="mt-1 text-xs text-brand-700">Angkatan: {getAngkatan(nim)}</div>}
             </div>
 
             {/* Prodi — hanya tampil kalau dari data */}
             {prodi && (
               <div>
                 <span className={labelClass}>Program Studi</span>
-                <div className="rounded-xl border border-gold-500/10 bg-navy-900 px-4 py-3 text-sm text-cream/60">
+                <div className="rounded-xl border border-paper-200 bg-white px-4 py-3 text-sm text-ink-500">
                   {prodi}
                 </div>
               </div>
@@ -518,7 +519,7 @@ export default function ScanAbsensi() {
             <div className="relative">
               <label htmlFor="absen-mentor" className={labelClass}>
                 Kakak Bimbing
-                {hasMentorFromData && <span className="ml-2 normal-case text-green-400">✓ Dari data</span>}
+                {hasMentorFromData && <span className="ml-2 normal-case text-green-700">✓ Dari data</span>}
               </label>
               <input
                 id="absen-mentor"
@@ -547,7 +548,7 @@ export default function ScanAbsensi() {
                       className={optionClass}
                     >
                       <div className="font-medium">{m.name}</div>
-                      <div className="text-xs text-cream/40">
+                      <div className="text-xs text-ink-400">
                         Kakak bimbing angkatan {m.angkatan_bimbing}
                         {m.prodi && ` · ${m.prodi}`}
                       </div>
@@ -557,14 +558,14 @@ export default function ScanAbsensi() {
               )}
 
               {nim.length >= 2 && !mentorQuery && (
-                <div className="mt-1 text-xs text-cream/30">Menampilkan kakak bimbing angkatan {getAngkatan(nim)}</div>
+                <div className="mt-1 text-xs text-ink-400">Menampilkan kakak bimbing angkatan {getAngkatan(nim)}</div>
               )}
             </div>
 
             {/* Tanda Tangan */}
             <div>
               <span className={labelClass}>Tanda Tangan</span>
-              <div ref={sigWrapRef} className="overflow-hidden rounded-xl border border-gold-500/20 bg-white">
+              <div ref={sigWrapRef} className="overflow-hidden rounded-xl border border-paper-300 bg-white">
                 <SignatureCanvas
                   ref={sigRef}
                   canvasProps={{
@@ -579,14 +580,14 @@ export default function ScanAbsensi() {
               <button
                 type="button"
                 onClick={() => sigRef.current?.clear()}
-                className="mt-2 text-xs text-cream/40 transition-colors hover:text-cream/70"
+                className="mt-2 text-xs text-ink-400 transition-colors hover:text-ink-900"
               >
                 Hapus tanda tangan
               </button>
             </div>
 
             {formError && (
-              <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              <div role="alert" className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {formError}
               </div>
             )}
@@ -594,7 +595,7 @@ export default function ScanAbsensi() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-xl bg-gold-500 py-3 text-sm font-semibold text-navy-950 transition-colors hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-xl bg-gold-400 py-3 text-sm font-semibold text-brand-950 transition-colors hover:bg-gold-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? 'Menyimpan...' : 'Kirim Absensi'}
             </button>
