@@ -10,6 +10,7 @@ import { useAsyncData } from '../../hooks/useAsyncData'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import { LogoMark } from '../../components/Logo'
+import FramedImage from '../../components/FramedImage'
 import SocialIcon from '../../components/SocialIcon'
 import Button from '../../components/ui/Button'
 import Avatar from '../../components/ui/Avatar'
@@ -125,16 +126,12 @@ export default function Home() {
               <Heading eyebrow="Terkini" title="Pengumuman" to="/pengumuman" />
               <div className="grid gap-6 md:grid-cols-3">
                 {announcements.map((a) => (
-                  <Link key={a.id} to="/pengumuman" className="overflow-hidden rounded-2xl border border-paper-300 bg-white transition-shadow hover:shadow-lift">
-                    {a.image_url ? (
-                      <img src={a.image_url} alt="" loading="lazy" className="h-44 w-full object-cover" />
-                    ) : (
-                      <div className="hero-bg flex h-44 items-center justify-center"><LogoMark size={64} alt="" className="opacity-80" /></div>
-                    )}
-                    <div className="p-5">
-                      <div className="mb-1 text-xs font-medium text-gold-700">{formatDate(a.created_at)}</div>
-                      <h3 className="font-bold text-ink-900">{a.title}</h3>
-                      <p className="mt-2 text-sm leading-relaxed text-ink-500">{excerpt(a.content, 110)}</p>
+                  <Link key={a.id} to={`/pengumuman/${a.id}`} className="group flex flex-col overflow-hidden rounded-2xl border border-paper-300 bg-white transition-all hover:-translate-y-0.5 hover:shadow-lift">
+                    <FramedImage src={a.image_url} alt={a.title} />
+                    <div className="flex flex-1 flex-col p-5">
+                      <div className="mb-1 text-xs font-semibold text-gold-700">{formatDate(a.created_at)}</div>
+                      <h3 className="line-clamp-2 font-bold text-ink-900">{a.title}</h3>
+                      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-ink-500">{excerpt(a.content, 120)}</p>
                     </div>
                   </Link>
                 ))}
@@ -150,7 +147,7 @@ export default function Home() {
               <Heading eyebrow="Firman" title="Renungan" to="/renungan" />
               <div className="grid gap-6 md:grid-cols-3">
                 {devotionals.map((d) => (
-                  <Link key={d.id} to="/renungan" className="rounded-2xl border border-paper-300 bg-white p-6 transition-shadow hover:shadow-lift">
+                  <Link key={d.id} to={`/renungan/${d.id}`} className="rounded-2xl border border-paper-300 bg-white p-6 transition-shadow hover:shadow-lift">
                     {d.verse && <div className="mb-3 font-display text-xl leading-snug text-brand-700 italic">“{d.verse}”</div>}
                     <h3 className="font-bold text-ink-900">{d.title}</h3>
                     <p className="mt-2 text-sm leading-relaxed text-ink-500">{excerpt(d.content, 110)}</p>
@@ -219,8 +216,9 @@ export default function Home() {
               <Heading eyebrow="Kebersamaan" title="Galeri" to="/galeri" />
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {photos.map((p) => (
-                  <Link key={p.id} to="/galeri" className="group aspect-square overflow-hidden rounded-2xl bg-brand-900">
+                  <Link key={p.id} to="/galeri" className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-brand-900">
                     <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    {p.caption && <span className="absolute inset-x-0 bottom-0 line-clamp-1 bg-gradient-to-t from-brand-950/85 to-transparent px-3 pt-8 pb-2.5 text-sm font-semibold text-white">{p.caption}</span>}
                   </Link>
                 ))}
               </div>

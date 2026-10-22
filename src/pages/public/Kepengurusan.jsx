@@ -36,7 +36,6 @@ function DepartmentPanel({ dept }) {
     <div className="rounded-3xl border border-paper-300 bg-white p-5 shadow-soft sm:p-8">
       {dept.kadep.length > 0 && (
         <div className="mb-8 flex flex-col items-center">
-          <div className="mb-3 text-[11px] font-bold tracking-widest text-gold-700 uppercase">Kepala Departemen</div>
           <Cards members={dept.kadep} size="w-48 sm:w-56" />
         </div>
       )}

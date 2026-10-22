@@ -107,8 +107,8 @@ export default function ManageAnnouncements() {
         footer={<><Button variant="secondary" onClick={() => setModal(null)} disabled={saving}>Batal</Button><Button type="submit" form="announcement-form" loading={saving}>{modal?.editing ? 'Simpan Perubahan' : 'Terbitkan'}</Button></>}>
         <form id="announcement-form" onSubmit={save} className="flex flex-col gap-4">
           <Input label="Judul" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-          <Textarea label="Isi pengumuman" required rows={6} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} />
-          <ImageUpload field={image} label="Gambar (opsional)" />
+          <Textarea label="Isi pengumuman" required rows={8} hint="Tulis selengkapnya: waktu, tempat, siapa yang diundang, dan hal yang perlu dibawa. Kalimat pertama jadi ringkasan di daftar." value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} />
+          <ImageUpload field={image} label="Gambar / poster (opsional)" hint="Tampil utuh, tidak dipotong. Poster tegak maupun mendatar boleh." />
           <Toggle label="Sematkan di atas" hint="Pengumuman penting tampil paling atas." checked={form.pinned} onChange={(v) => setForm({ ...form, pinned: v })} />
         </form>
       </Modal>

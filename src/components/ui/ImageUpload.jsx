@@ -102,7 +102,7 @@ export default function ImageUpload({ field, label, hint, shape = 'wide', lossle
       >
         {field.preview ? (
           <>
-            <img src={field.preview} alt="Pratinjau" className={`h-full w-full ${lossless ? 'bg-white object-contain p-2' : 'object-cover'}`} />
+            <img src={field.preview} alt="Pratinjau" className={`h-full w-full bg-white object-contain ${lossless ? 'p-2' : ''}`} />
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-black/60 to-transparent p-3">
               <span className="text-xs text-white/90">{info}</span>
               <div className="flex gap-2">

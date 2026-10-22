@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import AuthProvider from './context/AuthProvider'
 import UIProvider from './context/UIProvider'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -11,6 +11,8 @@ import { ROLES } from './lib/adminNav'
 import Home from './pages/public/Home'
 import Pengumuman from './pages/public/Pengumuman'
 import Renungan from './pages/public/Renungan'
+import RenunganDetail from './pages/public/RenunganDetail'
+import PengumumanDetail from './pages/public/PengumumanDetail'
 import Kepengurusan from './pages/public/Kepengurusan'
 import Layanan from './pages/public/Layanan'
 import Galeri from './pages/public/Galeri'
@@ -34,6 +36,13 @@ const ManageMentors = lazy(() => import('./pages/admin/ManageMentors'))
 
 const { ALL, INFOKOM, PEMBINAAN } = ROLES
 
+// Pindah halaman selalu mulai dari atas, bukan di posisi gulir halaman sebelumnya.
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  return null
+}
+
 const ADMIN_ROUTES = [
   { path: 'pengumuman', roles: INFOKOM, Page: ManageAnnouncements },
   { path: 'renungan', roles: INFOKOM, Page: ManageDevotionals },
@@ -51,6 +60,7 @@ const ADMIN_ROUTES = [
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <UIProvider>
           <Suspense fallback={<Loading fullScreen />}>
@@ -58,7 +68,9 @@ export default function App() {
               {/* Publik */}
               <Route path="/" element={<Home />} />
               <Route path="/pengumuman" element={<Pengumuman />} />
+              <Route path="/pengumuman/:id" element={<PengumumanDetail />} />
               <Route path="/renungan" element={<Renungan />} />
+              <Route path="/renungan/:id" element={<RenunganDetail />} />
               <Route path="/kepengurusan" element={<Kepengurusan />} />
               <Route path="/layanan" element={<Layanan />} />
               <Route path="/galeri" element={<Galeri />} />

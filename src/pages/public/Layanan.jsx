@@ -15,6 +15,7 @@ import { supabase } from '../../lib/supabase'
 import { toWaNumber } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
+import FramedImage from '../../components/FramedImage'
 import Modal from '../../components/ui/Modal'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
 
@@ -69,7 +70,7 @@ function ServiceCard({ service: s, onOpenQris }) {
 
   return (
     <article className="overflow-hidden rounded-2xl border border-paper-300 bg-white">
-      {s.image_url && <img src={s.image_url} alt={s.title} loading="lazy" className="h-44 w-full object-cover" />}
+      {s.image_url && <FramedImage src={s.image_url} alt={s.title} />}
 
       <div className="p-6">
         <div className="mb-3 flex items-center gap-3">

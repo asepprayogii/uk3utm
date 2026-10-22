@@ -20,10 +20,11 @@ export default function Galeri() {
       {loading && <Loading />}
       {error && <ErrorState message="Foto gagal dimuat." onRetry={retry} />}
       {!loading && !error && photos.length === 0 && <EmptyState icon={Images} title="Belum ada foto">Foto kegiatan akan tampil di sini.</EmptyState>}
-      <div className="columns-2 gap-3 md:columns-3 lg:columns-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
         {photos.map((p, i) => (
-          <button key={p.id} type="button" onClick={() => setIndex(i)} className="group mb-3 block w-full cursor-zoom-in overflow-hidden rounded-xl bg-paper-200">
-            <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="w-full transition-transform duration-300 group-hover:scale-[1.03]" />
+          <button key={p.id} type="button" onClick={() => setIndex(i)} aria-label={p.caption ? `Buka foto: ${p.caption}` : 'Buka foto'} className="group relative aspect-[4/3] cursor-zoom-in overflow-hidden rounded-2xl bg-paper-200 text-left">
+            <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            {p.caption && <span className="absolute inset-x-0 bottom-0 line-clamp-2 bg-gradient-to-t from-brand-950/85 via-brand-950/40 to-transparent px-3 pt-10 pb-3 text-sm leading-tight font-semibold text-white">{p.caption}</span>}
           </button>
         ))}
       </div>

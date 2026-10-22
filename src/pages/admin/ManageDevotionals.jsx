@@ -101,7 +101,7 @@ export default function ManageDevotionals() {
           <Input label="Judul" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
           <Input label="Ayat (opsional)" placeholder="mis. Yohanes 3:16 — Karena begitu besar kasih Allah…" value={form.verse} onChange={(e) => setForm({ ...form, verse: e.target.value })} />
           <Textarea label="Isi renungan" required rows={6} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} />
-          <ImageUpload field={image} label="Gambar (opsional)" />
+          <ImageUpload field={image} label="Gambar (opsional)" hint="Tampil utuh, tidak dipotong." />
         </form>
       </Modal>
     </AdminPage>

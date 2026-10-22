@@ -27,7 +27,7 @@ export default function Lightbox({ photos, index, onClose, onIndex }) {
       <figure className="flex max-h-full max-w-full flex-col items-center" onClick={(e) => e.stopPropagation()}>
         <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} className="max-h-[80vh] max-w-full rounded-xl object-contain" />
         <figcaption className="mt-3 text-center text-sm text-white/75">
-          {p.caption && <div className="mb-1">{p.caption}</div>}
+          {p.caption && <div className="mb-1 text-base font-semibold text-white">{p.caption}</div>}
           <span className="text-xs text-white/50">{index + 1} / {total}</span>
         </figcaption>
       </figure>
