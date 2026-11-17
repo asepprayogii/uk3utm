@@ -21,7 +21,8 @@ export default function Modal({ open, onClose, title, description, size = 'md', 
 
   // Fokus ke panel hanya saat dialog baru dibuka.
   useEffect(() => {
-    if (open) panelRef.current?.focus()
+    const panel = panelRef.current
+    if (open && panel && !panel.contains(document.activeElement)) panel.focus()
   }, [open])
 
   useEffect(() => {

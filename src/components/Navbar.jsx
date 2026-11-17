@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { PUBLIC_NAV } from '../lib/nav'
+
+const HOME = { to: '/', label: 'Beranda', desc: 'Kembali ke halaman awal' }
+const MENU = [HOME, ...PUBLIC_NAV]
 import { Brand } from './Logo'
 
 // Kepala majalah: nama di kiri, menu teks di kanan, satu garis tipis di bawah.
@@ -34,8 +37,8 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-7 lg:flex">
-          {PUBLIC_NAV.map((l) => (
-            <NavLink key={l.to} to={l.to} className={desktopLink}>
+          {MENU.map((l) => (
+            <NavLink key={l.to} to={l.to} end={l.to === '/'} className={desktopLink}>
               {l.label}
             </NavLink>
           ))}
@@ -59,9 +62,9 @@ export default function Navbar() {
       {open && (
         <div id="mobile-menu" className="fixed inset-x-0 top-16 bottom-0 overflow-y-auto bg-paper-50 px-5 pt-2 pb-8 lg:hidden">
           <ul>
-            {PUBLIC_NAV.map(({ to, label, desc }, i) => (
+            {MENU.map(({ to, label, desc }, i) => (
               <li key={to} className="border-b border-paper-300">
-                <NavLink to={to} onClick={close} className={({ isActive }) => `flex items-baseline gap-4 py-5 ${isActive ? 'text-brand-600' : 'text-ink-900'}`}>
+                <NavLink to={to} end={to === '/'} onClick={close} className={({ isActive }) => `flex items-baseline gap-4 py-5 ${isActive ? 'text-brand-600' : 'text-ink-900'}`}>
                   <span className="w-6 text-xs font-bold text-ink-400 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
                   <span>
                     <span className="display block text-3xl">{label}</span>

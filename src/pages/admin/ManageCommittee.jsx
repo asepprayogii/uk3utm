@@ -286,11 +286,11 @@ export default function ManageCommittee() {
           <>
             <Button variant="secondary" onClick={() => setModal(null)} disabled={saving}>Batal</Button>
             {!modal?.editing && <Button variant="secondary" onClick={() => save(true)} loading={saving}>Simpan & tambah lagi</Button>}
-            <Button onClick={() => save(false)} loading={saving}>{modal?.editing ? 'Simpan Perubahan' : 'Simpan'}</Button>
+            <Button type="submit" form="committee-form" loading={saving}>{modal?.editing ? 'Simpan Perubahan' : 'Simpan'}</Button>
           </>
         }
       >
-        <div className="flex flex-col gap-6">
+        <form id="committee-form" noValidate onSubmit={(e) => { e.preventDefault(); if (!saving) save(false) }} className="flex flex-col gap-6">
           <div>
             <div className="mb-2 text-sm font-semibold text-ink-900"><span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-700 text-xs text-white">1</span>Pengurus ini berada di mana?</div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -341,7 +341,7 @@ export default function ManageCommittee() {
           {warnings.length > 0 && (
             <ul className="list-disc rounded-xl border border-amber-200 bg-amber-50 py-3 pr-4 pl-8 text-sm text-amber-900">{warnings.map((w) => <li key={w}>{w}</li>)}</ul>
           )}
-        </div>
+        </form>
       </Modal>
     </AdminPage>
   )

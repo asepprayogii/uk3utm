@@ -129,12 +129,13 @@ export default function ManageGallery() {
       </div>
 
       <Modal open={!!staged} onClose={() => !progress && setStaged(null)} title={`Beri judul ${staged?.length ?? 0} foto`} description="Judul tampil di galeri dan saat foto dibuka." size="lg"
-        footer={<><Button variant="secondary" onClick={() => setStaged(null)} disabled={!!progress}>Batal</Button><Button onClick={uploadAll} loading={!!progress}>{progress ?? `Unggah ${staged?.length ?? 0} foto`}</Button></>}>
+        footer={<><Button variant="secondary" onClick={() => setStaged(null)} disabled={!!progress}>Batal</Button><Button type="submit" form="staged-form" loading={!!progress}>{progress ?? `Unggah ${staged?.length ?? 0} foto`}</Button></>}>
         {staged && (
-          <div className="flex flex-col gap-4">
+          <form id="staged-form" onSubmit={(e) => { e.preventDefault(); if (!progress) uploadAll() }} className="flex flex-col gap-4">
             {staged.length > 1 && (
               <div className="flex items-end gap-2 rounded-xl bg-paper-100 p-3">
-                <Input wrapperClassName="flex-1" label="Judul yang sama untuk semua (opsional)" placeholder="mis. Natal Bersama 2026" value={bulk} onChange={(e) => setBulk(e.target.value)} />
+                <Input wrapperClassName="flex-1" label="Judul yang sama untuk semua (opsional)" placeholder="mis. Natal Bersama 2026" value={bulk} onChange={(e) => setBulk(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyBulk() } }} />
                 <Button variant="secondary" onClick={applyBulk} disabled={!bulk.trim()}>Terapkan</Button>
               </div>
             )}
@@ -142,21 +143,21 @@ export default function ManageGallery() {
               {staged.map((x, i) => (
                 <li key={x.key} className="flex items-start gap-3">
                   <img src={x.prepared.preview} alt="" className="aspect-[4/3] w-28 shrink-0 rounded-lg bg-paper-200 object-cover" />
-                  <Input wrapperClassName="flex-1" aria-label={`Judul foto ${i + 1}`} placeholder={`Judul foto ${i + 1}`} value={x.title} onChange={(e) => setTitle(x.key, e.target.value)}
+                  <Input wrapperClassName="flex-1" autoFocus={i === 0} aria-label={`Judul foto ${i + 1}`} placeholder={`Judul foto ${i + 1}`} value={x.title} onChange={(e) => setTitle(x.key, e.target.value)}
                     error={showErrors && !x.title.trim() ? 'Judul wajib diisi.' : undefined} />
                   <button type="button" onClick={() => dropStaged(x.key)} aria-label={`Batalkan foto ${i + 1}`} className="mt-1.5 rounded-lg p-2 text-ink-400 hover:bg-red-50 hover:text-red-600"><X size={16} /></button>
                 </li>
               ))}
             </ul>
             {showErrors && missing > 0 && <p role="alert" className="text-sm font-semibold text-red-700">{missing} foto belum diberi judul.</p>}
-          </div>
+          </form>
         )}
       </Modal>
 
       <Modal open={!!editing} onClose={() => setEditing(null)} title="Judul Foto" size="sm"
         footer={<><Button variant="secondary" onClick={() => setEditing(null)}>Batal</Button><Button type="submit" form="caption-form">Simpan</Button></>}>
         <form id="caption-form" onSubmit={saveCaption}>
-          <Input label="Judul" required placeholder="mis. Natal bersama 2025" value={caption} onChange={(e) => setCaption(e.target.value)} />
+          <Input label="Judul" required autoFocus placeholder="mis. Natal bersama 2025" value={caption} onChange={(e) => setCaption(e.target.value)} />
         </form>
       </Modal>
     </AdminPage>

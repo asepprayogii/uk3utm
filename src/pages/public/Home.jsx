@@ -45,8 +45,8 @@ async function fetchHome() {
   }
 }
 
-// Foto sampul bergantian dari galeri. Berhenti saat disorot kursor, dan tidak otomatis jalan
-// bagi pengguna yang memilih mengurangi animasi.
+// Foto sampul landscape (3:2) bergantian dari galeri. Berhenti saat disorot kursor, dan tidak otomatis
+// jalan bagi pengguna yang memilih mengurangi animasi. Foto ditampilkan penuh agar tidak terpotong.
 function HeroPhotos({ photos }) {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
@@ -62,19 +62,22 @@ function HeroPhotos({ photos }) {
 
   if (count === 0) {
     return (
-      <div className="md:col-span-4 md:mt-6"><CoverSlides photos={photos} /></div>
+      <figure className="md:col-span-5">
+        <FramedImage ratio="aspect-[3/2]" eager placeholder="Jemaat UK3 UTM bernyanyi bersama dalam ibadah. Ganti dengan foto asli." />
+        <figcaption className="mt-2 border-t border-ink-900 pt-2 text-xs text-ink-500">Ibadah bersama UK3 UTM</figcaption>
+      </figure>
     )
   }
 
   return (
     <figure
-      className="md:col-span-4 md:mt-6"
+      className="md:col-span-5"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-paper-200">
+      <div className="relative aspect-[3/2] overflow-hidden bg-paper-200">
         {photos.map((p, i) => (
           <img
             key={p.id}
@@ -82,7 +85,7 @@ function HeroPhotos({ photos }) {
             alt={i === current ? p.caption || 'Foto kegiatan UK3 UTM' : ''}
             aria-hidden={i !== current}
             loading={i === 0 ? 'eager' : 'lazy'}
-            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${i === current ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-700 ${i === current ? 'opacity-100' : 'opacity-0'}`}
           />
         ))}
       </div>
@@ -94,48 +97,6 @@ function HeroPhotos({ photos }) {
               <button key={p.id} type="button" onClick={() => setIndex(i)} aria-label={`Tampilkan foto ${i + 1}`} aria-current={i === current} className="py-2">
                 <span className={`block h-0.5 w-5 ${i === current ? 'bg-brand-600' : 'bg-paper-300'}`} />
               </button>
-            ))}
-          </span>
-        )}
-      </figcaption>
-    </figure>
-  )
-}
-
-// Foto sampul bergantian dari galeri (ganti tiap 5 detik, berhenti bila pengguna memilih gerak minimal).
-function CoverSlides({ photos }) {
-  const [i, setI] = useState(0)
-  const n = photos.length
-  useEffect(() => {
-    if (n < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const t = setInterval(() => setI((v) => (v + 1) % n), 5000)
-    return () => clearInterval(t)
-  }, [n])
-
-  if (n === 0) {
-    return (
-      <figure>
-        <FramedImage ratio="aspect-[4/5]" placeholder="Jemaat UK3 UTM bernyanyi bersama dalam ibadah. Ganti dengan foto asli." />
-        <figcaption className="mt-2 border-t border-ink-900 pt-2 text-xs text-ink-500">Ibadah bersama UK3 UTM</figcaption>
-      </figure>
-    )
-  }
-  const cur = photos[i % n]
-  return (
-    <figure>
-      <div className="relative aspect-[4/5] overflow-hidden bg-paper-200">
-        {photos.map((p, k) => (
-          <img key={p.id} src={p.photo_url} alt={k === i ? p.caption || 'Foto kegiatan' : ''} aria-hidden={k !== i} loading={k === 0 ? 'eager' : 'lazy'}
-            className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-700 ${k === i ? 'opacity-100' : 'opacity-0'}`} />
-        ))}
-      </div>
-      <figcaption className="mt-2 flex items-center justify-between gap-3 border-t border-ink-900 pt-2 text-xs text-ink-500">
-        <span className="line-clamp-1">{cur.caption || 'Foto kegiatan UK3 UTM'}</span>
-        {n > 1 && (
-          <span className="flex shrink-0 gap-1.5">
-            {photos.map((p, k) => (
-              <button key={p.id} type="button" onClick={() => setI(k)} aria-label={`Tampilkan foto ${k + 1}`} aria-current={k === i}
-                className={`h-1.5 w-5 ${k === i ? 'bg-brand-600' : 'bg-paper-300 hover:bg-ink-400'}`} />
             ))}
           </span>
         )}
@@ -176,16 +137,16 @@ export default function Home() {
       <main>
         {/* SAMPUL */}
         <section className="mx-auto max-w-6xl px-5 pt-10 pb-16 sm:px-6 sm:pt-16 sm:pb-24">
-          <div className="kicker mb-6 sm:mb-10">Persekutuan Doa Revive · Universitas Trunodjoyo Madura</div>
-          <div className="grid gap-10 md:grid-cols-12 md:gap-12">
-            <div className="md:col-span-8">
-              <h1 className="display text-[3.1rem] sm:text-7xl lg:text-[7.5rem]">
+          <div className="grid items-center gap-10 md:grid-cols-12 md:gap-12">
+            <div className="md:col-span-7">
+              <div className="kicker mb-6 sm:mb-8">Persekutuan Doa Revive · Universitas Trunodjoyo Madura</div>
+              <h1 className="display text-[3rem] sm:text-6xl lg:text-[5.5rem]">
                 Unit Kegiatan <em className="font-normal text-brand-600">Kerohanian</em> Kristen
               </h1>
               {loading ? (
                 <div className="mt-8 h-16 max-w-lg animate-pulse bg-paper-200" aria-hidden="true" />
               ) : (
-                <p className="mt-8 max-w-lg text-lg leading-relaxed text-ink-700">{content.about ?? DEFAULT_ABOUT}</p>
+                <p className="mt-8 max-w-md text-lg leading-relaxed text-ink-700">{content.about ?? DEFAULT_ABOUT}</p>
               )}
               <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm font-semibold">
                 <Link to="/pengumuman" className="inline-flex items-center gap-2 border-b-2 border-brand-600 pb-1 text-brand-600 hover:text-brand-700">
