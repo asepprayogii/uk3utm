@@ -4,7 +4,7 @@
 
 const MAX_INPUT_BYTES = 15 * 1024 * 1024
 
-function loadBitmap(file) {
+export function loadBitmap(file) {
   if (typeof createImageBitmap === 'function') {
     return createImageBitmap(file, { imageOrientation: 'from-image' }).catch(() => loadViaImage(file))
   }
@@ -27,7 +27,7 @@ function loadViaImage(file) {
   })
 }
 
-function canvasToBlob(canvas, type, quality) {
+export function canvasToBlob(canvas, type, quality) {
   return new Promise((resolve, reject) => {
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Gagal memproses gambar.'))), type, quality)
   })
@@ -84,4 +84,41 @@ export function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+}
+
+// ---- Potong foto profil (rasio 4:5) ----
+export const PORTRAIT_RATIO = 1.25 // tinggi / lebar
+
+/** Area potong otomatis: selebar mungkin, agak ke atas supaya wajah tidak terpotong. */
+export function autoCrop(srcW, srcH) {
+  const w = Math.min(srcW, srcH / PORTRAIT_RATIO)
+  const h = w * PORTRAIT_RATIO
+  return { x: (srcW - w) / 2, y: Math.max(0, (srcH - h) / 3), w }
+}
+
+/** Menjaga area potong tetap di dalam gambar. `w` dibatasi ke ukuran terbesar yang muat. */
+export function clampCrop(crop, srcW, srcH) {
+  const maxW = Math.min(srcW, srcH / PORTRAIT_RATIO)
+  const w = Math.min(Math.max(crop.w, maxW / 6), maxW)
+  const h = w * PORTRAIT_RATIO
+  return { w, x: Math.min(Math.max(crop.x, 0), srcW - w), y: Math.min(Math.max(crop.y, 0), srcH - h) }
+}
+
+/** Menggambar area potong ke JPEG 4:5 (maks. 800x1000). */
+export async function renderPortrait(file, crop, { outW = 800, quality = 0.85 } = {}) {
+  const bitmap = await loadBitmap(file)
+  const c = clampCrop(crop ?? autoCrop(bitmap.width, bitmap.height), bitmap.width, bitmap.height)
+  const w = Math.min(outW, Math.round(c.w))
+  const h = Math.round(w * PORTRAIT_RATIO)
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, w, h)
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(bitmap, c.x, c.y, c.w, c.w * PORTRAIT_RATIO, 0, 0, w, h)
+  if (typeof bitmap.close === 'function') bitmap.close()
+  const blob = await canvasToBlob(canvas, 'image/jpeg', quality)
+  return { blob, preview: URL.createObjectURL(blob), ext: 'jpg', type: 'image/jpeg' }
 }

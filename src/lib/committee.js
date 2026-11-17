@@ -175,3 +175,14 @@ export function structureIssues(list) {
   if (noPhoto > 0) issues.push(`${noPhoto} pengurus belum punya foto.`)
   return issues
 }
+
+// Semua pengurus dalam satu urutan baca: Pembina, Pembimbing, BPH, lalu tiap departemen (kepala, divisi, anggota).
+// Dipakai agar pratinjau foto bisa digeser ke seluruh pengurus, bukan hanya satu kelompok.
+export function orderedMembers(groups) {
+  return [
+    ...groups.pembina,
+    ...groups.pembimbing,
+    ...groups.bph,
+    ...groups.departments.flatMap((d) => [...d.kadep, ...d.divisions.flatMap((v) => v.members), ...d.others]),
+  ]
+}

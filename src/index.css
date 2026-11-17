@@ -61,16 +61,6 @@
     position: relative;
   }
 
-  /* Tepi foto menyatu dengan latar: kabur halus di keempat sisi */
-  .feather {
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent),
-      linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
-    -webkit-mask-composite: source-in;
-    mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent),
-      linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
-    mask-composite: intersect;
-  }
-
   /* Animasi tipis: muncul saat digulir */
   .reveal {
     opacity: 0;

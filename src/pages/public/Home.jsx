@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, ExternalLink } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { excerpt, formatDate } from '../../lib/format'
-import { groupCommittee } from '../../lib/committee'
+import { groupCommittee, orderedMembers } from '../../lib/committee'
 import { DEFAULT_ABOUT, fetchHomePhotos } from '../../lib/siteContent'
-import { detectPlatform } from '../../lib/social'
+import { linkDisplay } from '../../lib/social'
 import { PUBLIC_NAV } from '../../lib/nav'
 import { useAsyncData } from '../../hooks/useAsyncData'
 import Navbar from '../../components/Navbar'
@@ -24,7 +24,7 @@ async function fetchHome() {
     supabase.from('announcements').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false }).limit(3),
     supabase.from('devotionals').select('*').order('created_at', { ascending: false }).limit(3),
     supabase.from('links').select('*').order('order_index'),
-    supabase.from('committee').select('*').eq('department', 'BPH'),
+    supabase.from('committee').select('*'),
   ])
   const rows = results.map((r) => {
     if (r.status !== 'fulfilled') return null
@@ -68,7 +68,7 @@ function HeroPhotos({ photos }) {
     )
   }
 
-  // Tepi foto dilebur ke warna latar (feather), tanpa judul foto di halaman depan.
+  // Tanpa judul foto di halaman depan.
   return (
     <figure
       onMouseEnter={() => setPaused(true)}
@@ -76,7 +76,7 @@ function HeroPhotos({ photos }) {
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <div className="feather relative aspect-[3/2]">
+      <div className="relative aspect-[3/2] overflow-hidden bg-paper-200">
         {photos.map((p, i) => (
           <img
             key={p.id}
@@ -124,7 +124,9 @@ export default function Home() {
   const { data, loading, error } = useAsyncData(fetchHome, INITIAL)
   const { content, announcements, devotionals, links, photos, committee } = data
   const missionItems = (content.mission ?? '').split('\n').map((m) => m.replace(/^[•-]\s*/, '').trim()).filter(Boolean)
-  const bph = groupCommittee(committee).bph
+  const grouped = groupCommittee(committee)
+  const bph = grouped.bph
+  const everyone = orderedMembers(grouped)
   const [lead, ...restAnn] = announcements
 
   return (
@@ -252,7 +254,7 @@ export default function Home() {
         {/* BPH */}
         {bph.length > 0 && (
           <Section eyebrow="Pengurus Harian" title="Kenali BPH" to="/kepengurusan">
-            <MemberGrid members={bph} className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4" />
+            <MemberGrid members={bph} all={everyone} className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4" />
           </Section>
         )}
 
@@ -273,15 +275,18 @@ export default function Home() {
         {links.length > 0 && (
           <Section eyebrow="Terhubung" title="Ikuti & Hubungi Kami">
             <ul className="border-t border-ink-900 md:max-w-2xl">
-              {links.map((l) => (
+              {links.map((l) => {
+                const d = linkDisplay(l)
+                return (
                 <li key={l.id} className="border-b border-paper-300">
                   <a href={l.url} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 py-4 font-semibold hover:text-brand-600">
-                    <SocialIcon platform={detectPlatform(l.url)} />
-                    <span className="flex-1">{l.label}</span>
+                    <SocialIcon platform={d.platform} />
+                    <span className="flex-1">{d.text}<span className="kicker ml-3 !text-ink-400">{d.platformName}</span></span>
                     <ExternalLink size={16} className="text-ink-400 group-hover:text-brand-600" aria-hidden="true" />
                   </a>
                 </li>
-              ))}
+                )
+              })}
             </ul>
           </Section>
         )}

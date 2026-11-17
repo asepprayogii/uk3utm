@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { groupCommittee } from '../../lib/committee'
+import { groupCommittee, orderedMembers } from '../../lib/committee'
 import { currentPeriod } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
@@ -20,21 +20,21 @@ function Title({ children, sub }) {
   )
 }
 
-function DepartmentPanel({ dept }) {
+function DepartmentPanel({ dept, all }) {
   const groups = [
     ...dept.divisions.map((d) => ({ title: `Divisi ${d.name}`, members: d.members })),
     ...(dept.others.length > 0 ? [{ title: 'Anggota', members: dept.others }] : []),
   ]
   return (
     <div className="flex flex-col gap-12">
-      {dept.kadep.length > 0 && <MemberGrid members={dept.kadep} />}
+      {dept.kadep.length > 0 && <MemberGrid members={dept.kadep} all={all} />}
       {groups.map((g) => (
         <div key={g.title}>
           <div className="mb-6 flex items-baseline justify-between border-b border-ink-900 pb-2">
             <h3 className="display text-2xl">{g.title}</h3>
             <span className="text-xs font-bold text-ink-500 tabular-nums">{g.members.length}</span>
           </div>
-          <MemberGrid members={g.members} />
+          <MemberGrid members={g.members} all={all} />
         </div>
       ))}
       {dept.kadep.length === 0 && groups.length === 0 && <p className="text-sm text-ink-400">Belum ada anggota.</p>}
@@ -46,6 +46,7 @@ export default function Kepengurusan() {
   const { data, loading, error, retry } = useAsyncData(fetchCommittee, EMPTY)
   const [active, setActive] = useState(null)
   const g = groupCommittee(data)
+  const all = orderedMembers(g)
   const empty = !loading && !error && data.length === 0
 
   const shown = g.departments.find((d) => d.name === active) ?? g.departments[0]
@@ -66,14 +67,14 @@ export default function Kepengurusan() {
           {(g.pembina.length > 0 || g.pembimbing.length > 0) && (
             <section aria-labelledby="sec-pembina">
               <Title sub="Pendamping rohani dan akademik"><span id="sec-pembina">Pembina & Pembimbing</span></Title>
-              <MemberGrid members={[...g.pembina, ...g.pembimbing]} />
+              <MemberGrid members={[...g.pembina, ...g.pembimbing]} all={all} />
             </section>
           )}
 
           {g.bph.length > 0 && (
             <section aria-labelledby="sec-bph">
               <Title sub="Badan Pengurus Harian"><span id="sec-bph">BPH</span></Title>
-              <MemberGrid members={g.bph} />
+              <MemberGrid members={g.bph} all={all} />
             </section>
           )}
 
@@ -96,7 +97,7 @@ export default function Kepengurusan() {
                   </button>
                 ))}
               </div>
-              <div role="tabpanel"><DepartmentPanel dept={shown} /></div>
+              <div role="tabpanel"><DepartmentPanel dept={shown} all={all} /></div>
             </section>
           )}
         </div>

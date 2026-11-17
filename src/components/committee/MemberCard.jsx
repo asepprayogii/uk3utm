@@ -22,12 +22,12 @@ function Card({ member, onOpen }) {
   )
 }
 
-// Kumpulan kartu pengurus dengan satu pratinjau foto yang bisa digeser antar pengurus.
-export default function MemberGrid({ members, className = 'grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4' }) {
+// Kumpulan kartu pengurus. Pratinjau foto bisa digeser ke seluruh pengurus di `all` (urutan baca), bukan hanya kartu di grid ini.
+export default function MemberGrid({ members, all, className = 'grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4' }) {
   const [index, setIndex] = useState(null)
   const withPhoto = useMemo(
-    () => members.filter((m) => m.photo_url).map((m) => ({ id: m.id, photo_url: m.photo_url, caption: `${m.name} — ${m.position}` })),
-    [members],
+    () => (all ?? members).filter((m) => m.photo_url).map((m) => ({ id: m.id, photo_url: m.photo_url, caption: `${m.name} — ${m.position}` })),
+    [all, members],
   )
   const close = useCallback(() => setIndex(null), [])
 

@@ -330,7 +330,7 @@ export default function ManageCommittee() {
 
           <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-start">
             <Input label="Nama lengkap" required placeholder="Nama sesuai yang ingin ditampilkan" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            <ImageUpload field={photo} shape="circle" label="Foto" hint="Dipotong persegi otomatis." name={form.name} />
+            <ImageUpload field={photo} shape="circle" label="Foto" hint="Dipotong otomatis (4:5). Klik “Atur posisi” bila perlu." name={form.name} />
           </div>
 
           <PreviewCard record={record} photo={photo.preview} />

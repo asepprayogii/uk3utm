@@ -39,3 +39,43 @@ export function detectPlatform(url = '') {
   if (u.includes('wa.me') || u.includes('whatsapp.com')) return 'whatsapp'
   return 'other'
 }
+
+/** Mengambil username dari URL, mis. https://instagram.com/uk3utm -> @uk3utm. Kosong bila tidak bisa. */
+export function extractHandle(platform, url = '') {
+  if (!['instagram', 'youtube', 'tiktok', 'facebook'].includes(platform)) return ''
+  try {
+    const u = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`)
+    const seg = u.pathname.split('/').filter(Boolean)
+    const first = seg.find((s) => !['channel', 'c', 'user', 'pages', 'p'].includes(s)) ?? ''
+    const h = decodeURIComponent(first).replace(/^@/, '')
+    return h ? `@${h}` : ''
+  } catch {
+    return ''
+  }
+}
+
+/** Nama platform untuk satu tautan tersimpan. */
+export const platformLabel = (platform) => PLATFORMS.find((p) => p.id === platform)?.label ?? 'Tautan'
+
+/**
+ * Teks yang ditampilkan ke pengunjung: username untuk Instagram/TikTok/dll,
+ * atau label isian admin (WhatsApp, Lainnya). Tautan lama berlabel nama platform otomatis dibaca dari URL.
+ */
+export function linkDisplay(link) {
+  const platform = detectPlatform(link.url)
+  const name = platformLabel(platform)
+  const label = (link.label ?? '').trim()
+  const generic = !label || label.toLowerCase() === name.toLowerCase()
+  const handle = extractHandle(platform, link.url)
+  // Instagram/YouTube/TikTok/Facebook selalu menampilkan username dari alamatnya; WhatsApp/Lainnya memakai label admin.
+  const text = handle || (generic ? label || name : label)
+  return { platform, platformName: name, text }
+}
+
+/** Isian awal untuk mengubah tautan yang sudah ada. */
+export function editableValue(link) {
+  const platform = detectPlatform(link.url)
+  if (['instagram', 'youtube', 'tiktok', 'facebook'].includes(platform)) return extractHandle(platform, link.url) || link.url
+  if (platform === 'whatsapp') return link.url
+  return link.url
+}

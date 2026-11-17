@@ -1,6 +1,6 @@
 import { supabase } from '../../lib/supabase'
 import { currentPeriod } from '../../lib/format'
-import { detectPlatform } from '../../lib/social'
+import { linkDisplay } from '../../lib/social'
 import { DEFAULT_ABOUT, fetchContent, parseActivities } from '../../lib/siteContent'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
@@ -145,14 +145,17 @@ export default function Tentang() {
             <Reveal as="section" id="terhubung" className="mt-20 scroll-mt-24 border-t border-ink-900 pt-6 sm:mt-28">
               <div className="kicker mb-6">Terhubung dengan kami</div>
               <ul className="flex flex-wrap gap-3">
-                {links.map((l) => (
-                  <li key={l.id}>
-                    <a href={l.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 border border-ink-900 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-ink-900 hover:text-paper-50">
-                      <SocialIcon platform={detectPlatform(l.url)} size={18} />
-                      {l.label}
-                    </a>
-                  </li>
-                ))}
+                {links.map((l) => {
+                  const d = linkDisplay(l)
+                  return (
+                    <li key={l.id}>
+                      <a href={l.url} target="_blank" rel="noopener noreferrer" title={d.platformName} className="inline-flex items-center gap-3 border border-ink-900 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-ink-900 hover:text-paper-50">
+                        <SocialIcon platform={d.platform} size={18} />
+                        {d.text}
+                      </a>
+                    </li>
+                  )
+                })}
               </ul>
             </Reveal>
           )}

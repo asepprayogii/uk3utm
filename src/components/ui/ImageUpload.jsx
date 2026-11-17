@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
-import { ImagePlus, Loader2, Trash2 } from 'lucide-react'
-import { prepareImage, formatBytes } from '../../lib/image'
+import { Crop, ImagePlus, Loader2, Trash2 } from 'lucide-react'
+import { prepareImage, renderPortrait, formatBytes } from '../../lib/image'
+import CropDialog from './CropDialog'
 import { useUI } from '../../hooks/useUI'
 import Avatar from './Avatar'
 import Button from './Button'
@@ -16,11 +17,23 @@ export default function ImageUpload({ field, label, hint, shape = 'wide', lossle
   const [busy, setBusy] = useState(false)
   const [drag, setDrag] = useState(false)
   const [info, setInfo] = useState('')
+  const [source, setSource] = useState(null) // file asli untuk foto profil, supaya posisinya bisa diatur ulang
+  const [cropping, setCropping] = useState(null) // { file, initial }
+  const [lastCrop, setLastCrop] = useState(null)
 
   async function handleFile(file) {
     if (!file) return
     setBusy(true)
     try {
+      if (shape === 'circle') {
+        // Foto profil: potong otomatis 4:5 (bisa diatur lewat "Atur posisi").
+        const prepared = await renderPortrait(file)
+        field.select(prepared)
+        setSource(file)
+        setLastCrop(null)
+        setInfo(`${formatBytes(file.size)} → ${formatBytes(prepared.blob.size)}`)
+        return
+      }
       const prepared = await prepareImage(file, {
         square: shape === 'circle' || shape === 'square',
         lossless,
@@ -40,6 +53,37 @@ export default function ImageUpload({ field, label, hint, shape = 'wide', lossle
     <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
   )
 
+  async function openCrop() {
+    try {
+      let file = source
+      if (!file) {
+        const res = await fetch(field.preview)
+        if (!res.ok) throw new Error('fetch')
+        file = new File([await res.blob()], 'foto.jpg', { type: 'image/jpeg' })
+        setSource(file)
+      }
+      setCropping({ file, initial: lastCrop })
+    } catch {
+      toast.error('Foto lama tidak bisa dibuka untuk diatur. Pilih ulang fotonya.')
+    }
+  }
+
+  async function applyCrop(crop) {
+    const file = cropping.file
+    setCropping(null)
+    setBusy(true)
+    try {
+      const prepared = await renderPortrait(file, crop)
+      field.select(prepared)
+      setLastCrop(crop)
+      setInfo('Posisi foto diatur.')
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   if (shape === 'circle') {
     return (
       <div>
@@ -58,7 +102,7 @@ export default function ImageUpload({ field, label, hint, shape = 'wide', lossle
             }}
             className={`rounded-full ${drag ? 'ring-4 ring-brand-300' : ''}`}
           >
-            <Avatar name={name} src={field.preview} size="xl" />
+            <Avatar name={name} src={field.preview} size="fill" className="!w-24" />
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap gap-2">
@@ -66,15 +110,21 @@ export default function ImageUpload({ field, label, hint, shape = 'wide', lossle
                 {field.hasImage ? 'Ganti foto' : 'Pilih foto'}
               </Button>
               {field.hasImage && (
-                <Button size="sm" variant="dangerSoft" icon={Trash2} onClick={field.remove}>
+                <Button size="sm" variant="secondary" icon={Crop} disabled={busy} onClick={openCrop}>
+                  Atur posisi
+                </Button>
+              )}
+              {field.hasImage && (
+                <Button size="sm" variant="dangerSoft" icon={Trash2} onClick={() => { field.remove(); setSource(null); setLastCrop(null) }}>
                   Hapus
                 </Button>
               )}
             </div>
-            <p className="mt-2 text-xs text-ink-400">{info || hint || 'Foto otomatis dipotong persegi dan diperkecil.'}</p>
+            <p className="mt-2 text-xs text-ink-400">{info || hint || 'Dipotong otomatis (4:5). Klik “Atur posisi” bila perlu.'}</p>
           </div>
         </div>
         {input}
+        {cropping && <CropDialog file={cropping.file} initial={cropping.initial} onApply={applyCrop} onCancel={() => setCropping(null)} />}
       </div>
     )
   }
