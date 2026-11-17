@@ -9,6 +9,7 @@ import { ROLES } from './lib/adminNav'
 
 // Halaman publik (ringan, dimuat langsung)
 import Home from './pages/public/Home'
+import Tentang from './pages/public/Tentang'
 import Pengumuman from './pages/public/Pengumuman'
 import Renungan from './pages/public/Renungan'
 import RenunganDetail from './pages/public/RenunganDetail'
@@ -31,6 +32,7 @@ const ManageAttendance = lazy(() => import('./pages/admin/ManageAttendance'))
 const ManageLocations = lazy(() => import('./pages/admin/ManageLocations'))
 const ManageServices = lazy(() => import('./pages/admin/ManageServices'))
 const ManageGallery = lazy(() => import('./pages/admin/ManageGallery'))
+const ManageAbout = lazy(() => import('./pages/admin/ManageAbout'))
 const ManageStudents = lazy(() => import('./pages/admin/ManageStudents'))
 const ManageMentors = lazy(() => import('./pages/admin/ManageMentors'))
 
@@ -44,6 +46,7 @@ function ScrollToTop() {
 }
 
 const ADMIN_ROUTES = [
+  { path: 'tentang', roles: INFOKOM, Page: ManageAbout },
   { path: 'pengumuman', roles: INFOKOM, Page: ManageAnnouncements },
   { path: 'renungan', roles: INFOKOM, Page: ManageDevotionals },
   { path: 'kepengurusan', roles: INFOKOM, Page: ManageCommittee },
@@ -67,6 +70,7 @@ export default function App() {
             <Routes>
               {/* Publik */}
               <Route path="/" element={<Home />} />
+              <Route path="/tentang" element={<Tentang />} />
               <Route path="/pengumuman" element={<Pengumuman />} />
               <Route path="/pengumuman/:id" element={<PengumumanDetail />} />
               <Route path="/renungan" element={<Renungan />} />

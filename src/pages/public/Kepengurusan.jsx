@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { bphRank, groupCommittee } from '../../lib/committee'
+import { groupCommittee } from '../../lib/committee'
 import { currentPeriod } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
-import MemberCard from '../../components/committee/MemberCard'
+import MemberGrid from '../../components/committee/MemberCard'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
 
 const EMPTY = []
@@ -20,42 +20,24 @@ function Title({ children, sub }) {
   )
 }
 
-function Cards({ members, highlight = false }) {
-  return (
-    <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 md:grid-cols-4">
-      {members.map((m) => (
-        <MemberCard key={m.id} member={m} highlight={highlight} />
-      ))}
-    </div>
-  )
-}
-
 function DepartmentPanel({ dept }) {
+  const groups = [
+    ...dept.divisions.map((d) => ({ title: `Divisi ${d.name}`, members: d.members })),
+    ...(dept.others.length > 0 ? [{ title: 'Anggota', members: dept.others }] : []),
+  ]
   return (
-    <div>
-      {dept.kadep.length > 0 && (
-        <div className="mb-10"><Cards members={dept.kadep} highlight /></div>
-      )}
-      <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-        {dept.divisions.map((div) => (
-          <div key={div.name}>
-            <div className="flex items-baseline justify-between border-b border-ink-900 pb-2">
-              <span className="display text-xl">Divisi {div.name}</span>
-              <span className="text-xs font-bold text-ink-500 tabular-nums">{div.members.length}</span>
-            </div>
-            {div.members.map((m) => <MemberCard key={m.id} member={m} variant="row" />)}
+    <div className="flex flex-col gap-12">
+      {dept.kadep.length > 0 && <MemberGrid members={dept.kadep} />}
+      {groups.map((g) => (
+        <div key={g.title}>
+          <div className="mb-6 flex items-baseline justify-between border-b border-ink-900 pb-2">
+            <h3 className="display text-2xl">{g.title}</h3>
+            <span className="text-xs font-bold text-ink-500 tabular-nums">{g.members.length}</span>
           </div>
-        ))}
-        {dept.others.length > 0 && (
-          <div>
-            <div className="border-b border-ink-900 pb-2"><span className="display text-xl">Anggota</span></div>
-            {dept.others.map((m) => <MemberCard key={m.id} member={m} variant="row" />)}
-          </div>
-        )}
-      </div>
-      {dept.kadep.length === 0 && dept.divisions.length === 0 && dept.others.length === 0 && (
-        <p className="text-sm text-ink-400">Belum ada anggota.</p>
-      )}
+          <MemberGrid members={g.members} />
+        </div>
+      ))}
+      {dept.kadep.length === 0 && groups.length === 0 && <p className="text-sm text-ink-400">Belum ada anggota.</p>}
     </div>
   )
 }
@@ -66,8 +48,6 @@ export default function Kepengurusan() {
   const g = groupCommittee(data)
   const empty = !loading && !error && data.length === 0
 
-  const ketua = g.bph.filter((m) => bphRank(m.position) < 110)
-  const bphLain = g.bph.filter((m) => bphRank(m.position) >= 110)
   const shown = g.departments.find((d) => d.name === active) ?? g.departments[0]
 
   return (
@@ -86,15 +66,14 @@ export default function Kepengurusan() {
           {(g.pembina.length > 0 || g.pembimbing.length > 0) && (
             <section aria-labelledby="sec-pembina">
               <Title sub="Pendamping rohani dan akademik"><span id="sec-pembina">Pembina & Pembimbing</span></Title>
-              <Cards members={[...g.pembina, ...g.pembimbing]} highlight />
+              <MemberGrid members={[...g.pembina, ...g.pembimbing]} />
             </section>
           )}
 
           {g.bph.length > 0 && (
             <section aria-labelledby="sec-bph">
               <Title sub="Badan Pengurus Harian"><span id="sec-bph">BPH</span></Title>
-              {ketua.length > 0 && <div className="mb-10"><Cards members={ketua} highlight /></div>}
-              {bphLain.length > 0 && <Cards members={bphLain} />}
+              <MemberGrid members={g.bph} />
             </section>
           )}
 

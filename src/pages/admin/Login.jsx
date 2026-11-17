@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { markLogin, takeNotice } from '../../lib/sessionGuard'
 import { LogoMark } from '../../components/Logo'
 import Button from '../../components/ui/Button'
 import { Input } from '../../components/ui/Field'
@@ -15,6 +16,7 @@ export default function Login() {
   const [show, setShow] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [notice] = useState(takeNotice)
 
   // Sudah masuk? Langsung ke dashboard.
   if (!authLoading && user) return <Navigate to="/admin" replace />
@@ -28,6 +30,7 @@ export default function Login() {
       setError('Email atau kata sandi salah. Periksa lagi, lalu coba kembali.')
       setLoading(false)
     } else {
+      markLogin()
       navigate('/admin')
     }
   }
@@ -56,6 +59,7 @@ export default function Login() {
                 {show ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            {notice && !error && <div role="status" className="border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800">{notice}</div>}
             {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
             <Button type="submit" size="lg" loading={loading} className="mt-2 w-full">Masuk</Button>
           </form>

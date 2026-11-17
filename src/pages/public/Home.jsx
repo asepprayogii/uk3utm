@@ -4,7 +4,7 @@ import { ArrowRight, ExternalLink } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { excerpt, formatDate } from '../../lib/format'
 import { groupCommittee } from '../../lib/committee'
-import { fetchPhotos } from '../../lib/gallery'
+import { DEFAULT_ABOUT, fetchHomePhotos } from '../../lib/siteContent'
 import { detectPlatform } from '../../lib/social'
 import { PUBLIC_NAV } from '../../lib/nav'
 import { useAsyncData } from '../../hooks/useAsyncData'
@@ -12,10 +12,8 @@ import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import FramedImage from '../../components/FramedImage'
 import SocialIcon from '../../components/SocialIcon'
-import MemberCard from '../../components/committee/MemberCard'
+import MemberGrid from '../../components/committee/MemberCard'
 
-const DEFAULT_ABOUT =
-  'Wadah mahasiswa Kristen Universitas Trunodjoyo Madura untuk bertumbuh bersama dalam iman, persekutuan, dan pelayanan.'
 const INITIAL = { content: {}, announcements: [], devotionals: [], links: [], photos: [], committee: [] }
 
 // Satu query yang gagal tidak boleh merusak seluruh beranda.
@@ -25,7 +23,6 @@ async function fetchHome() {
     supabase.from('announcements').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false }).limit(3),
     supabase.from('devotionals').select('*').order('created_at', { ascending: false }).limit(3),
     supabase.from('links').select('*').order('order_index'),
-    fetchPhotos(8),
     supabase.from('committee').select('*').eq('department', 'BPH'),
   ])
   const rows = results.map((r) => {
@@ -34,13 +31,15 @@ async function fetchHome() {
     return r.value.error ? null : (r.value.data ?? [])
   })
   if (rows.every((r) => r === null)) throw new Error('Semua permintaan data beranda gagal.')
-  const [contentRows, announcements, devotionals, links, photos, committee] = rows
+  const [contentRows, announcements, devotionals, links, committee] = rows
+  const content = Object.fromEntries((contentRows ?? []).map((row) => [row.key, row.value]))
+  const photos = await fetchHomePhotos(content).catch(() => [])
   return {
-    content: Object.fromEntries((contentRows ?? []).map((row) => [row.key, row.value])),
+    content,
     announcements: announcements ?? [],
     devotionals: devotionals ?? [],
     links: links ?? [],
-    photos: photos ?? [],
+    photos,
     committee: committee ?? [],
   }
 }
@@ -255,11 +254,7 @@ export default function Home() {
         {/* BPH */}
         {bph.length > 0 && (
           <Section eyebrow="Pengurus Harian" title="Kenali BPH" to="/kepengurusan">
-            <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {bph.map((m) => (
-                <MemberCard key={m.id} member={m} />
-              ))}
-            </div>
+            <MemberGrid members={bph} className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4" />
           </Section>
         )}
 

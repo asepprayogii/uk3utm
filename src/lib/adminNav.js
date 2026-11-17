@@ -1,6 +1,6 @@
 import {
   BookOpen, CalendarCheck, GraduationCap, HandHeart, Images, LayoutDashboard,
-  Megaphone, MapPin, Share2, UserCheck, Users,
+  Info, Megaphone, MapPin, Share2, UserCheck, Users,
 } from 'lucide-react'
 
 export const ROLES = {
@@ -20,6 +20,7 @@ export const ADMIN_GROUPS = [
   {
     label: 'Konten Website',
     items: [
+      { to: '/admin/tentang', label: 'Tentang UK3', desc: 'Sejarah, tahun berdiri, dan kegiatan', icon: Info, roles: ROLES.INFOKOM },
       { to: '/admin/pengumuman', label: 'Pengumuman', desc: 'Info dan kegiatan di website', icon: Megaphone, roles: ROLES.INFOKOM },
       { to: '/admin/renungan', label: 'Renungan', desc: 'Renungan harian dan ayat', icon: BookOpen, roles: ROLES.INFOKOM },
       { to: '/admin/kepengurusan', label: 'Kepengurusan', desc: 'Susunan pengurus dan fotonya', icon: Users, roles: ROLES.INFOKOM },

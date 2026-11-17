@@ -1,10 +1,11 @@
 import { useCallback, useRef, useState } from 'react'
-import { ImagePlus, Images, Pencil, Trash2, X } from 'lucide-react'
+import { ImagePlus, Images, Pencil, Star, Trash2, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { prepareImage } from '../../lib/image'
 import { removeByUrl, uploadPrepared } from '../../lib/storage'
 import { ensureGalleryAlbum, fetchPhotos, orderStamp } from '../../lib/gallery'
 import { friendlyError } from '../../lib/errors'
+import { HOME_PHOTOS_KEY, HOME_PHOTOS_MAX, fetchContent, parseIds, saveContent } from '../../lib/siteContent'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import { useUI } from '../../hooks/useUI'
 import AdminPage, { Card } from '../../components/admin/AdminPage'
@@ -15,12 +16,16 @@ import { EmptyState, ErrorState, Loading } from '../../components/States'
 
 const EMPTY = []
 const load = () => fetchPhotos()
+const loadFeatured = async () => parseIds((await fetchContent())[HOME_PHOTOS_KEY])
 
 export default function ManageGallery() {
   const { toast, confirm } = useUI()
   const { data, loading, error, retry } = useAsyncData(load, EMPTY)
   const [local, setLocal] = useState(null)
   const photos = local ?? data
+  const { data: savedFeatured } = useAsyncData(loadFeatured, EMPTY)
+  const [featuredLocal, setFeaturedLocal] = useState(null)
+  const featured = (featuredLocal ?? savedFeatured).map(String)
   const fileRef = useRef(null)
 
   // Foto yang sedang disiapkan: tiap foto wajib diberi judul sebelum diunggah.
@@ -81,6 +86,17 @@ export default function ManageGallery() {
     setStaged(failed.length ? failed : null) // yang gagal tetap tampil agar bisa dicoba lagi
   }
 
+  // Pilih foto yang tampil di beranda (urutan pilihan = urutan tayang). Kosong = 5 foto terbaru.
+  async function toggleFeatured(p) {
+    const id = String(p.id)
+    const isOn = featured.includes(id)
+    if (!isOn && featured.length >= HOME_PHOTOS_MAX) { toast.error(`Maksimal ${HOME_PHOTOS_MAX} foto di beranda. Lepas salah satu dulu.`); return }
+    const next = isOn ? featured.filter((x) => x !== id) : [...featured, id]
+    const before = featuredLocal
+    setFeaturedLocal(next)
+    try { await saveContent(HOME_PHOTOS_KEY, JSON.stringify(next)) } catch (err) { setFeaturedLocal(before ?? savedFeatured); toast.error(friendlyError(err, 'menyimpan pilihan beranda')) }
+  }
+
   async function saveCaption(e) {
     e.preventDefault()
     try {
@@ -95,6 +111,7 @@ export default function ManageGallery() {
     try {
       await unwrap(supabase.from('album_photos').delete().eq('id', p.id))
       removeByUrl(p.photo_url)
+      if (featured.includes(String(p.id))) { const next = featured.filter((x) => x !== String(p.id)); setFeaturedLocal(next); saveContent(HOME_PHOTOS_KEY, JSON.stringify(next)).catch(() => {}) }
       await refresh()
     } catch (err) { toast.error(`Gagal menghapus: ${err.message}`) }
   }
@@ -113,11 +130,27 @@ export default function ManageGallery() {
       {!loading && !error && photos.length === 0 && (
         <Card><EmptyState icon={Images} title="Galeri masih kosong" action={<Button icon={ImagePlus} onClick={() => fileRef.current?.click()}>Pilih foto</Button>}>Anda bisa memilih banyak foto sekaligus, lalu memberi judul masing-masing.</EmptyState></Card>
       )}
+      {photos.length > 0 && (
+        <p className="mb-4 flex items-start gap-2 rounded-xl border border-paper-300 bg-white px-4 py-3 text-sm text-ink-700">
+          <Star size={16} className="mt-0.5 shrink-0 text-brand-600" aria-hidden="true" />
+          <span>
+            <b>Foto di beranda:</b> ketuk bintang pada foto untuk menampilkannya di halaman awal (maksimal {HOME_PHOTOS_MAX}, tampil sesuai urutan pilihan).
+            {featured.length === 0 ? ' Belum ada yang dipilih, jadi 5 foto terbaru yang tampil.' : ` Terpilih: ${featured.length}.`}
+          </span>
+        </p>
+      )}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {photos.map((p) => (
           <div key={p.id} className="overflow-hidden rounded-xl border border-paper-300 bg-white">
             <div className="relative aspect-[4/3] bg-paper-200">
               <img src={p.photo_url} alt={p.caption || ''} loading="lazy" className="h-full w-full object-cover" />
+              <button type="button" onClick={() => toggleFeatured(p)} aria-pressed={featured.includes(String(p.id))}
+                aria-label={featured.includes(String(p.id)) ? 'Lepas dari beranda' : 'Tampilkan di beranda'}
+                title={featured.includes(String(p.id)) ? 'Lepas dari beranda' : 'Tampilkan di beranda'}
+                className={`absolute top-2 left-2 flex h-8 items-center gap-1 px-2 text-xs font-bold ${featured.includes(String(p.id)) ? 'bg-brand-600 text-paper-50' : 'bg-paper-50 text-ink-900 hover:bg-white'}`}>
+                <Star size={14} fill={featured.includes(String(p.id)) ? 'currentColor' : 'none'} aria-hidden="true" />
+                {featured.includes(String(p.id)) ? `Beranda ${featured.indexOf(String(p.id)) + 1}` : 'Beranda'}
+              </button>
             </div>
             <div className="flex items-center gap-1 p-2 pl-3">
               <div className={`min-w-0 flex-1 truncate text-sm ${p.caption ? 'font-semibold text-ink-900' : 'text-ink-400 italic'}`}>{p.caption || 'Belum ada judul'}</div>

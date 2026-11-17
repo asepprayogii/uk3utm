@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { clearStamps, isExpired, setNotice, touch } from '../lib/sessionGuard'
 import { AuthContext } from './authContext'
 
 // Satu sumber data auth untuk seluruh aplikasi, sehingga profil tidak
@@ -33,16 +34,54 @@ export default function AuthProvider({ children }) {
       setLoading(false)
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => load(session?.user))
+    // Akhiri sesi yang melewati batas waktu: cabut token di server (bila bisa), hapus dari browser, lalu minta masuk lagi.
+    async function endExpired() {
+      setNotice('Sesi Anda berakhir demi keamanan. Silakan masuk lagi.')
+      clearStamps()
+      const { error: err } = await supabase.auth.signOut()
+      if (err) await supabase.auth.signOut({ scope: 'local' })
+      load(null)
+    }
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    async function guard() {
+      if (!active) return
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session && isExpired()) await endExpired()
+    }
+
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session && isExpired()) {
+        await endExpired()
+        return
+      }
+      load(session?.user)
+    })
+
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') clearStamps()
       // Ditunda agar tidak memanggil Supabase di dalam callback auth (menghindari deadlock).
       setTimeout(() => load(session?.user), 0)
     })
 
+    // Kembali ke tab/aplikasi (misalnya besok paginya): periksa dulu, baru catat sebagai aktivitas.
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      guard().then(touch)
+    }
+    const onActivity = () => touch()
+    const events = ['pointerdown', 'keydown', 'touchstart', 'scroll']
+    events.forEach((e) => window.addEventListener(e, onActivity, { passive: true }))
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', onVisible)
+    const timer = setInterval(guard, 30 * 1000)
+
     return () => {
       active = false
       listener.subscription.unsubscribe()
+      events.forEach((e) => window.removeEventListener(e, onActivity))
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', onVisible)
+      clearInterval(timer)
     }
   }, [])
 
