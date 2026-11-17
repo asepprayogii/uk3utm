@@ -16,7 +16,7 @@ export default function PageLayout({ title, eyebrow, description, crumbs = [], c
       <Navbar />
 
       <header className="border-b border-ink-900">
-        <div className={`mx-auto px-5 pt-8 pb-10 sm:px-6 sm:pt-12 sm:pb-14 ${width}`}>
+        <div className={`animate-page-in mx-auto px-5 pt-8 pb-10 sm:px-6 sm:pt-12 sm:pb-14 ${width}`}>
           <nav aria-label="Lokasi halaman" className="mb-8 flex flex-wrap items-center gap-2 text-xs font-semibold tracking-wider text-ink-500 uppercase sm:mb-12">
             <Link to="/" className="hover:text-brand-600">Beranda</Link>
             {crumbs.map((c) => (
@@ -38,7 +38,7 @@ export default function PageLayout({ title, eyebrow, description, crumbs = [], c
         </div>
       </header>
 
-      <main id="konten" className={`mx-auto w-full flex-1 px-5 py-10 sm:px-6 sm:py-14 ${width}`}>{children}</main>
+      <main id="konten" style={{ animationDelay: '80ms' }} className={`animate-page-in mx-auto w-full flex-1 px-5 py-10 sm:px-6 sm:py-14 ${width}`}>{children}</main>
       <Footer />
     </div>
   )

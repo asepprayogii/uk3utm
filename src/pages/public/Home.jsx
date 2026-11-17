@@ -12,6 +12,7 @@ import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import FramedImage from '../../components/FramedImage'
 import SocialIcon from '../../components/SocialIcon'
+import Reveal from '../../components/Reveal'
 import MemberGrid from '../../components/committee/MemberCard'
 
 const INITIAL = { content: {}, announcements: [], devotionals: [], links: [], photos: [], committee: [] }
@@ -61,22 +62,21 @@ function HeroPhotos({ photos }) {
 
   if (count === 0) {
     return (
-      <figure className="md:col-span-5">
+      <figure>
         <FramedImage ratio="aspect-[3/2]" eager placeholder="Jemaat UK3 UTM bernyanyi bersama dalam ibadah. Ganti dengan foto asli." />
-        <figcaption className="mt-2 border-t border-ink-900 pt-2 text-xs text-ink-500">Ibadah bersama UK3 UTM</figcaption>
       </figure>
     )
   }
 
+  // Tepi foto dilebur ke warna latar (feather), tanpa judul foto di halaman depan.
   return (
     <figure
-      className="md:col-span-5"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <div className="relative aspect-[3/2] overflow-hidden bg-paper-200">
+      <div className="feather relative aspect-[3/2]">
         {photos.map((p, i) => (
           <img
             key={p.id}
@@ -84,29 +84,26 @@ function HeroPhotos({ photos }) {
             alt={i === current ? p.caption || 'Foto kegiatan UK3 UTM' : ''}
             aria-hidden={i !== current}
             loading={i === 0 ? 'eager' : 'lazy'}
-            className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-700 ${i === current ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-1000 ${i === current ? 'opacity-100' : 'opacity-0'}`}
           />
         ))}
       </div>
-      <figcaption className="mt-2 flex items-start justify-between gap-4 border-t border-ink-900 pt-2 text-xs text-ink-500">
-        <span aria-live="off" className="min-w-0">{photos[current].caption || 'Kegiatan UK3 UTM'}</span>
-        {count > 1 && (
-          <span className="flex shrink-0 items-center gap-1.5">
-            {photos.map((p, i) => (
-              <button key={p.id} type="button" onClick={() => setIndex(i)} aria-label={`Tampilkan foto ${i + 1}`} aria-current={i === current} className="py-2">
-                <span className={`block h-0.5 w-5 ${i === current ? 'bg-brand-600' : 'bg-paper-300'}`} />
-              </button>
-            ))}
-          </span>
-        )}
-      </figcaption>
+      {count > 1 && (
+        <div className="mt-1 flex justify-center gap-1.5">
+          {photos.map((p, i) => (
+            <button key={p.id} type="button" onClick={() => setIndex(i)} aria-label={`Tampilkan foto ${i + 1}`} aria-current={i === current} className="py-2">
+              <span className={`block h-0.5 w-6 transition-colors duration-500 ${i === current ? 'bg-brand-600' : 'bg-paper-300'}`} />
+            </button>
+          ))}
+        </div>
+      )}
     </figure>
   )
 }
 
 function Section({ eyebrow, title, to, children, className = '' }) {
   return (
-    <section className={`mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-24 ${className}`}>
+    <Reveal as="section" className={`mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-24 ${className}`}>
       <div className="mb-8 flex items-end justify-between gap-4 border-t border-ink-900 pt-4 sm:mb-12">
         <div>
           <div className="kicker mb-3">{eyebrow}</div>
@@ -119,7 +116,7 @@ function Section({ eyebrow, title, to, children, className = '' }) {
         )}
       </div>
       {children}
-    </section>
+    </Reveal>
   )
 }
 
@@ -138,16 +135,16 @@ export default function Home() {
         <section className="mx-auto max-w-6xl px-5 pt-10 pb-16 sm:px-6 sm:pt-16 sm:pb-24">
           <div className="grid items-center gap-10 md:grid-cols-12 md:gap-12">
             <div className="md:col-span-7">
-              <div className="kicker mb-6 sm:mb-8">Persekutuan Doa Revive · Universitas Trunodjoyo Madura</div>
-              <h1 className="display text-[3rem] sm:text-6xl lg:text-[5.5rem]">
+              <div className="kicker mb-6 animate-fade-up sm:mb-8">Persekutuan Doa Revive · Universitas Trunodjoyo Madura</div>
+              <h1 style={{ animationDelay: '80ms' }} className="display animate-fade-up text-[3rem] sm:text-6xl lg:text-[5.5rem]">
                 Unit Kegiatan <em className="font-normal text-brand-600">Kerohanian</em> Kristen
               </h1>
               {loading ? (
                 <div className="mt-8 h-16 max-w-lg animate-pulse bg-paper-200" aria-hidden="true" />
               ) : (
-                <p className="mt-8 max-w-md text-lg leading-relaxed text-ink-700">{content.about ?? DEFAULT_ABOUT}</p>
+                <p style={{ animationDelay: '180ms' }} className="mt-8 max-w-md animate-fade-up text-lg leading-relaxed text-ink-700">{content.about ?? DEFAULT_ABOUT}</p>
               )}
-              <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm font-semibold">
+              <div style={{ animationDelay: '260ms' }} className="mt-8 flex animate-fade-up flex-wrap items-center gap-x-8 gap-y-3 text-sm font-semibold">
                 <Link to="/pengumuman" className="inline-flex items-center gap-2 border-b-2 border-brand-600 pb-1 text-brand-600 hover:text-brand-700">
                   Baca pengumuman <ArrowRight size={16} aria-hidden="true" />
                 </Link>
@@ -155,7 +152,7 @@ export default function Home() {
               </div>
               {error && <p role="alert" className="mt-6 text-xs text-ink-500">Sebagian konten belum bisa dimuat. Coba muat ulang halaman.</p>}
             </div>
-            <HeroPhotos photos={photos} />
+            <div style={{ animationDelay: '200ms' }} className="animate-fade-up md:col-span-5"><HeroPhotos photos={photos} /></div>
           </div>
         </section>
 
@@ -168,7 +165,7 @@ export default function Home() {
                   <span className="text-xs font-bold text-ink-400 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
                   <span className="display text-2xl group-hover:text-brand-600 sm:text-4xl">{label}</span>
                   <span className="hidden text-sm text-ink-500 sm:block">{desc}</span>
-                  <ArrowRight size={18} className="text-ink-400 group-hover:text-brand-600" aria-hidden="true" />
+                  <ArrowRight size={18} className="text-ink-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-brand-600" aria-hidden="true" />
                 </Link>
               </li>
             ))}
@@ -203,13 +200,14 @@ export default function Home() {
           <Section eyebrow="Firman" title="Renungan" to="/renungan">
             <div className="grid gap-x-12 md:grid-cols-12">
               <Link to={`/renungan/${devotionals[0].id}`} className="group md:col-span-7">
+                <time dateTime={devotionals[0].created_at} className="kicker">{formatDate(devotionals[0].created_at)}</time>
+                <h3 className="display mt-3 text-3xl group-hover:text-brand-600 sm:text-5xl">{devotionals[0].title}</h3>
                 {devotionals[0].verse && (
-                  <blockquote className="display border-l-2 border-brand-600 pl-5 text-3xl font-normal italic group-hover:text-brand-600 sm:text-5xl">
+                  <blockquote className="mt-5 max-w-xl border-l-2 border-brand-600 pl-4 text-base leading-relaxed text-ink-500 italic">
                     “{devotionals[0].verse}”
                   </blockquote>
                 )}
-                <h3 className="mt-6 text-lg font-bold">{devotionals[0].title}</h3>
-                <p className="mt-2 max-w-xl leading-relaxed text-ink-700">{excerpt(devotionals[0].content, 220)}</p>
+                <p className="mt-4 max-w-xl leading-relaxed text-ink-700">{excerpt(devotionals[0].content, 220)}</p>
               </Link>
               <div className="mt-10 md:col-span-5 md:mt-0">
                 {devotionals.slice(1).map((d) => (
@@ -261,11 +259,10 @@ export default function Home() {
         {/* GALERI */}
         {photos.length > 0 && (
           <Section eyebrow="Kebersamaan" title="Galeri" to="/galeri">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div className={`grid grid-cols-2 gap-3 ${photos.length >= 3 ? 'md:grid-cols-4' : ''}`}>
               {photos.slice(0, 5).map((p, i) => (
-                <Link key={p.id} to="/galeri" className={`group relative aspect-[4/3] overflow-hidden bg-paper-200 ${i === 0 ? 'col-span-2 md:row-span-2 md:aspect-auto' : ''}`}>
-                  <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="h-full w-full object-cover" />
-                  {p.caption && <span className="absolute inset-x-0 bottom-0 line-clamp-1 bg-paper-50 px-3 py-1.5 text-xs font-semibold text-ink-900">{p.caption}</span>}
+                <Link key={p.id} to="/galeri" className={`group relative aspect-[4/3] overflow-hidden bg-paper-200 ${i === 0 && photos.length >= 3 ? 'col-span-2 md:row-span-2 md:aspect-auto' : ''}`}>
+                  <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]" />
                 </Link>
               ))}
             </div>

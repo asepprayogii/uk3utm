@@ -5,6 +5,7 @@ import { excerpt, formatDate } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
 import FramedImage from '../../components/FramedImage'
+import Reveal from '../../components/Reveal'
 import Badge from '../../components/ui/Badge'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
 
@@ -31,7 +32,7 @@ function Featured({ a }) {
         <Meta a={a} />
         <h2 className="display mt-3 text-4xl group-hover:text-brand-600 sm:text-5xl">{a.title}</h2>
         <p className="mt-4 leading-relaxed text-ink-700">{excerpt(a.content, 240)}</p>
-        <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-brand-600">Baca selengkapnya <ArrowRight size={16} aria-hidden="true" /></span>
+        <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-brand-600">Baca selengkapnya <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" /></span>
       </div>
     </Link>
   )
@@ -46,7 +47,7 @@ function Row({ a }) {
         <h3 className="display mt-2 text-2xl group-hover:text-brand-600 sm:text-3xl">{a.title}</h3>
         <p className="mt-2 line-clamp-3 leading-relaxed text-ink-700">{excerpt(a.content, 200)}</p>
       </div>
-      <span className="hidden items-start justify-end gap-2 text-sm font-semibold text-brand-600 md:flex">Baca <ArrowRight size={16} aria-hidden="true" /></span>
+      <span className="hidden items-start justify-end gap-2 text-sm font-semibold text-brand-600 md:flex">Baca <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" /></span>
     </Link>
   )
 }
@@ -64,7 +65,7 @@ export default function Pengumuman() {
       {rest.length > 0 && (
         <section aria-label="Pengumuman lainnya">
           <h2 className="kicker mb-4">Pengumuman lainnya</h2>
-          <div className="border-b border-ink-900">{rest.map((a) => <Row key={a.id} a={a} />)}</div>
+          <div className="border-b border-ink-900">{rest.map((a, i) => <Reveal key={a.id} delay={Math.min(i, 5) * 50}><Row a={a} /></Reveal>)}</div>
         </section>
       )}
     </PageLayout>

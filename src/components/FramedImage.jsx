@@ -10,7 +10,7 @@ export default function FramedImage({ src, alt = '', ratio = 'aspect-video', cla
   }
   return (
     <div className={`relative ${ratio} overflow-hidden bg-paper-200 ${className}`}>
-      <img src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} className="absolute inset-0 h-full w-full object-contain" />
+      <img src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} className="absolute inset-0 h-full w-full object-contain transition-transform duration-500 ease-out group-hover:scale-[1.02]" />
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 
 const BASE =
-  'inline-flex items-center justify-center gap-2 rounded-xl font-semibold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-2 rounded-xl font-semibold whitespace-nowrap transition-[color,background-color,transform] duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
 
 const VARIANTS = {
   primary: 'bg-brand-600 text-paper-50 hover:bg-brand-700',

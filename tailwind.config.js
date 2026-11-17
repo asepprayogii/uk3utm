@@ -65,7 +65,11 @@ export default {
       },
       keyframes: {
         'fade-up': {
-          from: { opacity: '0', transform: 'translateY(14px)' },
+          from: { opacity: '0', transform: 'translateY(10px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        'page-in': {
+          from: { opacity: '0', transform: 'translateY(6px)' },
           to: { opacity: '1', transform: 'none' },
         },
         'sheet-in': {
@@ -74,7 +78,8 @@ export default {
         },
       },
       animation: {
-        'fade-up': 'fade-up 0.6s ease-out both',
+        'fade-up': 'fade-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both',
+        'page-in': 'page-in 0.4s ease-out both',
         'sheet-in': 'sheet-in 0.25s ease-out both',
       },
     },

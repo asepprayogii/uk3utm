@@ -14,6 +14,7 @@ import {
 import { supabase } from '../../lib/supabase'
 import { toWaNumber } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
+import Reveal from '../../components/Reveal'
 import PageLayout from '../../components/PageLayout'
 import FramedImage from '../../components/FramedImage'
 import Modal from '../../components/ui/Modal'
@@ -69,7 +70,7 @@ function ServiceCard({ service: s, onOpenQris }) {
   const hasAction = s.cp_wa || s.cp_wa2 || s.form_url || s.qris_url
 
   return (
-    <article className="border-t border-ink-900 pt-6">
+    <Reveal as="article" className="border-t border-ink-900 pt-6">
       {s.image_url && <FramedImage src={s.image_url} alt={s.title} className="mb-5" />}
 
       <div className="pb-8">
@@ -115,7 +116,7 @@ function ServiceCard({ service: s, onOpenQris }) {
           )}
         </div>
       </div>
-    </article>
+    </Reveal>
   )
 }
 

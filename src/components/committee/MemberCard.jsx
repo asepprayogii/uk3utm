@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import Avatar from '../ui/Avatar'
 import Lightbox from '../Lightbox'
+import Reveal from '../Reveal'
 
 // Semua pengurus memakai kartu yang sama besar. Bila punya foto, kartu bisa diketuk untuk memperbesar foto.
 function Card({ member, onOpen }) {
@@ -34,8 +35,10 @@ export default function MemberGrid({ members, className = 'grid grid-cols-2 gap-
     <>
       {index !== null && withPhoto[index] && <Lightbox photos={withPhoto} index={index} onClose={close} onIndex={setIndex} />}
       <div className={className}>
-        {members.map((m) => (
-          <Card key={m.id} member={m} onOpen={() => setIndex(withPhoto.findIndex((p) => p.id === m.id))} />
+        {members.map((m, i) => (
+          <Reveal key={m.id} delay={(i % 4) * 60}>
+            <Card member={m} onOpen={() => setIndex(withPhoto.findIndex((p) => p.id === m.id))} />
+          </Reveal>
         ))}
       </div>
     </>

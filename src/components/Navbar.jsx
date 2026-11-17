@@ -60,7 +60,7 @@ export default function Navbar() {
       </nav>
 
       {open && (
-        <div id="mobile-menu" className="fixed inset-x-0 top-16 bottom-0 overflow-y-auto bg-paper-50 px-5 pt-2 pb-8 lg:hidden">
+        <div id="mobile-menu" className="animate-page-in fixed inset-x-0 top-16 bottom-0 overflow-y-auto bg-paper-50 px-5 pt-2 pb-8 lg:hidden">
           <ul>
             {MENU.map(({ to, label, desc }, i) => (
               <li key={to} className="border-b border-paper-300">

@@ -3,6 +3,7 @@ import { BookOpen } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { excerpt, formatDate } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
+import Reveal from '../../components/Reveal'
 import PageLayout from '../../components/PageLayout'
 import FramedImage from '../../components/FramedImage'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
@@ -18,18 +19,18 @@ export default function Renungan() {
       {error && <ErrorState message="Renungan gagal dimuat." onRetry={retry} />}
       {!loading && !error && data.length === 0 && <EmptyState icon={BookOpen} title="Belum ada renungan">Renungan baru akan muncul di sini.</EmptyState>}
       <div className="border-b border-ink-900">
-        {data.map((d) => (
-          <Link key={d.id} to={`/renungan/${d.id}`} className="group grid gap-4 border-t border-ink-900 py-7 md:grid-cols-12 md:gap-10">
+        {data.map((d, i) => (
+          <Reveal key={d.id} delay={Math.min(i, 5) * 50}><Link to={`/renungan/${d.id}`} className="group grid gap-4 border-t border-ink-900 py-7 md:grid-cols-12 md:gap-10">
             <time dateTime={d.created_at} className="kicker md:col-span-2">{formatDate(d.created_at)}</time>
             <div className="md:col-span-7">
-              {d.verse && <p className="display text-2xl font-normal italic group-hover:text-brand-600 sm:text-4xl">“{d.verse}”</p>}
-              <h3 className={`font-bold ${d.verse ? 'mt-4 text-base' : 'display text-3xl font-semibold'}`}>{d.title}</h3>
-              <p className="mt-2 line-clamp-3 leading-relaxed text-ink-700">{excerpt(d.content, 180)}</p>
+              <h3 className="display text-3xl group-hover:text-brand-600 sm:text-4xl">{d.title}</h3>
+              {d.verse && <p className="mt-3 line-clamp-2 border-l-2 border-brand-600 pl-3 text-[15px] leading-relaxed text-ink-500 italic">“{d.verse}”</p>}
+              <p className="mt-3 line-clamp-3 leading-relaxed text-ink-700">{excerpt(d.content, 180)}</p>
             </div>
             <div className="md:col-span-3">
               <FramedImage src={d.image_url} alt={d.title} ratio="aspect-[4/3]" placeholder={`Foto renungan: ${d.title}`} />
             </div>
-          </Link>
+          </Link></Reveal>
         ))}
       </div>
     </PageLayout>

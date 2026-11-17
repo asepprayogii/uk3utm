@@ -3,6 +3,7 @@ import { Images } from 'lucide-react'
 import { fetchPhotos } from '../../lib/gallery'
 import { useAsyncData } from '../../hooks/useAsyncData'
 import Lightbox from '../../components/Lightbox'
+import Reveal from '../../components/Reveal'
 import PageLayout from '../../components/PageLayout'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
 
@@ -22,12 +23,12 @@ export default function Galeri() {
       {!loading && !error && photos.length === 0 && <EmptyState icon={Images} title="Belum ada foto">Foto kegiatan akan tampil di sini.</EmptyState>}
       <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4">
         {photos.map((p, i) => (
-          <button key={p.id} type="button" onClick={() => setIndex(i)} aria-label={p.caption ? `Buka foto: ${p.caption}` : 'Buka foto'} className="group cursor-zoom-in text-left">
+          <Reveal key={p.id} delay={(i % 8) * 40}><button type="button" onClick={() => setIndex(i)} aria-label={p.caption ? `Buka foto: ${p.caption}` : 'Buka foto'} className="group cursor-zoom-in text-left">
             <span className="block aspect-[4/3] overflow-hidden bg-paper-200">
-              <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="h-full w-full object-cover" />
+              <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]" />
             </span>
             <span className="mt-2 block border-t border-ink-900 pt-2 text-sm leading-snug font-semibold group-hover:text-brand-600">{p.caption || 'Foto kegiatan'}</span>
-          </button>
+          </button></Reveal>
         ))}
       </div>
     </PageLayout>

@@ -1,9 +1,10 @@
-import { ExternalLink } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { currentPeriod } from '../../lib/format'
 import { detectPlatform } from '../../lib/social'
 import { DEFAULT_ABOUT, fetchContent, parseActivities } from '../../lib/siteContent'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
+import Reveal from '../../components/Reveal'
 import SocialIcon from '../../components/SocialIcon'
 import { ErrorState, Loading } from '../../components/States'
 
@@ -17,17 +18,16 @@ async function load() {
   return { content, links }
 }
 
-function Block({ eyebrow, title, children }) {
+function Facts({ items }) {
   return (
-    <section className="border-t border-ink-900 pt-4">
-      <div className="grid gap-6 md:grid-cols-12 md:gap-10">
-        <div className="md:col-span-4">
-          <div className="kicker mb-3">{eyebrow}</div>
-          <h2 className="display text-3xl sm:text-4xl">{title}</h2>
+    <dl className="border-t border-ink-900">
+      {items.map(([k, v]) => (
+        <div key={k} className="grid grid-cols-[7rem_1fr] gap-4 border-b border-paper-300 py-3 text-sm">
+          <dt className="kicker pt-0.5">{k}</dt>
+          <dd className="font-semibold">{v}</dd>
         </div>
-        <div className="md:col-span-8">{children}</div>
-      </div>
-    </section>
+      ))}
+    </dl>
   )
 }
 
@@ -37,91 +37,124 @@ export default function Tentang() {
   const activities = parseActivities(content.activities)
   const mission = (content.mission ?? '').split('\n').map((m) => m.replace(/^[•-]\s*/, '').trim()).filter(Boolean)
   const paragraphs = (content.history ?? '').split(/\n{2,}/).map((t) => t.trim()).filter(Boolean)
+  const hasHistory = !!content.founded || paragraphs.length > 0
+  const hasFoundation = !!content.vision || mission.length > 0
+
+  const facts = [
+    ['Nama', 'Unit Kegiatan Kerohanian Kristen (UK3)'],
+    ['Persekutuan', 'Doa Revive'],
+    ['Kampus', 'Universitas Trunodjoyo Madura'],
+    ...(content.founded ? [['Berdiri', content.founded]] : []),
+    ['Periode', currentPeriod()],
+  ]
+  const anchors = [
+    ['pengantar', 'Pengantar'],
+    ...(hasHistory ? [['sejarah', 'Sejarah']] : []),
+    ...(hasFoundation ? [['visi-misi', 'Visi & Misi']] : []),
+    ...(activities.length > 0 ? [['kegiatan', 'Kegiatan']] : []),
+    ...(links.length > 0 ? [['terhubung', 'Terhubung']] : []),
+  ]
 
   return (
     <PageLayout
       eyebrow="Mengenal Kami"
       title="Tentang UK3"
-      description="Unit Kegiatan Kerohanian Kristen Universitas Trunodjoyo Madura, Persekutuan Doa Revive."
+      description="Siapa kami, dari mana kami berasal, dan apa yang kami kerjakan bersama."
       width="max-w-6xl"
     >
       {loading && <Loading />}
       {error && <ErrorState message="Halaman gagal dimuat." onRetry={retry} />}
 
       {!loading && !error && (
-        <div className="flex flex-col gap-14 sm:gap-20">
-          <Block eyebrow="Pengantar" title="Apa itu UK3?">
-            <p className="display text-2xl font-normal sm:text-3xl">{content.about ?? DEFAULT_ABOUT}</p>
-          </Block>
-
-          {(content.founded || paragraphs.length > 0) && (
-            <Block eyebrow="Sejarah" title="Kapan berdiri?">
-              {content.founded && (
-                <p className="mb-6">
-                  <span className="kicker block">Berdiri</span>
-                  <span className="display mt-1 block text-4xl text-brand-600 sm:text-5xl">{content.founded}</span>
-                </p>
-              )}
-              <div className="flex max-w-2xl flex-col gap-4 leading-[1.85] text-ink-900">
-                {paragraphs.map((t, i) => <p key={i} className="whitespace-pre-line">{t}</p>)}
-              </div>
-            </Block>
+        <div>
+          {anchors.length > 2 && (
+            <nav aria-label="Isi halaman" className="-mt-2 mb-12 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold sm:mb-16">
+              {anchors.map(([id, label]) => (
+                <a key={id} href={`#${id}`} className="border-b border-transparent pb-0.5 text-ink-500 transition-colors hover:border-brand-600 hover:text-brand-600">{label}</a>
+              ))}
+            </nav>
           )}
 
-          {(content.vision || mission.length > 0) && (
-            <Block eyebrow="Fondasi" title="Visi & Misi">
+          {/* Pengantar */}
+          <Reveal as="section" id="pengantar" className="scroll-mt-24 grid gap-10 md:grid-cols-12 md:gap-14">
+            <div className="md:col-span-7">
+              <p className="display text-[1.75rem] leading-snug font-normal sm:text-4xl sm:leading-tight">{content.about ?? DEFAULT_ABOUT}</p>
+            </div>
+            <div className="md:col-span-5"><Facts items={facts} /></div>
+          </Reveal>
+
+          {/* Sejarah */}
+          {hasHistory && (
+            <Reveal as="section" id="sejarah" className="mt-20 scroll-mt-24 border-t border-ink-900 pt-6 sm:mt-28">
+              <div className="kicker mb-6">Sejarah</div>
+              <div className="grid gap-8 md:grid-cols-12 md:gap-14">
+                {content.founded && (
+                  <div className="md:col-span-4">
+                    <div className="text-xs font-bold tracking-wider text-ink-500 uppercase">Berdiri</div>
+                    <div className="display mt-2 text-5xl text-brand-600 sm:text-6xl">{content.founded}</div>
+                  </div>
+                )}
+                {paragraphs.length > 0 && (
+                  <div className={`${content.founded ? 'md:col-span-8' : 'md:col-span-12'} gap-10 leading-[1.85] text-ink-900 md:columns-2`}>
+                    {paragraphs.map((t, i) => (
+                      <p key={i} className="mb-4 break-inside-avoid-column whitespace-pre-line">{t}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Reveal>
+          )}
+
+          {/* Visi & Misi */}
+          {hasFoundation && (
+            <Reveal as="section" id="visi-misi" className="mt-20 scroll-mt-24 border-t border-ink-900 pt-6 sm:mt-28">
+              <div className="kicker mb-6">Visi &amp; Misi</div>
               {content.vision && (
-                <div className="mb-8">
-                  <div className="kicker mb-2">Visi</div>
-                  <p className="display text-2xl font-normal sm:text-3xl">{content.vision}</p>
-                </div>
+                <blockquote className="display mx-auto max-w-4xl text-center text-3xl font-normal italic sm:text-5xl">“{content.vision}”</blockquote>
               )}
               {mission.length > 0 && (
-                <div>
-                  <div className="kicker mb-2">Misi</div>
-                  <ol className="border-t border-ink-900">
-                    {mission.map((m, i) => (
-                      <li key={i} className="grid grid-cols-[2.5rem_1fr] gap-2 border-b border-paper-300 py-4 leading-relaxed">
-                        <span className="display text-xl text-brand-600 tabular-nums">{i + 1}</span>
-                        <span>{m}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
+                <ol className="mt-14 grid gap-x-12 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+                  {mission.map((m, i) => (
+                    <li key={i} className="border-t border-paper-300 pt-4">
+                      <span className="display block text-4xl text-brand-600 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
+                      <p className="mt-2 leading-relaxed">{m}</p>
+                    </li>
+                  ))}
+                </ol>
               )}
-            </Block>
+            </Reveal>
           )}
 
+          {/* Kegiatan */}
           {activities.length > 0 && (
-            <Block eyebrow="Pelayanan" title="Kegiatan kami">
-              <ol className="border-t border-ink-900">
+            <Reveal as="section" id="kegiatan" className="mt-20 scroll-mt-24 border-t border-ink-900 pt-6 sm:mt-28">
+              <div className="kicker mb-6">Kegiatan rutin</div>
+              <ul>
                 {activities.map((a, i) => (
-                  <li key={i} className="grid grid-cols-[2.5rem_1fr] gap-2 border-b border-paper-300 py-5">
-                    <span className="text-xs font-bold text-ink-400 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
-                    <div>
-                      <h3 className="display text-2xl">{a.title}</h3>
-                      {a.description && <p className="mt-2 max-w-xl leading-relaxed text-ink-700">{a.description}</p>}
-                    </div>
+                  <li key={i} className="grid gap-2 border-b border-paper-300 py-6 first:pt-0 md:grid-cols-12 md:gap-10">
+                    <h3 className="display text-2xl sm:text-3xl md:col-span-5">{a.title}</h3>
+                    <p className="leading-relaxed text-ink-700 md:col-span-7">{a.description}</p>
                   </li>
                 ))}
-              </ol>
-            </Block>
+              </ul>
+            </Reveal>
           )}
 
+          {/* Terhubung */}
           {links.length > 0 && (
-            <Block eyebrow="Terhubung" title="Media sosial & kontak">
-              <ul className="border-t border-ink-900">
+            <Reveal as="section" id="terhubung" className="mt-20 scroll-mt-24 border-t border-ink-900 pt-6 sm:mt-28">
+              <div className="kicker mb-6">Terhubung dengan kami</div>
+              <ul className="flex flex-wrap gap-3">
                 {links.map((l) => (
-                  <li key={l.id} className="border-b border-paper-300">
-                    <a href={l.url} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 py-4 font-semibold hover:text-brand-600">
-                      <SocialIcon platform={detectPlatform(l.url)} />
-                      <span className="flex-1">{l.label}</span>
-                      <ExternalLink size={16} className="text-ink-400 group-hover:text-brand-600" aria-hidden="true" />
+                  <li key={l.id}>
+                    <a href={l.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 border border-ink-900 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-ink-900 hover:text-paper-50">
+                      <SocialIcon platform={detectPlatform(l.url)} size={18} />
+                      {l.label}
                     </a>
                   </li>
                 ))}
               </ul>
-            </Block>
+            </Reveal>
           )}
         </div>
       )}
