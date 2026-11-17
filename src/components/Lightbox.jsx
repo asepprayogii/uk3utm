@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 export default function Lightbox({ photos, index, onClose, onIndex }) {
@@ -22,7 +23,8 @@ export default function Lightbox({ photos, index, onClose, onIndex }) {
 
   const p = photos[index]
   const btn = 'absolute flex h-11 w-11 items-center justify-center bg-white/10 text-white transition-colors hover:bg-white/25'
-  return (
+  // Lewat portal ke <body>: bila induknya punya transform (animasi muncul), `fixed` akan salah ukuran/posisi.
+  return createPortal(
     <div role="dialog" aria-modal="true" aria-label="Pratinjau foto" className="fixed inset-0 z-[100] flex items-center justify-center bg-ink-900/95 p-4" onClick={onClose}>
       <figure className="flex max-h-full max-w-full flex-col items-center" onClick={(e) => e.stopPropagation()}>
         <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} className="max-h-[80vh] max-w-full object-contain" />
@@ -38,6 +40,7 @@ export default function Lightbox({ photos, index, onClose, onIndex }) {
           <button type="button" onClick={(e) => { e.stopPropagation(); go(1) }} aria-label="Foto berikutnya" className={`${btn} right-3 top-1/2 -translate-y-1/2`}><ChevronRight size={22} /></button>
         </>
       )}
-    </div>
+    </div>,
+    document.body,
   )
 }
