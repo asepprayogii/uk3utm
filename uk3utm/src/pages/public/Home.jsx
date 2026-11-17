@@ -12,7 +12,7 @@ import Button from '../../components/ui/Button'
 import Avatar from '../../components/ui/Avatar'
 
 const DEFAULT_ABOUT =
-  'Wadah mahasiswa Kristen Universitas Trunojoyo Madura untuk bertumbuh bersama dalam iman, persekutuan, dan pelayanan.'
+  'Wadah mahasiswa Kristen Universitas Trunodjoyo Madura untuk bertumbuh bersama dalam iman, persekutuan, dan pelayanan.'
 const INITIAL = { content: {}, announcements: [], devotionals: [], links: [], albums: [], committee: [] }
 const QUICK = PUBLIC_NAV.filter((n) => n.to !== '/kepengurusan')
 

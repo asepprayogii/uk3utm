@@ -1,6 +1,6 @@
 # UK3 UTM
 
-Situs resmi **Unit Kegiatan Kerohanian Kristen (UK3) Universitas Trunojoyo Madura** — Persekutuan Doa Revive.
+Situs resmi **Unit Kegiatan Kerohanian Kristen (UK3) Universitas Trunodjoyo Madura** — Persekutuan Doa Revive.
 Live: <https://uk3utm.vercel.app>
 
 ## Fitur

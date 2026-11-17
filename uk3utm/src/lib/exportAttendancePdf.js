@@ -47,7 +47,7 @@ export async function exportAttendancePdf(session, attendances) {
   doc.text('UNIT KEGIATAN KEROHANIAN KRISTEN', pageW / 2, y, { align: 'center' })
   y += 6
   doc.setFontSize(11).setFont('helvetica', 'normal')
-  doc.text('Universitas Trunojoyo Madura', pageW / 2, y, { align: 'center' })
+  doc.text('Universitas Trunodjoyo Madura', pageW / 2, y, { align: 'center' })
   y += 5
   doc.text('Persekutuan Doa Revive', pageW / 2, y, { align: 'center' })
   y += 4

@@ -15,7 +15,7 @@ export default function Footer() {
             </div>
           </div>
           <p className="mt-5 max-w-sm text-sm leading-relaxed text-white/65">
-            Unit Kegiatan Kerohanian Kristen Universitas Trunojoyo Madura. Wadah mahasiswa Kristen untuk bertumbuh dalam
+            Unit Kegiatan Kerohanian Kristen Universitas Trunodjoyo Madura. Wadah mahasiswa Kristen untuk bertumbuh dalam
             iman, persekutuan, dan pelayanan.
           </p>
         </div>
@@ -46,7 +46,7 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-white/10 px-6 py-5 text-center text-xs text-white/45">
-        © {new Date().getFullYear()} UK3 UTM · Universitas Trunojoyo Madura
+        © {new Date().getFullYear()} UK3 UTM · Universitas Trunodjoyo Madura
       </div>
     </footer>
   )

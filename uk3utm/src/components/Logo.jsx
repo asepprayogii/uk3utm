@@ -21,7 +21,7 @@ export function Brand({ size = 40, light = false, showTagline = true, className 
         <span className={`text-base font-extrabold tracking-wide ${light ? 'text-white' : 'text-brand-900'}`}>UK3 UTM</span>
         {showTagline && (
           <span className={`hidden text-[11px] sm:block ${light ? 'text-white/60' : 'text-ink-500'}`}>
-            Kerohanian Kristen · Trunojoyo Madura
+            Kerohanian Kristen · Trunodjoyo Madura
           </span>
         )}
       </span>

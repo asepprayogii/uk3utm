@@ -41,7 +41,7 @@ export default function Kepengurusan() {
     <PageLayout
       eyebrow="Siapa Kami"
       title="Kepengurusan"
-      description="Para pengurus yang melayani mahasiswa Kristen di Universitas Trunojoyo Madura."
+      description="Para pengurus yang melayani mahasiswa Kristen di Universitas Trunodjoyo Madura."
       width="max-w-6xl"
     >
       {loading && <Loading />}
