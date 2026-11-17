@@ -1,4 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { roleLabel } from '../../lib/committee'
 import Avatar from '../ui/Avatar'
 import Lightbox from '../Lightbox'
 import Reveal from '../Reveal'
@@ -23,10 +25,10 @@ function Card({ member, onOpen }) {
 }
 
 // Kumpulan kartu pengurus. Pratinjau foto bisa digeser ke seluruh pengurus di `all` (urutan baca), bukan hanya kartu di grid ini.
-export default function MemberGrid({ members, all, className = 'grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4' }) {
+export default function MemberGrid({ members, all, linkTo, className = 'grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4' }) {
   const [index, setIndex] = useState(null)
   const withPhoto = useMemo(
-    () => (all ?? members).filter((m) => m.photo_url).map((m) => ({ id: m.id, photo_url: m.photo_url, caption: `${m.name} — ${m.position}` })),
+    () => (all ?? members).filter((m) => m.photo_url).map((m) => ({ id: m.id, photo_url: m.photo_url, caption: `${m.name} — ${roleLabel(m)}` })),
     [all, members],
   )
   const close = useCallback(() => setIndex(null), [])
@@ -37,7 +39,11 @@ export default function MemberGrid({ members, all, className = 'grid grid-cols-2
       <div className={className}>
         {members.map((m, i) => (
           <Reveal key={m.id} delay={(i % 4) * 60}>
-            <Card member={m} onOpen={() => setIndex(withPhoto.findIndex((p) => p.id === m.id))} />
+            {linkTo ? (
+              <Link to={linkTo} aria-label={`${m.name}, lihat halaman kepengurusan`} className="block"><Card member={m} /></Link>
+            ) : (
+              <Card member={m} onOpen={() => setIndex(withPhoto.findIndex((p) => p.id === m.id))} />
+            )}
           </Reveal>
         ))}
       </div>

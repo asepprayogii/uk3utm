@@ -5,7 +5,7 @@ import { prepareImage } from '../../lib/image'
 import { removeByUrl, uploadPrepared } from '../../lib/storage'
 import { ensureGalleryAlbum, fetchPhotos, orderStamp } from '../../lib/gallery'
 import { friendlyError } from '../../lib/errors'
-import { HOME_PHOTOS_KEY, HOME_PHOTOS_MAX, fetchContent, parseIds, saveContent } from '../../lib/siteContent'
+import { HOME_PHOTOS_KEY, fetchContent, parseIds, saveContent } from '../../lib/siteContent'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import { useUI } from '../../hooks/useUI'
 import AdminPage, { Card } from '../../components/admin/AdminPage'
@@ -90,7 +90,6 @@ export default function ManageGallery() {
   async function toggleFeatured(p) {
     const id = String(p.id)
     const isOn = featured.includes(id)
-    if (!isOn && featured.length >= HOME_PHOTOS_MAX) { toast.error(`Maksimal ${HOME_PHOTOS_MAX} foto di beranda. Lepas salah satu dulu.`); return }
     const next = isOn ? featured.filter((x) => x !== id) : [...featured, id]
     const before = featuredLocal
     setFeaturedLocal(next)
@@ -134,7 +133,7 @@ export default function ManageGallery() {
         <p className="mb-4 flex items-start gap-2 rounded-xl border border-paper-300 bg-white px-4 py-3 text-sm text-ink-700">
           <Star size={16} className="mt-0.5 shrink-0 text-brand-600" aria-hidden="true" />
           <span>
-            <b>Foto di beranda:</b> ketuk bintang pada foto untuk menampilkannya di halaman awal (maksimal {HOME_PHOTOS_MAX}, tampil sesuai urutan pilihan).
+            <b>Foto di beranda:</b> ketuk bintang pada foto untuk menampilkannya di halaman awal (jumlahnya bebas, tampil bergantian sesuai urutan pilihan).
             {featured.length === 0 ? ' Belum ada yang dipilih, jadi 5 foto terbaru yang tampil.' : ` Terpilih: ${featured.length}.`}
           </span>
         </p>

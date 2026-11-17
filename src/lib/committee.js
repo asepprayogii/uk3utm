@@ -186,3 +186,15 @@ export function orderedMembers(groups) {
     ...groups.departments.flatMap((d) => [...d.kadep, ...d.divisions.flatMap((v) => v.members), ...d.others]),
   ]
 }
+
+// Keterangan jabatan yang lengkap, mis. "Kepala Departemen Dopiper" atau "Anggota Divisi Doa · Dopiper".
+export function roleLabel(m) {
+  const pos = (m.position ?? '').trim()
+  const dept = m.department
+  if (!dept || FIXED_GROUPS.includes(dept)) return pos
+  const div = (m.division ?? '').trim()
+  if (m.is_kadep || pos === KADEP_POSITION) return `Kepala Departemen ${dept}`
+  if (pos === 'Koordinator Divisi') return div ? `Koordinator Divisi ${div} · ${dept}` : `Koordinator Divisi ${dept}`
+  if (pos === 'Anggota') return div ? `Anggota Divisi ${div} · ${dept}` : `Anggota Departemen ${dept}`
+  return div ? `${pos} ${div} · ${dept}` : `${pos} · ${dept}`
+}

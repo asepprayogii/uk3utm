@@ -4,7 +4,6 @@ import { fetchPhotos } from './gallery'
 
 // Teks situs disimpan sebagai pasangan key/value di tabel site_content yang sudah ada.
 export const HOME_PHOTOS_KEY = 'home_photo_ids'
-export const HOME_PHOTOS_MAX = 6
 export const HOME_PHOTOS_FALLBACK = 5
 
 export const DEFAULT_ABOUT =

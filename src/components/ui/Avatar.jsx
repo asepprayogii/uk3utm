@@ -6,6 +6,9 @@ const SIZES = {
   xl: 'h-28 w-28 text-3xl',
   '2xl': 'h-36 w-36 text-4xl',
   fill: 'aspect-[4/5] w-full text-5xl',
+  // Foto pengurus 4:5, sama dengan di website.
+  'p-sm': 'aspect-[4/5] w-12 text-sm',
+  'p-md': 'aspect-[4/5] w-16 text-base',
 }
 
 // Foto profil bawaan: siluet orang (kepala + bahu) bila belum ada foto.

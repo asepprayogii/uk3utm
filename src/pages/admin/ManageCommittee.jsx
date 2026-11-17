@@ -63,7 +63,7 @@ function toRecord(f) {
 function MemberRow({ m, onEdit, onDelete }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-paper-300 bg-white p-3 transition-shadow hover:shadow-soft">
-      <Avatar name={m.name} src={m.photo_url} size="md" />
+      <Avatar name={m.name} src={m.photo_url} size="p-sm" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="truncate font-semibold text-ink-900">{m.name}</span>
@@ -102,7 +102,7 @@ function PreviewCard({ record, photo }) {
     <div className="rounded-2xl border border-dashed border-brand-200 bg-brand-50/50 p-4">
       <div className="mb-2 text-[11px] font-bold tracking-widest text-brand-600 uppercase">Pratinjau di website</div>
       <div className="flex items-center gap-3">
-        <Avatar name={record.name || '?'} src={photo} size="md" />
+        <Avatar name={record.name || '?'} src={photo} size="p-md" />
         <div className="min-w-0">
           <div className="truncate font-semibold text-ink-900">{record.name || 'Nama pengurus'}</div>
           <div className="text-xs font-semibold tracking-wide text-gold-700 uppercase">{record.position || 'Jabatan'}</div>

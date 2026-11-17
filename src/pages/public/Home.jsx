@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, ExternalLink } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { excerpt, formatDate } from '../../lib/format'
-import { groupCommittee, orderedMembers } from '../../lib/committee'
+import { groupCommittee } from '../../lib/committee'
 import { DEFAULT_ABOUT, fetchHomePhotos } from '../../lib/siteContent'
 import { linkDisplay } from '../../lib/social'
 import { PUBLIC_NAV } from '../../lib/nav'
@@ -126,7 +126,6 @@ export default function Home() {
   const missionItems = (content.mission ?? '').split('\n').map((m) => m.replace(/^[•-]\s*/, '').trim()).filter(Boolean)
   const grouped = groupCommittee(committee)
   const bph = grouped.bph
-  const everyone = orderedMembers(grouped)
   const [lead, ...restAnn] = announcements
 
   return (
@@ -254,7 +253,7 @@ export default function Home() {
         {/* BPH */}
         {bph.length > 0 && (
           <Section eyebrow="Pengurus Harian" title="Kenali BPH" to="/kepengurusan">
-            <MemberGrid members={bph} all={everyone} className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4" />
+            <MemberGrid members={bph} linkTo="/kepengurusan" className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4" />
           </Section>
         )}
 
