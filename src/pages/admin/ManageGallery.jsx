@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { prepareImage } from '../../lib/image'
 import { removeByUrl, uploadPrepared } from '../../lib/storage'
 import { ensureGalleryAlbum, fetchPhotos, orderStamp } from '../../lib/gallery'
+import { friendlyError } from '../../lib/errors'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import { useUI } from '../../hooks/useUI'
 import AdminPage, { Card } from '../../components/admin/AdminPage'
@@ -60,7 +61,7 @@ export default function ManageGallery() {
     setShowErrors(true)
     if (staged.some((x) => !x.title.trim())) return
     let albumId
-    try { albumId = await ensureGalleryAlbum() } catch (err) { toast.error(`Galeri belum bisa disiapkan: ${err.message}`); return }
+    try { albumId = await ensureGalleryAlbum() } catch (err) { toast.error(friendlyError(err, 'menyiapkan galeri')); return }
     const stamp = orderStamp()
     let ok = 0
     const failed = []
@@ -71,7 +72,7 @@ export default function ManageGallery() {
         await unwrap(supabase.from('album_photos').insert({ album_id: albumId, photo_url: url, caption: x.title.trim(), order_index: stamp + i }))
         ok++
       } catch (err) {
-        toast.error(`“${x.title}”: ${err.message}`)
+        toast.error(`“${x.title}”: ${friendlyError(err, 'mengunggah')}`)
         failed.push(x)
       }
     }

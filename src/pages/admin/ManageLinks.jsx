@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { ExternalLink, Plus, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { PLATFORMS, buildUrl, detectPlatform } from '../../lib/social'
+import { friendlyError } from '../../lib/errors'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import { useUI } from '../../hooks/useUI'
 import AdminPage, { Card } from '../../components/admin/AdminPage'
@@ -40,12 +41,12 @@ export default function ManageLinks() {
       setLabel('')
       toast.success('Tautan ditambahkan dan tampil di beranda.')
       await refresh()
-    } catch (err) { toast.error(`Gagal menambah tautan: ${err.message}`) } finally { setSaving(false) }
+    } catch (err) { toast.error(friendlyError(err, 'menambah tautan')) } finally { setSaving(false) }
   }
 
   async function remove(l) {
     if (!(await confirm({ title: `Hapus “${l.label}”?`, message: 'Tautan akan hilang dari beranda.', confirmLabel: 'Ya, hapus' }))) return
-    try { await unwrap(supabase.from('links').delete().eq('id', l.id)); await refresh() } catch (err) { toast.error(`Gagal menghapus: ${err.message}`) }
+    try { await unwrap(supabase.from('links').delete().eq('id', l.id)); await refresh() } catch (err) { toast.error(friendlyError(err, 'menghapus')) }
   }
 
   return (

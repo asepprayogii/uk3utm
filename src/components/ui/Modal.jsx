@@ -12,24 +12,35 @@ const WIDTHS = {
 export default function Modal({ open, onClose, title, description, size = 'md', footer, children, dismissible = true }) {
   const panelRef = useRef(null)
 
+  // onClose biasanya fungsi inline yang berganti di setiap render. Disimpan di ref agar efek di bawah
+  // TIDAK berjalan ulang saat mengetik (dulu itu memindahkan fokus dari kolom isian setiap huruf).
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  })
+
+  // Fokus ke panel hanya saat dialog baru dibuka.
+  useEffect(() => {
+    if (open) panelRef.current?.focus()
+  }, [open])
+
   useEffect(() => {
     if (!open) return
-    const onKey = (e) => e.key === 'Escape' && dismissible && onClose?.()
+    const onKey = (e) => e.key === 'Escape' && dismissible && onCloseRef.current?.()
     window.addEventListener('keydown', onKey)
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    panelRef.current?.focus()
     return () => {
       window.removeEventListener('keydown', onKey)
       document.body.style.overflow = prev
     }
-  }, [open, dismissible, onClose])
+  }, [open, dismissible])
 
   if (!open) return null
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-brand-950/60 backdrop-blur-sm sm:items-center sm:p-6"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-ink-900/60 sm:items-center sm:p-6"
       onMouseDown={(e) => e.target === e.currentTarget && dismissible && onClose?.()}
     >
       <div

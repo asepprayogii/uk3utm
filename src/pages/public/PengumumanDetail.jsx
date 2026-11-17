@@ -1,11 +1,10 @@
 import { useCallback } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Megaphone, Pin } from 'lucide-react'
+import { ArrowLeft, Megaphone, Pin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { excerpt, formatDate } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
-import FramedImage from '../../components/FramedImage'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
@@ -35,27 +34,23 @@ export default function PengumumanDetail() {
         <article>
           {item.pinned && <div className="mb-4"><Badge tone="gold" icon={Pin}>Disematkan</Badge></div>}
           {item.image_url && (
-            <img src={item.image_url} alt={item.title} className="mb-8 w-full rounded-2xl border border-paper-300 bg-paper-100 shadow-soft" />
+            <img src={item.image_url} alt={item.title} className="mb-8 w-full border border-paper-300 bg-paper-200" />
           )}
-          <div className="text-[17px] leading-[1.85] whitespace-pre-line text-ink-700">{item.content}</div>
-          <div className="mt-10 border-t border-paper-300 pt-6">
+          <div className="text-[17px] leading-[1.85] whitespace-pre-line text-ink-900">{item.content}</div>
+          <div className="mt-10 border-t border-ink-900 pt-6">
             <Button to="/pengumuman" variant="secondary" icon={ArrowLeft}>Semua pengumuman</Button>
           </div>
         </article>
       )}
       {others.length > 0 && item && (
-        <section className="mt-14">
-          <h2 className="mb-5 text-sm font-bold tracking-widest text-ink-500 uppercase">Pengumuman lainnya</h2>
-          <div className="flex flex-col gap-3">
+        <section className="mt-16">
+          <h2 className="kicker mb-4">Pengumuman lainnya</h2>
+          <div className="border-b border-ink-900">
             {others.map((a) => (
-              <Link key={a.id} to={`/pengumuman/${a.id}`} className="group flex items-center gap-4 rounded-2xl border border-paper-300 bg-white p-3 transition-shadow hover:shadow-soft">
-                <FramedImage src={a.image_url} alt="" ratio="aspect-video" className="w-32 shrink-0 rounded-xl sm:w-40" />
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-semibold text-gold-700">{formatDate(a.created_at)}</div>
-                  <div className="line-clamp-1 font-bold text-ink-900">{a.title}</div>
-                  <div className="line-clamp-2 text-sm text-ink-500">{excerpt(a.content, 100)}</div>
-                </div>
-                <ArrowRight size={16} className="hidden shrink-0 text-ink-300 group-hover:text-brand-700 sm:block" aria-hidden="true" />
+              <Link key={a.id} to={`/pengumuman/${a.id}`} className="group block border-t border-ink-900 py-5">
+                <time dateTime={a.created_at} className="kicker">{formatDate(a.created_at)}</time>
+                <div className="display mt-1 text-2xl group-hover:text-brand-600">{a.title}</div>
+                <div className="mt-1 line-clamp-2 text-sm text-ink-700">{excerpt(a.content, 100)}</div>
               </Link>
             ))}
           </div>

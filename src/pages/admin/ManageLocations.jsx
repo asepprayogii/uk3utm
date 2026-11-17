@@ -157,7 +157,7 @@ export default function ManageLocations() {
               </MapContainer>
             </div>
             <div className="mt-2 flex items-center justify-between text-xs">
-              {hasPin ? <><span className="text-brand-700">📍 {form.lat.toFixed(6)}, {form.lng.toFixed(6)}</span><button type="button" onClick={() => setForm({ ...form, lat: null, lng: null })} className="font-semibold text-red-600">Hapus pin</button></> : <span className="text-ink-400">Belum ada titik dipilih</span>}
+              {hasPin ? <><span className="text-brand-700">{form.lat.toFixed(6)}, {form.lng.toFixed(6)}</span><button type="button" onClick={() => setForm({ ...form, lat: null, lng: null })} className="font-semibold text-red-600">Hapus pin</button></> : <span className="text-ink-400">Belum ada titik dipilih</span>}
             </div>
           </div>
           <div>

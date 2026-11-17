@@ -5,13 +5,13 @@ const BASE =
   'inline-flex items-center justify-center gap-2 rounded-xl font-semibold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50'
 
 const VARIANTS = {
-  primary: 'bg-brand-700 text-white shadow-soft hover:bg-brand-800',
-  gold: 'bg-gold-400 text-brand-950 shadow-soft hover:bg-gold-300',
-  secondary: 'border border-brand-200 bg-white text-brand-800 hover:bg-brand-50',
-  ghost: 'text-brand-700 hover:bg-brand-50',
+  primary: 'bg-brand-600 text-paper-50 hover:bg-brand-700',
+  gold: 'bg-brand-600 text-paper-50 hover:bg-brand-700',
+  secondary: 'border border-ink-900 bg-transparent text-ink-900 hover:bg-ink-900 hover:text-paper-50',
+  ghost: 'text-brand-700 hover:bg-brand-100',
   danger: 'bg-red-600 text-white hover:bg-red-700',
   dangerSoft: 'border border-red-200 bg-white text-red-600 hover:bg-red-50',
-  light: 'border border-white/30 text-white hover:bg-white/10',
+  light: 'border border-ink-900 text-ink-900 hover:bg-ink-900 hover:text-paper-50',
 }
 
 const SIZES = {

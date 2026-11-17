@@ -40,27 +40,27 @@ function waLink(number, title) {
 function QrisModal({ data, onClose }) {
   return (
     <Modal open onClose={onClose} title={`QRIS ${data.title}`} size="sm">
-      <img src={data.url} alt={`Kode QRIS ${data.title}`} className="w-full rounded-xl object-contain" />
+      <img src={data.url} alt={`Kode QRIS ${data.title}`} className="w-full object-contain" />
       <p className="mt-3 text-center text-xs text-ink-500">Scan QRIS ini dengan aplikasi bank atau e-wallet.</p>
     </Modal>
   )
 }
 
-const actionBase = 'flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors'
-const actionGold = `${actionBase} border-paper-300 hover:border-brand-300 hover:bg-brand-50`
-const actionGreen = `${actionBase} border-green-200 hover:border-green-400 hover:bg-green-50`
+const actionBase = 'flex w-full items-center gap-3 border p-3 text-left transition-colors'
+const actionGold = `${actionBase} border-ink-900 hover:bg-ink-900 hover:text-paper-50`
+const actionGreen = actionGold
 
 function ContactLink({ number, name, title }) {
   return (
     <a href={waLink(number, title)} target="_blank" rel="noopener noreferrer" className={actionGreen}>
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100">
-        <MessageCircle size={16} className="text-green-600" aria-hidden="true" />
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-current">
+        <MessageCircle size={16} aria-hidden="true" />
       </div>
       <div className="flex-1">
-        <div className="text-sm font-semibold text-ink-900">{name || 'Contact Person'}</div>
-        <div className="text-xs text-ink-500">{number}</div>
+        <div className="text-sm font-semibold">{name || 'Contact Person'}</div>
+        <div className="text-xs opacity-70">{number}</div>
       </div>
-      <span className="text-xs font-semibold text-green-600">WhatsApp →</span>
+      <span className="text-xs font-semibold">WhatsApp →</span>
     </a>
   )
 }
@@ -69,43 +69,41 @@ function ServiceCard({ service: s, onOpenQris }) {
   const hasAction = s.cp_wa || s.cp_wa2 || s.form_url || s.qris_url
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-paper-300 bg-white">
-      {s.image_url && <FramedImage src={s.image_url} alt={s.title} />}
+    <article className="border-t border-ink-900 pt-6">
+      {s.image_url && <FramedImage src={s.image_url} alt={s.title} className="mb-5" />}
 
-      <div className="p-6">
+      <div className="pb-8">
         <div className="mb-3 flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-100 bg-brand-50">
-            <ServiceIcon iconKey={s.icon} className="h-5 w-5 text-brand-700" />
-          </div>
-          <h2 className="text-lg font-bold text-ink-900">{s.title}</h2>
+          <ServiceIcon iconKey={s.icon} className="h-6 w-6 shrink-0 text-brand-600" />
+          <h2 className="display text-3xl">{s.title}</h2>
         </div>
 
-        {s.description && <p className="mb-5 text-sm leading-relaxed text-ink-500">{s.description}</p>}
+        {s.description && <p className="mb-5 max-w-xl leading-relaxed text-ink-700">{s.description}</p>}
 
         <div className="flex flex-col gap-3">
           {s.qris_url && (
             <button type="button" onClick={() => onOpenQris({ url: s.qris_url, title: s.title })} className={actionGold}>
-              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-white">
+              <div className="h-10 w-10 shrink-0 overflow-hidden bg-white">
                 <img src={s.qris_url} alt="" loading="lazy" className="h-full w-full object-contain p-1" />
               </div>
               <div className="flex-1">
-                <div className="text-sm font-semibold text-ink-900">Scan QRIS / Barcode</div>
-                <div className="text-xs text-ink-500">Tap untuk memperbesar</div>
+                <div className="text-sm font-semibold">Scan QRIS / Barcode</div>
+                <div className="text-xs opacity-70">Tap untuk memperbesar</div>
               </div>
-              <span className="text-xs text-brand-700">→</span>
+              <span className="text-xs">→</span>
             </button>
           )}
 
           {s.form_url && (
             <a href={s.form_url} target="_blank" rel="noopener noreferrer" className={actionGold}>
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50">
-                <BookOpen size={16} className="text-brand-700" aria-hidden="true" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-current">
+                <BookOpen size={16} aria-hidden="true" />
               </div>
               <div className="flex-1">
-                <div className="text-sm font-semibold text-ink-900">Isi Formulir Online</div>
-                <div className="text-xs text-ink-500">Buka Google Form</div>
+                <div className="text-sm font-semibold">Isi Formulir Online</div>
+                <div className="text-xs opacity-70">Buka Google Form</div>
               </div>
-              <span className="text-xs text-brand-700">→</span>
+              <span className="text-xs">→</span>
             </a>
           )}
 
@@ -131,7 +129,7 @@ export default function Layanan() {
       {loading && <Loading />}
       {error && <ErrorState message="Layanan gagal dimuat." onRetry={retry} />}
       {!loading && !error && services.length === 0 && <EmptyState icon={HandHeart} title="Belum ada layanan aktif">Layanan akan tampil di sini.</EmptyState>}
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-10">
         {services.map((s) => (
           <ServiceCard key={s.id} service={s} onOpenQris={setQris} />
         ))}

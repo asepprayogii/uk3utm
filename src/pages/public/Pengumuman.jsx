@@ -14,37 +14,39 @@ const fetchAnnouncements = () =>
 
 function Meta({ a }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-3">
       {a.pinned && <Badge tone="gold" icon={Pin}>Disematkan</Badge>}
-      <time dateTime={a.created_at} className="text-xs font-semibold text-gold-700">{formatDate(a.created_at)}</time>
+      <time dateTime={a.created_at} className="kicker">{formatDate(a.created_at)}</time>
     </div>
   )
 }
 
 function Featured({ a }) {
   return (
-    <Link to={`/pengumuman/${a.id}`} className="group mb-10 grid overflow-hidden rounded-3xl border border-paper-300 bg-white shadow-soft transition-shadow hover:shadow-lift md:grid-cols-2">
-      <FramedImage src={a.image_url} alt={a.title} ratio="aspect-video md:aspect-auto md:min-h-[22rem]" eager />
-      <div className="flex flex-col justify-center p-6 sm:p-10">
+    <Link to={`/pengumuman/${a.id}`} className="group mb-14 grid gap-6 md:grid-cols-12 md:gap-10">
+      <div className="md:col-span-7">
+        <FramedImage src={a.image_url} alt={a.title} ratio="aspect-[4/3]" eager placeholder={`Foto kegiatan: ${a.title}`} />
+      </div>
+      <div className="flex flex-col justify-end md:col-span-5">
         <Meta a={a} />
-        <h2 className="mt-3 font-display text-3xl leading-tight font-bold text-brand-900 sm:text-4xl">{a.title}</h2>
-        <p className="mt-3 text-[15px] leading-relaxed text-ink-500">{excerpt(a.content, 220)}</p>
-        <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-brand-700 group-hover:gap-2.5">Baca selengkapnya <ArrowRight size={16} aria-hidden="true" /></span>
+        <h2 className="display mt-3 text-4xl group-hover:text-brand-600 sm:text-5xl">{a.title}</h2>
+        <p className="mt-4 leading-relaxed text-ink-700">{excerpt(a.content, 240)}</p>
+        <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-brand-600">Baca selengkapnya <ArrowRight size={16} aria-hidden="true" /></span>
       </div>
     </Link>
   )
 }
 
-function Card({ a }) {
+function Row({ a }) {
   return (
-    <Link to={`/pengumuman/${a.id}`} className="group flex flex-col overflow-hidden rounded-2xl border border-paper-300 bg-white transition-all hover:-translate-y-0.5 hover:shadow-lift">
-      <FramedImage src={a.image_url} alt={a.title} />
-      <div className="flex flex-1 flex-col p-5">
+    <Link to={`/pengumuman/${a.id}`} className="group grid gap-4 border-t border-ink-900 py-6 sm:grid-cols-[10rem_1fr] md:grid-cols-[12rem_1fr_9rem] md:gap-8">
+      <FramedImage src={a.image_url} alt="" ratio="aspect-[4/3]" className="order-last sm:order-first" placeholder={a.title} />
+      <div className="min-w-0">
         <Meta a={a} />
-        <h3 className="mt-2 line-clamp-2 text-lg leading-snug font-bold text-ink-900">{a.title}</h3>
-        <p className="mt-2 line-clamp-3 flex-1 text-sm leading-relaxed text-ink-500">{excerpt(a.content, 160)}</p>
-        <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-brand-700 group-hover:gap-2.5">Baca selengkapnya <ArrowRight size={15} aria-hidden="true" /></span>
+        <h3 className="display mt-2 text-2xl group-hover:text-brand-600 sm:text-3xl">{a.title}</h3>
+        <p className="mt-2 line-clamp-3 leading-relaxed text-ink-700">{excerpt(a.content, 200)}</p>
       </div>
+      <span className="hidden items-start justify-end gap-2 text-sm font-semibold text-brand-600 md:flex">Baca <ArrowRight size={16} aria-hidden="true" /></span>
     </Link>
   )
 }
@@ -60,10 +62,10 @@ export default function Pengumuman() {
       {!loading && !error && data.length === 0 && <EmptyState icon={Megaphone} title="Belum ada pengumuman">Pengumuman baru akan muncul di sini.</EmptyState>}
       {first && <Featured a={first} />}
       {rest.length > 0 && (
-        <>
-          <h2 className="mb-5 text-sm font-bold tracking-widest text-ink-500 uppercase">Pengumuman lainnya</h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{rest.map((a) => <Card key={a.id} a={a} />)}</div>
-        </>
+        <section aria-label="Pengumuman lainnya">
+          <h2 className="kicker mb-4">Pengumuman lainnya</h2>
+          <div className="border-b border-ink-900">{rest.map((a) => <Row key={a.id} a={a} />)}</div>
+        </section>
       )}
     </PageLayout>
   )

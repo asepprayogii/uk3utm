@@ -13,15 +13,16 @@ export function LogoMark({ size = 40, className = '', alt = 'Logo UK3 UTM' }) {
   )
 }
 
-export function Brand({ size = 40, light = false, showTagline = true, className = '' }) {
+// Nama majalah: logo kecil + nama serif.
+export function Brand({ size = 36, light = false, showTagline = true, className = '' }) {
   return (
     <span className={`flex items-center gap-3 ${className}`}>
       <LogoMark size={size} alt="" />
-      <span className="flex flex-col leading-tight">
-        <span className={`text-base font-extrabold tracking-wide ${light ? 'text-white' : 'text-brand-900'}`}>UK3 UTM</span>
+      <span className="flex flex-col leading-none">
+        <span className={`display text-2xl ${light ? 'text-paper-50' : 'text-ink-900'}`}>UK3 UTM</span>
         {showTagline && (
-          <span className={`hidden text-[11px] sm:block ${light ? 'text-white/60' : 'text-ink-500'}`}>
-            Kerohanian Kristen · Trunojoyo Madura
+          <span className={`mt-1 hidden text-[10px] font-semibold tracking-[0.14em] uppercase sm:block ${light ? 'text-paper-50/60' : 'text-ink-500'}`}>
+            Kerohanian Kristen · Trunodjoyo Madura
           </span>
         )}
       </span>

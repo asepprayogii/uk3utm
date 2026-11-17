@@ -4,49 +4,35 @@ import { LogoMark } from './Logo'
 
 export default function Footer() {
   return (
-    <footer className="hero-bg pattern-cross text-white">
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.4fr_1fr_1fr]">
-        <div>
-          <div className="flex items-center gap-4">
-            <LogoMark size={64} alt="" />
-            <div>
-              <div className="text-lg font-extrabold tracking-wide">UK3 UTM</div>
-              <div className="text-sm text-white/60">Persekutuan Doa Revive</div>
-            </div>
-          </div>
-          <p className="mt-5 max-w-sm text-sm leading-relaxed text-white/65">
-            Unit Kegiatan Kerohanian Kristen Universitas Trunojoyo Madura. Wadah mahasiswa Kristen untuk bertumbuh dalam
-            iman, persekutuan, dan pelayanan.
+    <footer className="border-t border-ink-900 bg-paper-50">
+      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:px-6 md:grid-cols-12">
+        <div className="md:col-span-6">
+          <div className="display text-5xl sm:text-6xl">UK3 UTM</div>
+          <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-700">
+            Unit Kegiatan Kerohanian Kristen Universitas Trunodjoyo Madura, Persekutuan Doa Revive.
           </p>
+          <LogoMark size={44} alt="" className="mt-6" />
         </div>
 
-        <nav aria-label="Menu situs">
-          <div className="mb-4 text-xs font-bold tracking-widest text-gold-400 uppercase">Jelajahi</div>
-          <ul className="flex flex-col gap-2.5 text-sm">
+        <nav aria-label="Menu situs" className="md:col-span-3 md:col-start-8">
+          <div className="kicker mb-4">Jelajahi</div>
+          <ul className="flex flex-col gap-2.5 text-sm font-semibold">
             {PUBLIC_NAV.map((l) => (
               <li key={l.to}>
-                <Link to={l.to} className="text-white/70 transition-colors hover:text-white">
-                  {l.label}
-                </Link>
+                <Link to={l.to} className="hover:text-brand-600">{l.label}</Link>
               </li>
             ))}
           </ul>
         </nav>
 
-        <div>
-          <div className="mb-4 text-xs font-bold tracking-widest text-gold-400 uppercase">Pengurus</div>
-          <p className="mb-4 text-sm leading-relaxed text-white/65">Kelola konten dan absensi melalui panel admin.</p>
-          <Link
-            to="/admin/login"
-            className="inline-block rounded-lg border border-white/25 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-          >
-            Masuk Admin
-          </Link>
+        <div className="md:col-span-2">
+          <div className="kicker mb-4">Pengurus</div>
+          <Link to="/admin/login" className="text-sm font-semibold underline underline-offset-4 hover:text-brand-600">Masuk Admin</Link>
         </div>
       </div>
 
-      <div className="border-t border-white/10 px-6 py-5 text-center text-xs text-white/45">
-        © {new Date().getFullYear()} UK3 UTM · Universitas Trunojoyo Madura
+      <div className="border-t border-paper-300 px-5 py-5 text-center text-xs text-ink-500 sm:px-6">
+        © {new Date().getFullYear()} UK3 UTM · Universitas Trunodjoyo Madura
       </div>
     </footer>
   )

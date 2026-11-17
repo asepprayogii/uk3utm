@@ -20,11 +20,13 @@ export default function Galeri() {
       {loading && <Loading />}
       {error && <ErrorState message="Foto gagal dimuat." onRetry={retry} />}
       {!loading && !error && photos.length === 0 && <EmptyState icon={Images} title="Belum ada foto">Foto kegiatan akan tampil di sini.</EmptyState>}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4">
         {photos.map((p, i) => (
-          <button key={p.id} type="button" onClick={() => setIndex(i)} aria-label={p.caption ? `Buka foto: ${p.caption}` : 'Buka foto'} className="group relative aspect-[4/3] cursor-zoom-in overflow-hidden rounded-2xl bg-paper-200 text-left">
-            <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-            {p.caption && <span className="absolute inset-x-0 bottom-0 line-clamp-2 bg-gradient-to-t from-brand-950/85 via-brand-950/40 to-transparent px-3 pt-10 pb-3 text-sm leading-tight font-semibold text-white">{p.caption}</span>}
+          <button key={p.id} type="button" onClick={() => setIndex(i)} aria-label={p.caption ? `Buka foto: ${p.caption}` : 'Buka foto'} className="group cursor-zoom-in text-left">
+            <span className="block aspect-[4/3] overflow-hidden bg-paper-200">
+              <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="h-full w-full object-cover" />
+            </span>
+            <span className="mt-2 block border-t border-ink-900 pt-2 text-sm leading-snug font-semibold group-hover:text-brand-600">{p.caption || 'Foto kegiatan'}</span>
           </button>
         ))}
       </div>

@@ -4,56 +4,66 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Ungu tua dari logo UK3
+        // Aksen tunggal: terakota #B5452B (brand-600). Skala ini hanya turunan satu warna itu.
         brand: {
-          50: '#F8F4FC',
-          100: '#EFE6F8',
-          200: '#DFCDF1',
-          300: '#C6A6E4',
-          400: '#A877D2',
-          500: '#8A4FB8',
-          600: '#6E3499',
-          700: '#55227C',
-          800: '#3F1760',
-          900: '#2B0F45',
-          950: '#1A0829',
+          50: '#FBF0EB',
+          100: '#F5DED4',
+          200: '#EBC0AF',
+          300: '#DE9C84',
+          400: '#CC7355',
+          500: '#C05C3F',
+          600: '#B5452B',
+          700: '#98371F',
+          800: '#7A2C19',
+          900: '#5C2112',
+          950: '#3A130A',
         },
+        // Dulu emas; sekarang ikut aksen tunggal supaya tidak ada warna kedua.
         gold: {
-          200: '#F1E3B7',
-          300: '#E5CE8A',
-          400: '#D8B960',
-          500: '#C9A24A',
-          600: '#A8812F',
-          700: '#856420',
+          200: '#F5DED4',
+          300: '#EBC0AF',
+          400: '#DE9C84',
+          500: '#CC7355',
+          600: '#B5452B',
+          700: '#98371F',
         },
-        // Krem hangat untuk latar halaman
+        // Kertas: latar #F4EFE6
         paper: {
-          50: '#FDFBF7',
-          100: '#FAF6EE',
-          200: '#F2EBDC',
-          300: '#E6DCC6',
+          50: '#F4EFE6',
+          100: '#EDE6D8',
+          200: '#E0D7C5',
+          300: '#CFC4AE',
         },
+        // Tinta: teks #1C1C1C
         ink: {
-          900: '#1D1630',
-          700: '#3A3250',
-          500: '#6A6280',
-          400: '#8F88A3',
-          300: '#B8B2C7',
+          900: '#1C1C1C',
+          700: '#3B3833',
+          500: '#6A655B',
+          400: '#8A8478',
+          300: '#B3AC9C',
         },
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans Variable"', 'system-ui', 'sans-serif'],
-        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        sans: ['"DM Sans Variable"', 'system-ui', 'sans-serif'],
+        display: ['"Fraunces Variable"', 'Georgia', 'serif'],
+      },
+      // Sudut tajam: radius maksimal 4px (full hanya untuk titik/avatar).
+      borderRadius: {
+        none: '0',
+        sm: '2px',
+        DEFAULT: '2px',
+        md: '3px',
+        lg: '4px',
+        xl: '4px',
+        '2xl': '4px',
+        '3xl': '4px',
+        full: '9999px',
       },
       boxShadow: {
-        soft: '0 1px 2px rgb(26 8 41 / 0.04), 0 8px 24px -10px rgb(26 8 41 / 0.14)',
-        lift: '0 2px 4px rgb(26 8 41 / 0.05), 0 20px 40px -14px rgb(26 8 41 / 0.28)',
+        soft: 'none',
+        lift: '0 1px 2px rgb(28 28 28 / 0.16)',
       },
       keyframes: {
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
-        },
         'fade-up': {
           from: { opacity: '0', transform: 'translateY(14px)' },
           to: { opacity: '1', transform: 'none' },
@@ -64,7 +74,6 @@ export default {
         },
       },
       animation: {
-        float: 'float 7s ease-in-out infinite',
         'fade-up': 'fade-up 0.6s ease-out both',
         'sheet-in': 'sheet-in 0.25s ease-out both',
       },

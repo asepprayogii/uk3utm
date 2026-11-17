@@ -1,5 +1,5 @@
 # Menjaga project Supabase (paket gratis) tidak di-pause karena sepi pengunjung.
-# Cukup satu permintaan baca ke database tiap 3 hari.
+# Satu permintaan baca ke database sehari (Supabase gratis baru di-pause setelah 7 hari tanpa aktivitas).
 #
 # Setup satu kali: GitHub repo > Settings > Secrets and variables > Actions > New repository secret
 #   SUPABASE_URL       isi sama dengan VITE_SUPABASE_URL
@@ -8,7 +8,7 @@ name: Keepalive Supabase
 
 on:
   schedule:
-    - cron: '17 3 */3 * *' # tiap 3 hari, 10:17 WIB
+    - cron: '17 3 * * *' # tiap hari, 10:17 WIB
   workflow_dispatch: # bisa dijalankan manual dari tab Actions
 
 jobs:

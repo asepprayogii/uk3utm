@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, ExternalLink } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
@@ -9,16 +10,13 @@ import { PUBLIC_NAV } from '../../lib/nav'
 import { useAsyncData } from '../../hooks/useAsyncData'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
-import { LogoMark } from '../../components/Logo'
 import FramedImage from '../../components/FramedImage'
 import SocialIcon from '../../components/SocialIcon'
-import Button from '../../components/ui/Button'
-import Avatar from '../../components/ui/Avatar'
+import MemberCard from '../../components/committee/MemberCard'
 
 const DEFAULT_ABOUT =
-  'Wadah mahasiswa Kristen Universitas Trunojoyo Madura untuk bertumbuh bersama dalam iman, persekutuan, dan pelayanan.'
+  'Wadah mahasiswa Kristen Universitas Trunodjoyo Madura untuk bertumbuh bersama dalam iman, persekutuan, dan pelayanan.'
 const INITIAL = { content: {}, announcements: [], devotionals: [], links: [], photos: [], committee: [] }
-const QUICK = PUBLIC_NAV.filter((n) => n.to !== '/kepengurusan')
 
 // Satu query yang gagal tidak boleh merusak seluruh beranda.
 async function fetchHome() {
@@ -47,19 +45,121 @@ async function fetchHome() {
   }
 }
 
-function Heading({ eyebrow, title, to, center = false }) {
+// Foto sampul bergantian dari galeri. Berhenti saat disorot kursor, dan tidak otomatis jalan
+// bagi pengguna yang memilih mengurangi animasi.
+function HeroPhotos({ photos }) {
+  const [index, setIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const count = photos.length
+  const current = count ? index % count : 0
+
+  useEffect(() => {
+    if (count < 2 || paused) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const id = setInterval(() => setIndex((i) => i + 1), 5000)
+    return () => clearInterval(id)
+  }, [count, paused])
+
+  if (count === 0) {
+    return (
+      <div className="md:col-span-4 md:mt-6"><CoverSlides photos={photos} /></div>
+    )
+  }
+
   return (
-    <div className={`mb-10 flex items-end justify-between gap-4 ${center ? 'flex-col items-center text-center' : ''}`}>
-      <div>
-        <div className="mb-2 text-xs font-bold tracking-[0.2em] text-gold-700 uppercase">{eyebrow}</div>
-        <h2 className="font-display text-4xl font-bold text-brand-900">{title}</h2>
+    <figure
+      className="md:col-span-4 md:mt-6"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+    >
+      <div className="relative aspect-[4/5] overflow-hidden bg-paper-200">
+        {photos.map((p, i) => (
+          <img
+            key={p.id}
+            src={p.photo_url}
+            alt={i === current ? p.caption || 'Foto kegiatan UK3 UTM' : ''}
+            aria-hidden={i !== current}
+            loading={i === 0 ? 'eager' : 'lazy'}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${i === current ? 'opacity-100' : 'opacity-0'}`}
+          />
+        ))}
       </div>
-      {to && (
-        <Link to={to} className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-brand-700 hover:underline">
-          Lihat semua <ArrowRight size={14} aria-hidden="true" />
-        </Link>
-      )}
-    </div>
+      <figcaption className="mt-2 flex items-start justify-between gap-4 border-t border-ink-900 pt-2 text-xs text-ink-500">
+        <span aria-live="off" className="min-w-0">{photos[current].caption || 'Kegiatan UK3 UTM'}</span>
+        {count > 1 && (
+          <span className="flex shrink-0 items-center gap-1.5">
+            {photos.map((p, i) => (
+              <button key={p.id} type="button" onClick={() => setIndex(i)} aria-label={`Tampilkan foto ${i + 1}`} aria-current={i === current} className="py-2">
+                <span className={`block h-0.5 w-5 ${i === current ? 'bg-brand-600' : 'bg-paper-300'}`} />
+              </button>
+            ))}
+          </span>
+        )}
+      </figcaption>
+    </figure>
+  )
+}
+
+// Foto sampul bergantian dari galeri (ganti tiap 5 detik, berhenti bila pengguna memilih gerak minimal).
+function CoverSlides({ photos }) {
+  const [i, setI] = useState(0)
+  const n = photos.length
+  useEffect(() => {
+    if (n < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const t = setInterval(() => setI((v) => (v + 1) % n), 5000)
+    return () => clearInterval(t)
+  }, [n])
+
+  if (n === 0) {
+    return (
+      <figure>
+        <FramedImage ratio="aspect-[4/5]" placeholder="Jemaat UK3 UTM bernyanyi bersama dalam ibadah. Ganti dengan foto asli." />
+        <figcaption className="mt-2 border-t border-ink-900 pt-2 text-xs text-ink-500">Ibadah bersama UK3 UTM</figcaption>
+      </figure>
+    )
+  }
+  const cur = photos[i % n]
+  return (
+    <figure>
+      <div className="relative aspect-[4/5] overflow-hidden bg-paper-200">
+        {photos.map((p, k) => (
+          <img key={p.id} src={p.photo_url} alt={k === i ? p.caption || 'Foto kegiatan' : ''} aria-hidden={k !== i} loading={k === 0 ? 'eager' : 'lazy'}
+            className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-700 ${k === i ? 'opacity-100' : 'opacity-0'}`} />
+        ))}
+      </div>
+      <figcaption className="mt-2 flex items-center justify-between gap-3 border-t border-ink-900 pt-2 text-xs text-ink-500">
+        <span className="line-clamp-1">{cur.caption || 'Foto kegiatan UK3 UTM'}</span>
+        {n > 1 && (
+          <span className="flex shrink-0 gap-1.5">
+            {photos.map((p, k) => (
+              <button key={p.id} type="button" onClick={() => setI(k)} aria-label={`Tampilkan foto ${k + 1}`} aria-current={k === i}
+                className={`h-1.5 w-5 ${k === i ? 'bg-brand-600' : 'bg-paper-300 hover:bg-ink-400'}`} />
+            ))}
+          </span>
+        )}
+      </figcaption>
+    </figure>
+  )
+}
+
+function Section({ eyebrow, title, to, children, className = '' }) {
+  return (
+    <section className={`mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-24 ${className}`}>
+      <div className="mb-8 flex items-end justify-between gap-4 border-t border-ink-900 pt-4 sm:mb-12">
+        <div>
+          <div className="kicker mb-3">{eyebrow}</div>
+          <h2 className="display text-4xl sm:text-6xl">{title}</h2>
+        </div>
+        {to && (
+          <Link to={to} className="inline-flex shrink-0 items-center gap-1.5 pb-1 text-sm font-semibold underline underline-offset-4 hover:text-brand-600">
+            Lihat semua <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        )}
+      </div>
+      {children}
+    </section>
   )
 }
 
@@ -68,181 +168,169 @@ export default function Home() {
   const { content, announcements, devotionals, links, photos, committee } = data
   const missionItems = (content.mission ?? '').split('\n').map((m) => m.replace(/^[•-]\s*/, '').trim()).filter(Boolean)
   const bph = groupCommittee(committee).bph
+  const [lead, ...restAnn] = announcements
 
   return (
     <div className="min-h-screen bg-paper-50 text-ink-900">
       <Navbar />
       <main>
-        {/* HERO */}
-        <section className="hero-bg pattern-cross relative overflow-hidden px-6 pt-32 pb-24 text-white">
-          <div className="relative mx-auto flex max-w-6xl flex-col-reverse items-center gap-12 lg:flex-row lg:justify-between">
-            <div className="max-w-xl text-center lg:text-left">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gold-400/40 bg-gold-400/10 px-4 py-1.5 text-xs font-semibold tracking-widest text-gold-400 uppercase">
-                ✦ Persekutuan Doa Revive
-              </div>
-              <h1 className="font-display text-5xl leading-[1.05] font-bold text-balance sm:text-6xl lg:text-7xl">
-                Unit Kegiatan <span className="text-gold-400 italic">Kerohanian</span> Kristen
+        {/* SAMPUL */}
+        <section className="mx-auto max-w-6xl px-5 pt-10 pb-16 sm:px-6 sm:pt-16 sm:pb-24">
+          <div className="kicker mb-6 sm:mb-10">Persekutuan Doa Revive · Universitas Trunodjoyo Madura</div>
+          <div className="grid gap-10 md:grid-cols-12 md:gap-12">
+            <div className="md:col-span-8">
+              <h1 className="display text-[3.1rem] sm:text-7xl lg:text-[7.5rem]">
+                Unit Kegiatan <em className="font-normal text-brand-600">Kerohanian</em> Kristen
               </h1>
               {loading ? (
-                <div className="mt-6 h-16 animate-pulse rounded-lg bg-white/10" aria-hidden="true" />
+                <div className="mt-8 h-16 max-w-lg animate-pulse bg-paper-200" aria-hidden="true" />
               ) : (
-                <p className="mt-6 text-lg leading-relaxed text-white/75">{content.about ?? DEFAULT_ABOUT}</p>
+                <p className="mt-8 max-w-lg text-lg leading-relaxed text-ink-700">{content.about ?? DEFAULT_ABOUT}</p>
               )}
-              <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
-                <Button to="/pengumuman" variant="gold" size="lg" iconRight={ArrowRight}>Lihat Pengumuman</Button>
-                <Button to="/kepengurusan" variant="light" size="lg">Kenali Pengurus</Button>
+              <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm font-semibold">
+                <Link to="/pengumuman" className="inline-flex items-center gap-2 border-b-2 border-brand-600 pb-1 text-brand-600 hover:text-brand-700">
+                  Baca pengumuman <ArrowRight size={16} aria-hidden="true" />
+                </Link>
+                <Link to="/kepengurusan" className="border-b-2 border-transparent pb-1 hover:border-ink-900">Kenali pengurus</Link>
               </div>
-              {error && <p role="alert" className="mt-6 text-xs text-white/50">Sebagian konten belum bisa dimuat. Coba muat ulang halaman.</p>}
+              {error && <p role="alert" className="mt-6 text-xs text-ink-500">Sebagian konten belum bisa dimuat. Coba muat ulang halaman.</p>}
             </div>
-
-            <div className="relative shrink-0">
-              <div className="absolute inset-0 -m-10 rounded-full bg-gold-400/20 blur-3xl" aria-hidden="true" />
-              <LogoMark size={300} className="relative h-56 w-56 animate-float drop-shadow-2xl sm:h-72 sm:w-72 lg:h-80 lg:w-80" />
-            </div>
+            <HeroPhotos photos={photos} />
           </div>
         </section>
 
-        {/* AKSES CEPAT */}
-        <section className="relative z-10 -mt-10 px-6" aria-label="Akses cepat">
-          <div className="mx-auto grid max-w-6xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {QUICK.map(({ to, label, desc, icon: Icon }) => (
-              <Link key={to} to={to} className="group flex items-center gap-4 rounded-2xl border border-paper-300 bg-white p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 transition-colors group-hover:bg-brand-600 group-hover:text-white">
-                  <Icon size={22} aria-hidden="true" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-bold text-ink-900">{label}</span>
-                  <span className="block text-xs text-ink-500">{desc}</span>
-                </span>
-              </Link>
+        {/* DAFTAR ISI */}
+        <section aria-label="Daftar isi" className="mx-auto max-w-6xl px-5 sm:px-6">
+          <ol className="border-t border-ink-900">
+            {PUBLIC_NAV.map(({ to, label, desc }, i) => (
+              <li key={to} className="border-b border-paper-300">
+                <Link to={to} className="group grid grid-cols-[2.5rem_1fr_auto] items-baseline gap-x-3 py-4 sm:grid-cols-[4rem_1fr_1.2fr_auto] sm:py-5">
+                  <span className="text-xs font-bold text-ink-400 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="display text-2xl group-hover:text-brand-600 sm:text-4xl">{label}</span>
+                  <span className="hidden text-sm text-ink-500 sm:block">{desc}</span>
+                  <ArrowRight size={18} className="text-ink-400 group-hover:text-brand-600" aria-hidden="true" />
+                </Link>
+              </li>
             ))}
-          </div>
+          </ol>
         </section>
 
         {/* PENGUMUMAN */}
-        {announcements.length > 0 && (
-          <section className="px-6 pt-24">
-            <div className="mx-auto max-w-6xl">
-              <Heading eyebrow="Terkini" title="Pengumuman" to="/pengumuman" />
-              <div className="grid gap-6 md:grid-cols-3">
-                {announcements.map((a) => (
-                  <Link key={a.id} to={`/pengumuman/${a.id}`} className="group flex flex-col overflow-hidden rounded-2xl border border-paper-300 bg-white transition-all hover:-translate-y-0.5 hover:shadow-lift">
-                    <FramedImage src={a.image_url} alt={a.title} />
-                    <div className="flex flex-1 flex-col p-5">
-                      <div className="mb-1 text-xs font-semibold text-gold-700">{formatDate(a.created_at)}</div>
-                      <h3 className="line-clamp-2 font-bold text-ink-900">{a.title}</h3>
-                      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-ink-500">{excerpt(a.content, 120)}</p>
-                    </div>
+        {lead && (
+          <Section eyebrow="Terkini" title="Pengumuman" to="/pengumuman">
+            <div className="grid gap-8 md:grid-cols-12 md:gap-12">
+              <Link to={`/pengumuman/${lead.id}`} className="group md:col-span-7">
+                <FramedImage src={lead.image_url} alt={lead.title} ratio="aspect-[4/3]" placeholder={`Foto kegiatan: ${lead.title}`} />
+                <time dateTime={lead.created_at} className="kicker mt-5 block">{formatDate(lead.created_at)}</time>
+                <h3 className="display mt-2 text-3xl group-hover:text-brand-600 sm:text-5xl">{lead.title}</h3>
+                <p className="mt-3 max-w-xl leading-relaxed text-ink-700">{excerpt(lead.content, 200)}</p>
+              </Link>
+              <div className="md:col-span-5">
+                {restAnn.map((a) => (
+                  <Link key={a.id} to={`/pengumuman/${a.id}`} className="group block border-t border-ink-900 py-5 first:border-t-0 first:pt-0 md:first:border-t md:first:pt-5">
+                    <time dateTime={a.created_at} className="kicker">{formatDate(a.created_at)}</time>
+                    <h3 className="display mt-2 text-2xl group-hover:text-brand-600">{a.title}</h3>
+                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-ink-700">{excerpt(a.content, 120)}</p>
                   </Link>
                 ))}
               </div>
             </div>
-          </section>
+          </Section>
         )}
 
         {/* RENUNGAN */}
         {devotionals.length > 0 && (
-          <section className="mt-24 bg-paper-100 px-6 py-24">
-            <div className="mx-auto max-w-6xl">
-              <Heading eyebrow="Firman" title="Renungan" to="/renungan" />
-              <div className="grid gap-6 md:grid-cols-3">
-                {devotionals.map((d) => (
-                  <Link key={d.id} to={`/renungan/${d.id}`} className="rounded-2xl border border-paper-300 bg-white p-6 transition-shadow hover:shadow-lift">
-                    {d.verse && <div className="mb-3 font-display text-xl leading-snug text-brand-700 italic">“{d.verse}”</div>}
-                    <h3 className="font-bold text-ink-900">{d.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-ink-500">{excerpt(d.content, 110)}</p>
+          <Section eyebrow="Firman" title="Renungan" to="/renungan">
+            <div className="grid gap-x-12 md:grid-cols-12">
+              <Link to={`/renungan/${devotionals[0].id}`} className="group md:col-span-7">
+                {devotionals[0].verse && (
+                  <blockquote className="display border-l-2 border-brand-600 pl-5 text-3xl font-normal italic group-hover:text-brand-600 sm:text-5xl">
+                    “{devotionals[0].verse}”
+                  </blockquote>
+                )}
+                <h3 className="mt-6 text-lg font-bold">{devotionals[0].title}</h3>
+                <p className="mt-2 max-w-xl leading-relaxed text-ink-700">{excerpt(devotionals[0].content, 220)}</p>
+              </Link>
+              <div className="mt-10 md:col-span-5 md:mt-0">
+                {devotionals.slice(1).map((d) => (
+                  <Link key={d.id} to={`/renungan/${d.id}`} className="group block border-t border-ink-900 py-5">
+                    <time dateTime={d.created_at} className="kicker">{formatDate(d.created_at)}</time>
+                    <h3 className="display mt-2 text-2xl group-hover:text-brand-600">{d.title}</h3>
+                    {d.verse && <p className="mt-1 line-clamp-2 text-sm text-ink-500 italic">“{d.verse}”</p>}
                   </Link>
                 ))}
               </div>
             </div>
-          </section>
+          </Section>
         )}
 
         {/* VISI MISI */}
         {(content.vision || missionItems.length > 0) && (
-          <section className="hero-bg pattern-cross px-6 py-24 text-white">
-            <div className="mx-auto max-w-5xl">
-              <div className="mb-10 text-center">
-                <div className="mb-2 text-xs font-bold tracking-[0.2em] text-gold-400 uppercase">Fondasi Kami</div>
-                <h2 className="font-display text-4xl font-bold">Visi & Misi</h2>
-              </div>
-              <div className="grid gap-6 md:grid-cols-2">
-                {content.vision && (
-                  <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-7 backdrop-blur">
-                    <h3 className="mb-3 text-xs font-bold tracking-widest text-gold-400 uppercase">Visi</h3>
-                    <p className="font-display text-2xl leading-snug">{content.vision}</p>
-                  </div>
-                )}
-                {missionItems.length > 0 && (
-                  <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-7 backdrop-blur">
-                    <h3 className="mb-3 text-xs font-bold tracking-widest text-gold-400 uppercase">Misi</h3>
-                    <ul className="flex flex-col gap-3">
-                      {missionItems.map((m, i) => (
-                        <li key={i} className="flex gap-3 text-sm leading-relaxed text-white/85">
-                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold-400 text-[11px] font-bold text-brand-950">{i + 1}</span>
-                          <span>{m}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+          <Section eyebrow="Fondasi" title="Visi & Misi">
+            <div className="grid gap-10 md:grid-cols-12 md:gap-12">
+              {content.vision && (
+                <div className="md:col-span-7">
+                  <div className="kicker mb-4">Visi</div>
+                  <p className="display text-3xl font-normal sm:text-5xl">{content.vision}</p>
+                </div>
+              )}
+              {missionItems.length > 0 && (
+                <div className="md:col-span-5">
+                  <div className="kicker mb-4">Misi</div>
+                  <ol className="border-t border-ink-900">
+                    {missionItems.map((m, i) => (
+                      <li key={i} className="grid grid-cols-[2.5rem_1fr] gap-2 border-b border-paper-300 py-4 text-[15px] leading-relaxed">
+                        <span className="display text-xl text-brand-600 tabular-nums">{i + 1}</span>
+                        <span>{m}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
             </div>
-          </section>
+          </Section>
         )}
 
         {/* BPH */}
         {bph.length > 0 && (
-          <section className="px-6 py-24">
-            <div className="mx-auto max-w-6xl">
-              <Heading eyebrow="Pengurus Harian" title="Kenali BPH" to="/kepengurusan" />
-              <div className="flex flex-wrap justify-center gap-4 sm:justify-start">
-                {bph.map((m) => (
-                  <div key={m.id} className="flex w-44 flex-col items-center rounded-2xl border border-paper-300 bg-white p-5 text-center">
-                    <Avatar name={m.name} src={m.photo_url} size="xl" />
-                    <div className="mt-3 text-sm font-bold">{m.name}</div>
-                    <div className="mt-0.5 text-xs font-semibold tracking-wide text-gold-700 uppercase">{m.position}</div>
-                  </div>
-                ))}
-              </div>
+          <Section eyebrow="Pengurus Harian" title="Kenali BPH" to="/kepengurusan">
+            <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {bph.map((m) => (
+                <MemberCard key={m.id} member={m} />
+              ))}
             </div>
-          </section>
+          </Section>
         )}
 
         {/* GALERI */}
         {photos.length > 0 && (
-          <section className="bg-paper-100 px-6 py-24">
-            <div className="mx-auto max-w-6xl">
-              <Heading eyebrow="Kebersamaan" title="Galeri" to="/galeri" />
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                {photos.map((p) => (
-                  <Link key={p.id} to="/galeri" className="group relative aspect-[4/3] overflow-hidden rounded-2xl bg-brand-900">
-                    <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    {p.caption && <span className="absolute inset-x-0 bottom-0 line-clamp-1 bg-gradient-to-t from-brand-950/85 to-transparent px-3 pt-8 pb-2.5 text-sm font-semibold text-white">{p.caption}</span>}
-                  </Link>
-                ))}
-              </div>
+          <Section eyebrow="Kebersamaan" title="Galeri" to="/galeri">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              {photos.slice(0, 5).map((p, i) => (
+                <Link key={p.id} to="/galeri" className={`group relative aspect-[4/3] overflow-hidden bg-paper-200 ${i === 0 ? 'col-span-2 md:row-span-2 md:aspect-auto' : ''}`}>
+                  <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="h-full w-full object-cover" />
+                  {p.caption && <span className="absolute inset-x-0 bottom-0 line-clamp-1 bg-paper-50 px-3 py-1.5 text-xs font-semibold text-ink-900">{p.caption}</span>}
+                </Link>
+              ))}
             </div>
-          </section>
+          </Section>
         )}
 
         {/* SOSMED */}
         {links.length > 0 && (
-          <section className="px-6 py-24">
-            <div className="mx-auto max-w-xl">
-              <Heading center eyebrow="Terhubung" title="Ikuti & Hubungi Kami" />
-              <div className="flex flex-col gap-3">
-                {links.map((l) => (
-                  <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer"
-                    className="group flex items-center gap-4 rounded-xl border border-paper-300 bg-white px-4 py-3.5 font-semibold transition-all hover:border-brand-300 hover:bg-brand-50 hover:shadow-soft">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 group-hover:bg-brand-700 group-hover:text-white"><SocialIcon platform={detectPlatform(l.url)} /></span>
+          <Section eyebrow="Terhubung" title="Ikuti & Hubungi Kami">
+            <ul className="border-t border-ink-900 md:max-w-2xl">
+              {links.map((l) => (
+                <li key={l.id} className="border-b border-paper-300">
+                  <a href={l.url} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 py-4 font-semibold hover:text-brand-600">
+                    <SocialIcon platform={detectPlatform(l.url)} />
                     <span className="flex-1">{l.label}</span>
-                    <ExternalLink size={16} className="text-ink-300 group-hover:text-brand-700" aria-hidden="true" />
+                    <ExternalLink size={16} className="text-ink-400 group-hover:text-brand-600" aria-hidden="true" />
                   </a>
-                ))}
-              </div>
-            </div>
-          </section>
+                </li>
+              ))}
+            </ul>
+          </Section>
         )}
       </main>
       <Footer />

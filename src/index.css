@@ -9,9 +9,9 @@
   }
 
   body {
-    font-family: 'Plus Jakarta Sans Variable', system-ui, sans-serif;
-    background: #fdfbf7;
-    color: #1d1630;
+    font-family: 'DM Sans Variable', system-ui, sans-serif;
+    background: #f4efe6;
+    color: #1c1c1c;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -24,34 +24,41 @@
   }
 
   :focus-visible {
-    outline: 2px solid #8a4fb8;
+    outline: 2px solid #b5452b;
     outline-offset: 2px;
   }
 
   ::selection {
-    background: #d8b96066;
+    background: #b5452b;
+    color: #f4efe6;
   }
 }
 
 @layer components {
-  /* Latar hero: ungu tua dengan cahaya emas lembut, selaras dengan logo */
-  .hero-bg {
-    background:
-      radial-gradient(60rem 36rem at 88% -12%, rgb(110 52 153 / 0.6), transparent 62%),
-      radial-gradient(44rem 28rem at -8% 112%, rgb(201 162 74 / 0.2), transparent 60%),
-      linear-gradient(180deg, #1a0829 0%, #2b0f45 100%);
+  /* Judul majalah: serif Fraunces, rapat, sangat besar */
+  .display {
+    font-family: 'Fraunces Variable', Georgia, serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 0.98;
   }
 
-  /* Pola salib halus */
+  /* Label kecil huruf kapital di atas judul, seperti rubrik majalah */
+  .kicker {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #b5452b;
+  }
+
+  /* Latar gelap tunggal (tanpa gradien) untuk area yang memang harus gelap */
+  .hero-bg {
+    background: #1c1c1c;
+  }
   .pattern-cross {
     position: relative;
-  }
-  .pattern-cross::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 14v16M14 22h16' stroke='white' stroke-opacity='0.07' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
   }
 
   .text-balance {
@@ -62,8 +69,8 @@
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #b8b2c7; border-radius: 8px; }
-::-webkit-scrollbar-thumb:hover { background: #8f88a3; }
+::-webkit-scrollbar-thumb { background: #b3ac9c; }
+::-webkit-scrollbar-thumb:hover { background: #8a8478; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

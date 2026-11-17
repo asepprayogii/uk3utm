@@ -21,11 +21,11 @@ export default function Lightbox({ photos, index, onClose, onIndex }) {
   }, [onClose, go])
 
   const p = photos[index]
-  const btn = 'absolute flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25'
+  const btn = 'absolute flex h-11 w-11 items-center justify-center bg-white/10 text-white transition-colors hover:bg-white/25'
   return (
-    <div role="dialog" aria-modal="true" aria-label="Pratinjau foto" className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-950/95 p-4" onClick={onClose}>
+    <div role="dialog" aria-modal="true" aria-label="Pratinjau foto" className="fixed inset-0 z-[100] flex items-center justify-center bg-ink-900/95 p-4" onClick={onClose}>
       <figure className="flex max-h-full max-w-full flex-col items-center" onClick={(e) => e.stopPropagation()}>
-        <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} className="max-h-[80vh] max-w-full rounded-xl object-contain" />
+        <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} className="max-h-[80vh] max-w-full object-contain" />
         <figcaption className="mt-3 text-center text-sm text-white/75">
           {p.caption && <div className="mb-1 text-base font-semibold text-white">{p.caption}</div>}
           <span className="text-xs text-white/50">{index + 1} / {total}</span>

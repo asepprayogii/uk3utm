@@ -1,5 +1,3 @@
-import { initials } from '../../lib/format'
-
 const SIZES = {
   xs: 'h-8 w-8 text-xs',
   sm: 'h-10 w-10 text-sm',
@@ -7,40 +5,36 @@ const SIZES = {
   lg: 'h-20 w-20 text-xl',
   xl: 'h-28 w-28 text-3xl',
   '2xl': 'h-36 w-36 text-4xl',
+  fill: 'aspect-[4/5] w-full text-5xl',
 }
 
-const PALETTE = [
-  'from-brand-600 to-brand-800',
-  'from-brand-500 to-brand-700',
-  'from-brand-700 to-brand-900',
-  'from-gold-500 to-gold-700',
-]
-
-function colorFor(name = '') {
-  let hash = 0
-  for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0
-  return PALETTE[hash % PALETTE.length]
+// Foto profil bawaan: siluet orang (kepala + bahu) bila belum ada foto.
+function Silhouette() {
+  return (
+    <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden="true">
+      <rect width="100" height="100" fill="#e0d7c5" />
+      <circle cx="50" cy="38" r="17" fill="#b3ac9c" />
+      <path d="M14 100c0-22 15-36 36-36s36 14 36 36z" fill="#b3ac9c" />
+    </svg>
+  )
 }
 
 // Foto bila ada; bila tidak, inisial berwarna konsisten per nama.
 export default function Avatar({ name, src, size = 'md', ring = false, className = '' }) {
-  const ringCls = ring ? 'ring-2 ring-gold-400 ring-offset-2 ring-offset-white' : ''
+  const ringCls = ring ? 'ring-1 ring-brand-600 ring-offset-4 ring-offset-paper-50' : ''
   if (src) {
     return (
       <img
         src={src}
         alt={name ?? ''}
         loading="lazy"
-        className={`${SIZES[size]} ${ringCls} shrink-0 rounded-full bg-paper-200 object-cover ${className}`}
+        className={`${SIZES[size]} ${ringCls} shrink-0 rounded-sm bg-paper-200 object-cover ${className}`}
       />
     )
   }
   return (
-    <div
-      aria-hidden="true"
-      className={`${SIZES[size]} ${ringCls} flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-bold text-white ${colorFor(name)} ${className}`}
-    >
-      {initials(name)}
+    <div role="img" aria-label={name ?? 'Foto profil'} className={`${SIZES[size]} ${ringCls} shrink-0 overflow-hidden rounded-sm ${className}`}>
+      <Silhouette />
     </div>
   )
 }

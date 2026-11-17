@@ -51,7 +51,7 @@ export default function Dashboard() {
   const name = (user?.email ?? '').split('@')[0]
 
   return (
-    <AdminPage title={`Halo, ${name} 👋`} description={`Anda masuk sebagai ${ROLE_LABEL[role] ?? role}. Pilih menu di bawah untuk mulai mengelola.`}>
+    <AdminPage title={`Halo, ${name}`} description={`Anda masuk sebagai ${ROLE_LABEL[role] ?? role}. Pilih menu di bawah untuk mulai mengelola.`}>
       {loading && <Loading />}
       {error && <ErrorState message="Ringkasan gagal dimuat." onRetry={retry} />}
 
