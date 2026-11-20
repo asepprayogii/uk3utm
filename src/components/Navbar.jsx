@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { PUBLIC_NAV } from '../lib/nav'
 
@@ -10,6 +10,30 @@ import { Brand } from './Logo'
 // Kepala majalah: nama di kiri, menu teks di kanan, satu garis tipis di bawah.
 export default function Navbar() {
   const [open, setOpen] = useState(false)
+  const { pathname } = useLocation()
+  const barRef = useRef(null)
+  const rowRef = useRef(null)
+
+  // Garis aktif meluncur halus ke menu yang dipilih (atau yang sedang disorot kursor), lalu kembali ke menu aktif.
+  const place = useCallback((target, hover = false) => {
+    const bar = barRef.current
+    if (!bar) return
+    if (!target) {
+      bar.style.opacity = '0'
+      return
+    }
+    bar.style.opacity = '1'
+    bar.style.width = `${target.offsetWidth}px`
+    bar.style.transform = `translateX(${target.offsetLeft}px)`
+    bar.style.backgroundColor = hover ? 'var(--color-ink-900, #1C1C1C)' : '#B5452B'
+  }, [])
+  const toActive = useCallback(() => place(rowRef.current?.querySelector('[aria-current="page"]'), false), [place])
+  useLayoutEffect(() => {
+    toActive()
+    window.addEventListener('resize', toActive)
+    document.fonts?.ready.then(toActive)
+    return () => window.removeEventListener('resize', toActive)
+  }, [pathname, toActive])
 
   useEffect(() => {
     if (!open) return
@@ -24,10 +48,7 @@ export default function Navbar() {
   }, [open])
 
   const close = () => setOpen(false)
-  const desktopLink = ({ isActive }) =>
-    `border-b-2 py-1 text-sm font-semibold transition-colors ${
-      isActive ? 'border-brand-600 text-brand-600' : 'border-transparent text-ink-900 hover:border-ink-900'
-    }`
+  const desktopLink = ({ isActive }) => `py-1.5 text-sm font-semibold transition-colors duration-300 ${isActive ? 'text-brand-600' : 'text-ink-900 hover:text-ink-900'}`
 
   return (
     <header className="sticky top-0 z-50 border-b border-ink-900 bg-paper-50">
@@ -37,11 +58,14 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-7 lg:flex">
-          {MENU.map((l) => (
-            <NavLink key={l.to} to={l.to} end={l.to === '/'} className={desktopLink}>
-              {l.label}
-            </NavLink>
-          ))}
+          <div ref={rowRef} className="relative flex items-center gap-7" onMouseLeave={toActive}>
+            {MENU.map((l) => (
+              <NavLink key={l.to} to={l.to} end={l.to === '/'} className={desktopLink} onMouseEnter={(e) => place(e.currentTarget, true)} onFocus={(e) => place(e.currentTarget, true)} onBlur={toActive}>
+                {l.label}
+              </NavLink>
+            ))}
+            <span ref={barRef} aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 h-0.5 w-0 bg-brand-600 opacity-0 transition-[transform,width,opacity,background-color] duration-[400ms] ease-[cubic-bezier(0.65,0,0.35,1)]" />
+          </div>
           <Link to="/admin/login" className="border border-ink-900 px-4 py-1.5 text-sm font-semibold text-ink-900 transition-colors hover:bg-ink-900 hover:text-paper-50">
             Admin
           </Link>
@@ -62,10 +86,9 @@ export default function Navbar() {
       {open && (
         <div id="mobile-menu" className="animate-page-in fixed inset-x-0 top-16 bottom-0 overflow-y-auto bg-paper-50 px-5 pt-2 pb-8 lg:hidden">
           <ul>
-            {MENU.map(({ to, label, desc }, i) => (
+            {MENU.map(({ to, label, desc }) => (
               <li key={to} className="border-b border-paper-300">
                 <NavLink to={to} end={to === '/'} onClick={close} className={({ isActive }) => `flex items-baseline gap-4 py-5 ${isActive ? 'text-brand-600' : 'text-ink-900'}`}>
-                  <span className="w-6 text-xs font-bold text-ink-400 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
                   <span>
                     <span className="display block text-3xl">{label}</span>
                     <span className="mt-1 block text-xs text-ink-500">{desc}</span>

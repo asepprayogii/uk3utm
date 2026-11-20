@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { roleLabel } from '../../lib/committee'
+import { FIXED_GROUPS, roleLabel } from '../../lib/committee'
 import Avatar from '../ui/Avatar'
 import Lightbox from '../Lightbox'
 import Reveal from '../Reveal'
@@ -8,6 +8,8 @@ import Reveal from '../Reveal'
 // Semua pengurus memakai kartu yang sama besar. Bila punya foto, kartu bisa diketuk untuk memperbesar foto.
 function Card({ member, onOpen }) {
   const clickable = !!member.photo_url && !!onOpen
+  // Anggota departemen/divisi tidak perlu diberi label "Anggota"; keterangannya sudah jelas dari bagian halamannya (BPH, Pembina, dll. tetap ada).
+  const plainMember = !FIXED_GROUPS.includes(member.department) && member.position === 'Anggota'
   const portrait = <Avatar name={member.name} src={member.photo_url} size="fill" />
   return (
     <div className="flex flex-col border-t border-ink-900 pt-4">
@@ -19,7 +21,7 @@ function Card({ member, onOpen }) {
         portrait
       )}
       <div className="display mt-4 text-xl">{member.name}</div>
-      <div className="kicker mt-2">{member.position}</div>
+      {!plainMember && <div className="kicker mt-2">{member.position}</div>}
     </div>
   )
 }

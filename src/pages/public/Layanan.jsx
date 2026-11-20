@@ -121,7 +121,7 @@ function ServiceCard({ service: s, onOpenQris }) {
 }
 
 export default function Layanan() {
-  const { data: services, loading, error, retry } = useAsyncData(fetchServices, EMPTY)
+  const { data: services, loading, error, retry } = useAsyncData(fetchServices, EMPTY, { live: true })
   const [qris, setQris] = useState(null)
 
   return (

@@ -23,17 +23,18 @@ function Title({ children, sub }) {
 function DepartmentPanel({ dept, all }) {
   const groups = [
     ...dept.divisions.map((d) => ({ title: `Divisi ${d.name}`, members: d.members })),
-    ...(dept.others.length > 0 ? [{ title: 'Anggota', members: dept.others }] : []),
+    ...(dept.others.length > 0 ? [{ title: null, members: dept.others }] : []),
   ]
   return (
     <div className="flex flex-col gap-12">
       {dept.kadep.length > 0 && <MemberGrid members={dept.kadep} all={all} />}
       {groups.map((g) => (
-        <div key={g.title}>
-          <div className="mb-6 flex items-baseline justify-between border-b border-ink-900 pb-2">
-            <h3 className="display text-2xl">{g.title}</h3>
-            <span className="text-xs font-bold text-ink-500 tabular-nums">{g.members.length}</span>
-          </div>
+        <div key={g.title ?? 'lainnya'}>
+          {g.title && (
+            <div className="mb-6 border-b border-ink-900 pb-2">
+              <h3 className="display text-2xl">{g.title}</h3>
+            </div>
+          )}
           <MemberGrid members={g.members} all={all} />
         </div>
       ))}
@@ -43,7 +44,7 @@ function DepartmentPanel({ dept, all }) {
 }
 
 export default function Kepengurusan() {
-  const { data, loading, error, retry } = useAsyncData(fetchCommittee, EMPTY)
+  const { data, loading, error, retry } = useAsyncData(fetchCommittee, EMPTY, { live: true })
   const [active, setActive] = useState(null)
   const g = groupCommittee(data)
   const all = orderedMembers(g)
@@ -93,7 +94,7 @@ export default function Kepengurusan() {
                       shown.name === d.name ? 'border-brand-600 text-brand-600' : 'border-transparent text-ink-700 hover:border-ink-900'
                     }`}
                   >
-                    {d.name} <span className="text-ink-400">{d.total}</span>
+                    {d.name}
                   </button>
                 ))}
               </div>

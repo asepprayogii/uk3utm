@@ -12,7 +12,7 @@ const EMPTY = []
 const fetchDevotionals = () => unwrap(supabase.from('devotionals').select('*').order('created_at', { ascending: false })).then((r) => r ?? [])
 
 export default function Renungan() {
-  const { data, loading, error, retry } = useAsyncData(fetchDevotionals, EMPTY)
+  const { data, loading, error, retry } = useAsyncData(fetchDevotionals, EMPTY, { live: true })
   return (
     <PageLayout eyebrow="Firman Tuhan" title="Renungan" description="Bacaan singkat untuk menguatkan iman. Ketuk salah satu untuk membaca selengkapnya." width="max-w-6xl">
       {loading && <Loading />}
@@ -28,7 +28,7 @@ export default function Renungan() {
               <p className="mt-3 line-clamp-3 leading-relaxed text-ink-700">{excerpt(d.content, 180)}</p>
             </div>
             <div className="md:col-span-3">
-              <FramedImage src={d.image_url} alt={d.title} ratio="aspect-[4/3]" placeholder={`Foto renungan: ${d.title}`} />
+              <FramedImage src={d.image_url} alt={d.title} ratio="aspect-[4/3]" />
             </div>
           </Link></Reveal>
         ))}

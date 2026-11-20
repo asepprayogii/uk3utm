@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import { unwrap } from '../hooks/useAsyncData'
 import { fetchPhotos } from './gallery'
+import { isVideo } from './video'
 
 // Teks situs disimpan sebagai pasangan key/value di tabel site_content yang sudah ada.
 export const HOME_PHOTOS_KEY = 'home_photo_ids'
@@ -46,8 +47,8 @@ export async function fetchHomePhotos(content) {
   if (ids.length > 0) {
     const rows = await unwrap(supabase.from('album_photos').select('*').in('id', ids))
     const byId = new Map((rows ?? []).map((p) => [String(p.id), p]))
-    const chosen = ids.map((id) => byId.get(String(id))).filter(Boolean)
+    const chosen = ids.map((id) => byId.get(String(id))).filter((p) => p && !isVideo(p)) // video tidak dipakai di sampul
     if (chosen.length > 0) return chosen
   }
-  return fetchPhotos(HOME_PHOTOS_FALLBACK)
+  return (await fetchPhotos(HOME_PHOTOS_FALLBACK * 4)).filter((p) => !isVideo(p)).slice(0, HOME_PHOTOS_FALLBACK)
 }

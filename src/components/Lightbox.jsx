@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { parseVideo } from '../lib/video'
 
 export default function Lightbox({ photos, index, onClose, onIndex }) {
   const total = photos.length
@@ -22,12 +23,24 @@ export default function Lightbox({ photos, index, onClose, onIndex }) {
   }, [onClose, go])
 
   const p = photos[index]
+  const video = parseVideo(p.photo_url)
   const btn = 'absolute flex h-11 w-11 items-center justify-center bg-white/10 text-white transition-colors hover:bg-white/25'
   // Lewat portal ke <body>: bila induknya punya transform (animasi muncul), `fixed` akan salah ukuran/posisi.
   return createPortal(
     <div role="dialog" aria-modal="true" aria-label="Pratinjau foto" className="fixed inset-0 z-[100] flex items-center justify-center bg-ink-900/95 p-4" onClick={onClose}>
       <figure className="flex max-h-full max-w-full flex-col items-center" onClick={(e) => e.stopPropagation()}>
-        <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} className="max-h-[80vh] max-w-full object-contain" />
+        {video ? (
+          <iframe
+            key={video.id}
+            src={video.embed}
+            title={p.caption || 'Video kegiatan'}
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+            allowFullScreen
+            className="aspect-video w-[min(92vw,960px)] max-h-[75vh] border-0 bg-black"
+          />
+        ) : (
+          <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} className="max-h-[80vh] max-w-full object-contain" />
+        )}
         <figcaption className="mt-3 text-center text-sm text-white/75">
           {p.caption && <div className="mb-1 text-base font-semibold text-white">{p.caption}</div>}
           <span className="text-xs text-white/50">{index + 1} / {total}</span>

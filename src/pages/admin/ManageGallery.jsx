@@ -1,8 +1,10 @@
 import { useCallback, useRef, useState } from 'react'
-import { ImagePlus, Images, Pencil, Star, Trash2, X } from 'lucide-react'
+import { ImagePlus, Images, Pencil, Star, Trash2, Video, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { prepareImage } from '../../lib/image'
+import { IMAGE_ACCEPT, prepareImage } from '../../lib/image'
 import { removeByUrl, uploadPrepared } from '../../lib/storage'
+import { isVideo, parseVideo } from '../../lib/video'
+import MediaThumb from '../../components/MediaThumb'
 import { ensureGalleryAlbum, fetchPhotos, orderStamp } from '../../lib/gallery'
 import { friendlyError } from '../../lib/errors'
 import { HOME_PHOTOS_KEY, fetchContent, parseIds, saveContent } from '../../lib/siteContent'
@@ -34,6 +36,14 @@ export default function ManageGallery() {
   const [bulk, setBulk] = useState('')
   const [progress, setProgress] = useState(null)
   const [showErrors, setShowErrors] = useState(false)
+
+  // Video: cukup tempel tautan YouTube / Google Drive.
+  const [videoDlg, setVideoDlg] = useState(false)
+  const [videoUrl, setVideoUrl] = useState('')
+  const [videoTitle, setVideoTitle] = useState('')
+  const [videoErr, setVideoErr] = useState('')
+  const [savingVideo, setSavingVideo] = useState(false)
+  const videoInfo = parseVideo(videoUrl)
 
   const [editing, setEditing] = useState(null)
   const [caption, setCaption] = useState('')
@@ -96,6 +106,29 @@ export default function ManageGallery() {
     try { await saveContent(HOME_PHOTOS_KEY, JSON.stringify(next)) } catch (err) { setFeaturedLocal(before ?? savedFeatured); toast.error(friendlyError(err, 'menyimpan pilihan beranda')) }
   }
 
+  function openVideo() {
+    setVideoUrl('')
+    setVideoTitle('')
+    setVideoErr('')
+    setVideoDlg(true)
+  }
+
+  async function saveVideo(e) {
+    e.preventDefault()
+    const v = parseVideo(videoUrl)
+    if (!v) return setVideoErr('Tautan harus dari YouTube atau Google Drive.')
+    if (!videoTitle.trim()) return setVideoErr('Judul video wajib diisi.')
+    if (photos.some((p) => parseVideo(p.photo_url)?.id === v.id)) return setVideoErr('Video ini sudah ada di galeri.')
+    setSavingVideo(true)
+    try {
+      const albumId = await ensureGalleryAlbum()
+      await unwrap(supabase.from('album_photos').insert({ album_id: albumId, photo_url: v.url, caption: videoTitle.trim(), order_index: orderStamp() }))
+      toast.success('Video ditambahkan ke galeri.')
+      setVideoDlg(false)
+      await refresh()
+    } catch (err) { toast.error(friendlyError(err, 'menambah video')) } finally { setSavingVideo(false) }
+  }
+
   async function saveCaption(e) {
     e.preventDefault()
     try {
@@ -106,10 +139,11 @@ export default function ManageGallery() {
   }
 
   async function remove(p) {
-    if (!(await confirm({ title: 'Hapus foto ini?', message: p.caption ? `“${p.caption}” akan hilang dari galeri.` : 'Foto akan hilang dari galeri.', confirmLabel: 'Ya, hapus' }))) return
+    const vid = isVideo(p)
+    if (!(await confirm({ title: vid ? 'Hapus video ini?' : 'Hapus foto ini?', message: p.caption ? `“${p.caption}” akan hilang dari galeri.` : 'Akan hilang dari galeri.', confirmLabel: 'Ya, hapus' }))) return
     try {
       await unwrap(supabase.from('album_photos').delete().eq('id', p.id))
-      removeByUrl(p.photo_url)
+      if (!vid) removeByUrl(p.photo_url) // video hanya tautan, tidak ada berkas di penyimpanan
       if (featured.includes(String(p.id))) { const next = featured.filter((x) => x !== String(p.id)); setFeaturedLocal(next); saveContent(HOME_PHOTOS_KEY, JSON.stringify(next)).catch(() => {}) }
       await refresh()
     } catch (err) { toast.error(`Gagal menghapus: ${err.message}`) }
@@ -120,10 +154,10 @@ export default function ManageGallery() {
   return (
     <AdminPage
       title="Galeri"
-      description="Foto kegiatan untuk halaman Galeri. Pilih banyak foto sekaligus lalu beri judul tiap foto. Yang terbaru tampil paling atas."
-      action={<Button icon={ImagePlus} loading={preparing} onClick={() => fileRef.current?.click()}>Tambah Foto</Button>}
+      description="Foto dan video kegiatan untuk halaman Galeri. Pilih banyak foto sekaligus lalu beri judul tiap foto; video cukup tempel tautan YouTube atau Google Drive. Yang terbaru tampil paling atas."
+      action={<div className="flex gap-2"><Button variant="secondary" icon={Video} onClick={openVideo}>Tambah Video</Button><Button icon={ImagePlus} loading={preparing} onClick={() => fileRef.current?.click()}>Tambah Foto</Button></div>}
     >
-      <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={pick} />
+      <input ref={fileRef} type="file" accept={IMAGE_ACCEPT} multiple className="hidden" onChange={pick} />
       {loading && <Loading />}
       {error && <ErrorState message="Galeri gagal dimuat." onRetry={retry} />}
       {!loading && !error && photos.length === 0 && (
@@ -142,14 +176,14 @@ export default function ManageGallery() {
         {photos.map((p) => (
           <div key={p.id} className="overflow-hidden rounded-xl border border-paper-300 bg-white">
             <div className="relative aspect-[4/3] bg-paper-200">
-              <img src={p.photo_url} alt={p.caption || ''} loading="lazy" className="h-full w-full object-cover" />
-              <button type="button" onClick={() => toggleFeatured(p)} aria-pressed={featured.includes(String(p.id))}
+              <MediaThumb item={p} />
+              {!isVideo(p) && <button type="button" onClick={() => toggleFeatured(p)} aria-pressed={featured.includes(String(p.id))}
                 aria-label={featured.includes(String(p.id)) ? 'Lepas dari beranda' : 'Tampilkan di beranda'}
                 title={featured.includes(String(p.id)) ? 'Lepas dari beranda' : 'Tampilkan di beranda'}
                 className={`absolute top-2 left-2 flex h-8 items-center gap-1 px-2 text-xs font-bold ${featured.includes(String(p.id)) ? 'bg-brand-600 text-paper-50' : 'bg-paper-50 text-ink-900 hover:bg-white'}`}>
                 <Star size={14} fill={featured.includes(String(p.id)) ? 'currentColor' : 'none'} aria-hidden="true" />
                 {featured.includes(String(p.id)) ? `Beranda ${featured.indexOf(String(p.id)) + 1}` : 'Beranda'}
-              </button>
+              </button>}
             </div>
             <div className="flex items-center gap-1 p-2 pl-3">
               <div className={`min-w-0 flex-1 truncate text-sm ${p.caption ? 'font-semibold text-ink-900' : 'text-ink-400 italic'}`}>{p.caption || 'Belum ada judul'}</div>
@@ -184,6 +218,16 @@ export default function ManageGallery() {
             {showErrors && missing > 0 && <p role="alert" className="text-sm font-semibold text-red-700">{missing} foto belum diberi judul.</p>}
           </form>
         )}
+      </Modal>
+
+      <Modal open={videoDlg} onClose={() => setVideoDlg(false)} title="Tambah Video" description="Video tidak diunggah ke website, hanya ditautkan, jadi tidak memakan ruang penyimpanan."
+        footer={<><Button variant="secondary" onClick={() => setVideoDlg(false)}>Batal</Button><Button type="submit" form="video-form" loading={savingVideo}>Simpan</Button></>}>
+        <form id="video-form" onSubmit={saveVideo} noValidate className="flex flex-col gap-4">
+          <Input autoFocus label="Tautan video" placeholder="https://youtu.be/… atau https://drive.google.com/file/d/…" hint="Untuk Google Drive, atur berbagi ke “Siapa saja yang memiliki link” agar bisa diputar pengunjung." value={videoUrl} onChange={(e) => { setVideoUrl(e.target.value); setVideoErr('') }} />
+          <Input label="Judul video" placeholder="mis. Cuplikan Natal 2026" value={videoTitle} onChange={(e) => { setVideoTitle(e.target.value); setVideoErr('') }} />
+          {videoInfo && <p className="rounded-xl bg-paper-100 px-3 py-2 text-xs text-ink-500">Terbaca sebagai video <b className="text-ink-900">{videoInfo.kind === 'youtube' ? 'YouTube' : 'Google Drive'}</b>.</p>}
+          {videoErr && <p role="alert" className="text-sm font-semibold text-red-700">{videoErr}</p>}
+        </form>
       </Modal>
 
       <Modal open={!!editing} onClose={() => setEditing(null)} title="Judul Foto" size="sm"

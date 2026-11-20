@@ -20,7 +20,7 @@ export default function PengumumanDetail() {
     ])
     return { item, others: others ?? [] }
   }, [id])
-  const { data, loading, error, retry } = useAsyncData(fetcher, INITIAL)
+  const { data, loading, error, retry } = useAsyncData(fetcher, INITIAL, { live: true })
   const { item, others } = data
 
   return (

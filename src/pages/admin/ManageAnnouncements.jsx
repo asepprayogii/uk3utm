@@ -3,6 +3,9 @@ import { Megaphone, Pencil, Pin, PinOff, Plus, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { removeByUrl } from '../../lib/storage'
 import { formatDate } from '../../lib/format'
+import { FULL_ACCESS, ROLE_LABEL } from '../../lib/adminNav'
+import { writeWithFallback } from '../../lib/dbFallback'
+import { useAuth } from '../../hooks/useAuth'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import { useImageField } from '../../hooks/useImageField'
 import { useUI } from '../../hooks/useUI'
@@ -21,6 +24,10 @@ const fetchAll = () =>
 
 export default function ManageAnnouncements() {
   const { toast, confirm } = useUI()
+  const { user, profile } = useAuth()
+  const role = profile?.role
+  // BPH dan Penatalayanan mengelola semua pengumuman; departemen lain hanya yang mereka buat sendiri.
+  const canManage = (a) => FULL_ACCESS.includes(role) || (!!user && a.created_by === user.id)
   const { data, loading, error, retry } = useAsyncData(fetchAll, EMPTY)
   const [local, setLocal] = useState(null)
   const list = local ?? data
@@ -46,7 +53,7 @@ export default function ManageAnnouncements() {
       const { url, changed, oldUrl } = await image.commit('announcements')
       const row = { title: form.title.trim(), content: form.content.trim(), pinned: form.pinned, image_url: url }
       if (modal.editing) await unwrap(supabase.from('announcements').update(row).eq('id', modal.editing.id))
-      else await unwrap(supabase.from('announcements').insert(row))
+      else await writeWithFallback((r) => supabase.from('announcements').insert(r), { ...row, created_by: user?.id, author_role: role }, ['created_by', 'author_role'])
       if (changed && oldUrl) removeByUrl(oldUrl)
       toast.success(modal.editing ? 'Pengumuman diperbarui.' : 'Pengumuman diterbitkan.')
       setModal(null)
@@ -90,13 +97,20 @@ export default function ManageAnnouncements() {
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-bold text-ink-900">{a.title}</h3>
                 {a.pinned && <Badge tone="gold" icon={Pin}>Disematkan</Badge>}
+                {a.author_role && <Badge tone="gray">{ROLE_LABEL[a.author_role] ?? a.author_role}</Badge>}
               </div>
               <p className="mt-1 line-clamp-2 text-sm text-ink-500">{a.content}</p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <span className="mr-2 text-xs text-ink-400">{formatDate(a.created_at)}</span>
-                <Button size="sm" variant="secondary" icon={Pencil} onClick={() => open(a)}>Ubah</Button>
-                <Button size="sm" variant="ghost" icon={a.pinned ? PinOff : Pin} onClick={() => togglePin(a)}>{a.pinned ? 'Lepas sematan' : 'Sematkan'}</Button>
-                <Button size="sm" variant="dangerSoft" icon={Trash2} onClick={() => remove(a)}>Hapus</Button>
+                {canManage(a) ? (
+                  <>
+                    <Button size="sm" variant="secondary" icon={Pencil} onClick={() => open(a)}>Ubah</Button>
+                    <Button size="sm" variant="ghost" icon={a.pinned ? PinOff : Pin} onClick={() => togglePin(a)}>{a.pinned ? 'Lepas sematan' : 'Sematkan'}</Button>
+                    <Button size="sm" variant="dangerSoft" icon={Trash2} onClick={() => remove(a)}>Hapus</Button>
+                  </>
+                ) : (
+                  <span className="text-xs text-ink-400">Dibuat departemen lain</span>
+                )}
               </div>
             </div>
           </Card>

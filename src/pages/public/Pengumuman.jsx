@@ -26,7 +26,7 @@ function Featured({ a }) {
   return (
     <Link to={`/pengumuman/${a.id}`} className="group mb-14 grid gap-6 md:grid-cols-12 md:gap-10">
       <div className="md:col-span-7">
-        <FramedImage src={a.image_url} alt={a.title} ratio="aspect-[4/3]" eager placeholder={`Foto kegiatan: ${a.title}`} />
+        <FramedImage src={a.image_url} alt={a.title} ratio="aspect-[4/3]" eager />
       </div>
       <div className="flex flex-col justify-end md:col-span-5">
         <Meta a={a} />
@@ -41,7 +41,7 @@ function Featured({ a }) {
 function Row({ a }) {
   return (
     <Link to={`/pengumuman/${a.id}`} className="group grid gap-4 border-t border-ink-900 py-6 sm:grid-cols-[10rem_1fr] md:grid-cols-[12rem_1fr_9rem] md:gap-8">
-      <FramedImage src={a.image_url} alt="" ratio="aspect-[4/3]" className="order-last sm:order-first" placeholder={a.title} />
+      <FramedImage src={a.image_url} alt="" ratio="aspect-[4/3]" className="order-last sm:order-first" />
       <div className="min-w-0">
         <Meta a={a} />
         <h3 className="display mt-2 text-2xl group-hover:text-brand-600 sm:text-3xl">{a.title}</h3>
@@ -53,7 +53,7 @@ function Row({ a }) {
 }
 
 export default function Pengumuman() {
-  const { data, loading, error, retry } = useAsyncData(fetchAnnouncements, EMPTY)
+  const { data, loading, error, retry } = useAsyncData(fetchAnnouncements, EMPTY, { live: true })
   const [first, ...rest] = data
 
   return (

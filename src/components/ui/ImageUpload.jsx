@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Crop, ImagePlus, Loader2, Trash2 } from 'lucide-react'
-import { prepareImage, renderPortrait, formatBytes } from '../../lib/image'
+import { IMAGE_ACCEPT, prepareImage, renderPortrait, toReadableImage, formatBytes } from '../../lib/image'
 import CropDialog from './CropDialog'
 import { useUI } from '../../hooks/useUI'
 import Avatar from './Avatar'
@@ -27,9 +27,10 @@ export default function ImageUpload({ field, label, hint, shape = 'wide', lossle
     try {
       if (shape === 'circle') {
         // Foto profil: potong otomatis 4:5 (bisa diatur lewat "Atur posisi").
-        const prepared = await renderPortrait(file)
+        const readable = await toReadableImage(file) // HEIC dikonversi dulu supaya bisa ditampilkan di dialog atur posisi
+        const prepared = await renderPortrait(readable)
         field.select(prepared)
-        setSource(file)
+        setSource(readable)
         setLastCrop(null)
         setInfo(`${formatBytes(file.size)} → ${formatBytes(prepared.blob.size)}`)
         return
@@ -50,7 +51,7 @@ export default function ImageUpload({ field, label, hint, shape = 'wide', lossle
   }
 
   const input = (
-    <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
+    <input ref={inputRef} type="file" accept={IMAGE_ACCEPT} className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
   )
 
   async function openCrop() {

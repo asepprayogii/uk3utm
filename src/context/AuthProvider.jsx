@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { clearStamps, isExpired, setNotice, touch } from '../lib/sessionGuard'
+import { normalizeRole } from '../lib/adminNav'
 import { AuthContext } from './authContext'
 
 // Satu sumber data auth untuk seluruh aplikasi, sehingga profil tidak
@@ -30,7 +31,7 @@ export default function AuthProvider({ children }) {
         .maybeSingle()
 
       if (!active) return
-      setProfile(data ?? { role: 'viewer' })
+      setProfile(data ? { ...data, role: normalizeRole(data.role) } : { role: 'viewer' })
       setLoading(false)
     }
 

@@ -4,7 +4,9 @@ import { linkDisplay } from '../../lib/social'
 import { DEFAULT_ABOUT, fetchContent, parseActivities } from '../../lib/siteContent'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
+import LogoMeaning from '../../components/LogoMeaning'
 import Reveal from '../../components/Reveal'
+import VisionMission from '../../components/VisionMission'
 import SocialIcon from '../../components/SocialIcon'
 import { ErrorState, Loading } from '../../components/States'
 
@@ -32,11 +34,12 @@ function Facts({ items }) {
 }
 
 export default function Tentang() {
-  const { data, loading, error, retry } = useAsyncData(load, INITIAL)
+  const { data, loading, error, retry } = useAsyncData(load, INITIAL, { live: true })
   const { content, links } = data
   const activities = parseActivities(content.activities)
   const mission = (content.mission ?? '').split('\n').map((m) => m.replace(/^[•-]\s*/, '').trim()).filter(Boolean)
-  const paragraphs = (content.history ?? '').split(/\n{2,}/).map((t) => t.trim()).filter(Boolean)
+  // Baris yang hanya dipatahkan saat mengetik digabung, supaya teks mengalir rapi mengikuti lebar halaman.
+  const paragraphs = (content.history ?? '').split(/\n\s*\n/).map((t) => t.replace(/\s*\n\s*/g, ' ').replace(/ {2,}/g, ' ').trim()).filter(Boolean)
   const hasHistory = !!content.founded || paragraphs.length > 0
   const hasFoundation = !!content.vision || mission.length > 0
 
@@ -49,6 +52,7 @@ export default function Tentang() {
   ]
   const anchors = [
     ['pengantar', 'Pengantar'],
+    ['makna-logo', 'Makna Logo'],
     ...(hasHistory ? [['sejarah', 'Sejarah']] : []),
     ...(hasFoundation ? [['visi-misi', 'Visi & Misi']] : []),
     ...(activities.length > 0 ? [['kegiatan', 'Kegiatan']] : []),
@@ -83,6 +87,13 @@ export default function Tentang() {
             <div className="md:col-span-5"><Facts items={facts} /></div>
           </Reveal>
 
+          {/* Makna logo (Anggaran Dasar Pasal 2) */}
+          <Reveal as="section" id="makna-logo" className="mt-20 scroll-mt-24 border-t border-ink-900 pt-6 sm:mt-28">
+            <div className="kicker mb-3">Makna Logo</div>
+            <h2 className="display mb-10 max-w-3xl text-3xl font-normal sm:text-5xl">Setiap bagian lambang punya arti.</h2>
+            <LogoMeaning />
+          </Reveal>
+
           {/* Sejarah */}
           {hasHistory && (
             <Reveal as="section" id="sejarah" className="mt-20 scroll-mt-24 border-t border-ink-900 pt-6 sm:mt-28">
@@ -90,14 +101,16 @@ export default function Tentang() {
               <div className="grid gap-8 md:grid-cols-12 md:gap-14">
                 {content.founded && (
                   <div className="md:col-span-4">
+                    <div className="md:sticky md:top-28">
                     <div className="text-xs font-bold tracking-wider text-ink-500 uppercase">Berdiri</div>
                     <div className="display mt-2 text-5xl text-brand-600 sm:text-6xl">{content.founded}</div>
+                    </div>
                   </div>
                 )}
                 {paragraphs.length > 0 && (
-                  <div className={`${content.founded ? 'md:col-span-8' : 'md:col-span-12'} gap-10 leading-[1.85] text-ink-900 md:columns-2`}>
+                  <div className={`${content.founded ? 'md:col-span-8' : 'md:col-span-12'} max-w-[40rem] text-ink-900`}>
                     {paragraphs.map((t, i) => (
-                      <p key={i} className="mb-4 break-inside-avoid-column whitespace-pre-line">{t}</p>
+                      <p key={i} className={i === 0 ? 'display text-2xl leading-snug font-normal text-pretty sm:text-[1.75rem]' : 'mt-6 text-[17px] leading-[1.85] text-pretty text-ink-700'}>{t}</p>
                     ))}
                   </div>
                 )}
@@ -109,19 +122,7 @@ export default function Tentang() {
           {hasFoundation && (
             <Reveal as="section" id="visi-misi" className="mt-20 scroll-mt-24 border-t border-ink-900 pt-6 sm:mt-28">
               <div className="kicker mb-6">Visi &amp; Misi</div>
-              {content.vision && (
-                <blockquote className="display mx-auto max-w-4xl text-center text-3xl font-normal italic sm:text-5xl">“{content.vision}”</blockquote>
-              )}
-              {mission.length > 0 && (
-                <ol className="mt-14 grid gap-x-12 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-                  {mission.map((m, i) => (
-                    <li key={i} className="border-t border-paper-300 pt-4">
-                      <span className="display block text-4xl text-brand-600 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
-                      <p className="mt-2 leading-relaxed">{m}</p>
-                    </li>
-                  ))}
-                </ol>
-              )}
+              <VisionMission vision={content.vision} mission={mission} />
             </Reveal>
           )}
 

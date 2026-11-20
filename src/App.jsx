@@ -35,8 +35,9 @@ const ManageGallery = lazy(() => import('./pages/admin/ManageGallery'))
 const ManageAbout = lazy(() => import('./pages/admin/ManageAbout'))
 const ManageStudents = lazy(() => import('./pages/admin/ManageStudents'))
 const ManageMentors = lazy(() => import('./pages/admin/ManageMentors'))
+const ManageAccounts = lazy(() => import('./pages/admin/ManageAccounts'))
 
-const { ALL, INFOKOM, PEMBINAAN } = ROLES
+const { ALL, KONTEN, PENGUMUMAN, RENUNGAN, LAYANAN, PEMBINAAN, BPH } = ROLES
 
 // Pindah halaman selalu mulai dari atas, bukan di posisi gulir halaman sebelumnya.
 function ScrollToTop() {
@@ -46,18 +47,19 @@ function ScrollToTop() {
 }
 
 const ADMIN_ROUTES = [
-  { path: 'tentang', roles: INFOKOM, Page: ManageAbout },
-  { path: 'pengumuman', roles: INFOKOM, Page: ManageAnnouncements },
-  { path: 'renungan', roles: INFOKOM, Page: ManageDevotionals },
-  { path: 'kepengurusan', roles: INFOKOM, Page: ManageCommittee },
-  { path: 'layanan', roles: INFOKOM, Page: ManageServices },
-  { path: 'galeri', roles: INFOKOM, Page: ManageGallery },
-  { path: 'tautan', roles: INFOKOM, Page: ManageLinks },
+  { path: 'tentang', roles: KONTEN, Page: ManageAbout },
+  { path: 'pengumuman', roles: PENGUMUMAN, Page: ManageAnnouncements },
+  { path: 'renungan', roles: RENUNGAN, Page: ManageDevotionals },
+  { path: 'kepengurusan', roles: KONTEN, Page: ManageCommittee },
+  { path: 'layanan', roles: LAYANAN, Page: ManageServices },
+  { path: 'galeri', roles: KONTEN, Page: ManageGallery },
+  { path: 'tautan', roles: KONTEN, Page: ManageLinks },
   { path: 'sesi', roles: PEMBINAAN, Page: ManageSessions },
   { path: 'absensi/:sessionId', roles: PEMBINAAN, Page: ManageAttendance },
   { path: 'mahasiswa', roles: PEMBINAAN, Page: ManageStudents },
   { path: 'kakak-bimbing', roles: PEMBINAAN, Page: ManageMentors },
   { path: 'lokasi', roles: PEMBINAAN, Page: ManageLocations },
+  { path: 'akun', roles: BPH, Page: ManageAccounts },
 ]
 
 export default function App() {

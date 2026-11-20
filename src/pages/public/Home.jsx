@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, ExternalLink } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { excerpt, formatDate } from '../../lib/format'
 import { groupCommittee } from '../../lib/committee'
 import { DEFAULT_ABOUT, fetchHomePhotos } from '../../lib/siteContent'
+import { fetchPhotos } from '../../lib/gallery'
+import { isVideo } from '../../lib/video'
+import { shuffled } from '../../lib/random'
 import { linkDisplay } from '../../lib/social'
 import { PUBLIC_NAV } from '../../lib/nav'
 import { useAsyncData } from '../../hooks/useAsyncData'
@@ -13,9 +16,10 @@ import Footer from '../../components/Footer'
 import FramedImage from '../../components/FramedImage'
 import SocialIcon from '../../components/SocialIcon'
 import Reveal from '../../components/Reveal'
+import VisionMission from '../../components/VisionMission'
 import MemberGrid from '../../components/committee/MemberCard'
 
-const INITIAL = { content: {}, announcements: [], devotionals: [], links: [], photos: [], committee: [] }
+const INITIAL = { content: {}, announcements: [], devotionals: [], links: [], photos: [], gallery: [], committee: [] }
 
 // Satu query yang gagal tidak boleh merusak seluruh beranda.
 async function fetchHome() {
@@ -35,12 +39,14 @@ async function fetchHome() {
   const [contentRows, announcements, devotionals, links, committee] = rows
   const content = Object.fromEntries((contentRows ?? []).map((row) => [row.key, row.value]))
   const photos = await fetchHomePhotos(content).catch(() => [])
+  const gallery = (await fetchPhotos(80).catch(() => [])).filter((p) => !isVideo(p))
   return {
     content,
     announcements: announcements ?? [],
     devotionals: devotionals ?? [],
     links: links ?? [],
     photos,
+    gallery,
     committee: committee ?? [],
   }
 }
@@ -63,7 +69,7 @@ function HeroPhotos({ photos }) {
   if (count === 0) {
     return (
       <figure>
-        <FramedImage ratio="aspect-[3/2]" eager placeholder="Jemaat UK3 UTM bernyanyi bersama dalam ibadah. Ganti dengan foto asli." />
+        <FramedImage ratio="aspect-[3/2]" eager />
       </figure>
     )
   }
@@ -101,6 +107,34 @@ function HeroPhotos({ photos }) {
   )
 }
 
+// Kolase dengan pola tetap: bingkai tiap foto berukuran pasti dan gambar dipotong mengisi bingkai,
+// jadi foto potret maupun lanskap tidak mengubah tata letak.
+const COLLAGE = {
+  1: ['md:col-span-4 md:row-span-2'],
+  2: ['md:col-span-2 md:row-span-2', 'md:col-span-2 md:row-span-2'],
+  3: ['md:col-span-2 md:row-span-2', 'md:col-span-2', 'md:col-span-2'],
+  4: ['md:col-span-2 md:row-span-2', 'md:col-span-2', 'md:col-span-1', 'md:col-span-1'],
+  5: ['md:col-span-2 md:row-span-2', 'md:col-span-1', 'md:col-span-1', 'md:col-span-1', 'md:col-span-1'],
+}
+function Collage({ photos }) {
+  const n = photos.length
+  const spans = COLLAGE[n] ?? COLLAGE[5]
+  return (
+    <div className={`grid grid-cols-2 gap-3 md:grid-cols-4 md:grid-rows-2 ${n === 1 ? 'md:aspect-[16/7]' : n === 2 ? 'md:aspect-[16/7]' : 'md:aspect-[2/1]'}`}>
+      {photos.map((p, i) => {
+        const first = i === 0 && n >= 3
+        const orphan = i === n - 1 && n >= 3 && (n - 1) % 2 === 1 // di HP, satu foto kecil yang sendirian dibuat selebar baris
+        const mobile = n === 1 ? 'col-span-2 aspect-[16/10]' : first ? 'col-span-2 aspect-[4/3]' : orphan ? 'col-span-2 aspect-[2/1]' : 'aspect-square'
+        return (
+          <Link key={p.id} to="/galeri" className={`group relative overflow-hidden bg-paper-200 ${mobile} md:aspect-auto ${spans[i]}`}>
+            <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="absolute inset-0 h-full w-full object-cover object-[50%_30%] transition-transform duration-500 ease-out group-hover:scale-[1.04]" />
+          </Link>
+        )
+      })}
+    </div>
+  )
+}
+
 function Section({ eyebrow, title, to, children, className = '' }) {
   return (
     <Reveal as="section" className={`mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-24 ${className}`}>
@@ -121,8 +155,11 @@ function Section({ eyebrow, title, to, children, className = '' }) {
 }
 
 export default function Home() {
-  const { data, loading, error } = useAsyncData(fetchHome, INITIAL)
-  const { content, announcements, devotionals, links, photos, committee } = data
+  const { data, loading, error } = useAsyncData(fetchHome, INITIAL, { live: true })
+  const { content, announcements, devotionals, links, photos, gallery, committee } = data
+  // Foto di bagian Galeri beranda diacak dari seluruh galeri; berubah tiap halaman dibuka.
+  const [seed] = useState(() => Math.random())
+  const strip = useMemo(() => shuffled(gallery, seed).slice(0, 5), [gallery, seed])
   const missionItems = (content.mission ?? '').split('\n').map((m) => m.replace(/^[•-]\s*/, '').trim()).filter(Boolean)
   const grouped = groupCommittee(committee)
   const bph = grouped.bph
@@ -136,8 +173,7 @@ export default function Home() {
         <section className="mx-auto max-w-6xl px-5 pt-10 pb-16 sm:px-6 sm:pt-16 sm:pb-24">
           <div className="grid items-center gap-10 md:grid-cols-12 md:gap-12">
             <div className="md:col-span-7">
-              <div className="kicker mb-6 animate-fade-up sm:mb-8">Persekutuan Doa Revive · Universitas Trunodjoyo Madura</div>
-              <h1 style={{ animationDelay: '80ms' }} className="display animate-fade-up text-[3rem] sm:text-6xl lg:text-[5.5rem]">
+              <h1 className="display animate-fade-up text-[3rem] sm:text-6xl lg:text-[5.5rem]">
                 Unit Kegiatan <em className="font-normal text-brand-600">Kerohanian</em> Kristen
               </h1>
               {loading ? (
@@ -160,10 +196,9 @@ export default function Home() {
         {/* DAFTAR ISI */}
         <section aria-label="Daftar isi" className="mx-auto max-w-6xl px-5 sm:px-6">
           <ol className="border-t border-ink-900">
-            {PUBLIC_NAV.map(({ to, label, desc }, i) => (
+            {PUBLIC_NAV.map(({ to, label, desc }) => (
               <li key={to} className="border-b border-paper-300">
-                <Link to={to} className="group grid grid-cols-[2.5rem_1fr_auto] items-baseline gap-x-3 py-4 sm:grid-cols-[4rem_1fr_1.2fr_auto] sm:py-5">
-                  <span className="text-xs font-bold text-ink-400 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
+                <Link to={to} className="group grid grid-cols-[1fr_auto] items-baseline gap-x-3 py-4 sm:grid-cols-[1fr_1.2fr_auto] sm:py-5">
                   <span className="display text-2xl group-hover:text-brand-600 sm:text-4xl">{label}</span>
                   <span className="hidden text-sm text-ink-500 sm:block">{desc}</span>
                   <ArrowRight size={18} className="text-ink-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-brand-600" aria-hidden="true" />
@@ -178,7 +213,7 @@ export default function Home() {
           <Section eyebrow="Terkini" title="Pengumuman" to="/pengumuman">
             <div className="grid gap-8 md:grid-cols-12 md:gap-12">
               <Link to={`/pengumuman/${lead.id}`} className="group md:col-span-7">
-                <FramedImage src={lead.image_url} alt={lead.title} ratio="aspect-[4/3]" placeholder={`Foto kegiatan: ${lead.title}`} />
+                <FramedImage src={lead.image_url} alt={lead.title} ratio="aspect-[4/3]" />
                 <time dateTime={lead.created_at} className="kicker mt-5 block">{formatDate(lead.created_at)}</time>
                 <h3 className="display mt-2 text-3xl group-hover:text-brand-600 sm:text-5xl">{lead.title}</h3>
                 <p className="mt-3 max-w-xl leading-relaxed text-ink-700">{excerpt(lead.content, 200)}</p>
@@ -226,27 +261,7 @@ export default function Home() {
         {/* VISI MISI */}
         {(content.vision || missionItems.length > 0) && (
           <Section eyebrow="Fondasi" title="Visi & Misi">
-            <div className="grid gap-10 md:grid-cols-12 md:gap-12">
-              {content.vision && (
-                <div className="md:col-span-7">
-                  <div className="kicker mb-4">Visi</div>
-                  <p className="display text-3xl font-normal sm:text-5xl">{content.vision}</p>
-                </div>
-              )}
-              {missionItems.length > 0 && (
-                <div className="md:col-span-5">
-                  <div className="kicker mb-4">Misi</div>
-                  <ol className="border-t border-ink-900">
-                    {missionItems.map((m, i) => (
-                      <li key={i} className="grid grid-cols-[2.5rem_1fr] gap-2 border-b border-paper-300 py-4 text-[15px] leading-relaxed">
-                        <span className="display text-xl text-brand-600 tabular-nums">{i + 1}</span>
-                        <span>{m}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              )}
-            </div>
+            <VisionMission vision={content.vision} mission={missionItems} />
           </Section>
         )}
 
@@ -258,15 +273,9 @@ export default function Home() {
         )}
 
         {/* GALERI */}
-        {photos.length > 0 && (
+        {strip.length > 0 && (
           <Section eyebrow="Kebersamaan" title="Galeri" to="/galeri">
-            <div className={`grid grid-cols-2 gap-3 ${photos.length >= 3 ? 'md:grid-cols-4' : ''}`}>
-              {photos.slice(0, 5).map((p, i) => (
-                <Link key={p.id} to="/galeri" className={`group relative aspect-[4/3] overflow-hidden bg-paper-200 ${i === 0 && photos.length >= 3 ? 'col-span-2 md:row-span-2 md:aspect-auto' : ''}`}>
-                  <img src={p.photo_url} alt={p.caption || 'Foto kegiatan'} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]" />
-                </Link>
-              ))}
-            </div>
+            <Collage photos={strip} />
           </Section>
         )}
 

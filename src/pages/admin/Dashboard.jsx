@@ -3,7 +3,7 @@ import { AlertTriangle, ArrowRight, CheckCircle2, Plus } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { todayWib } from '../../lib/sessions'
 import { structureIssues } from '../../lib/committee'
-import { ADMIN_GROUPS, ROLE_LABEL } from '../../lib/adminNav'
+import { ADMIN_GROUPS, FULL_ACCESS, ROLE_LABEL } from '../../lib/adminNav'
 import { useAuth } from '../../hooks/useAuth'
 import { useAsyncData } from '../../hooks/useAsyncData'
 import AdminPage, { Card } from '../../components/admin/AdminPage'
@@ -33,13 +33,13 @@ const STAT_KEYS = {
 }
 
 export default function Dashboard() {
-  const { profile, user } = useAuth()
+  const { profile } = useAuth()
   const role = profile?.role
   const { data, loading, error, retry } = useAsyncData(fetchDashboard, INITIAL)
   const { counts, committee, activeSessions } = data
 
   const todo = []
-  if (['bph', 'infokom'].includes(role)) {
+  if (FULL_ACCESS.includes(role)) {
     if (!loading && !error) {
       for (const i of structureIssues(committee).filter((x) => !x.includes('foto'))) todo.push({ text: i, to: '/admin/kepengurusan', cta: 'Lengkapi' })
     }
@@ -48,10 +48,10 @@ export default function Dashboard() {
     todo.push({ text: `${activeSessions} sesi absensi masih terbuka.`, to: '/admin/sesi', cta: 'Kelola sesi', info: true })
   }
 
-  const name = (user?.email ?? '').split('@')[0]
+  const name = ROLE_LABEL[role] ?? 'Pengurus'
 
   return (
-    <AdminPage title={`Halo, ${name}`} description={`Anda masuk sebagai ${ROLE_LABEL[role] ?? role}. Pilih menu di bawah untuk mulai mengelola.`}>
+    <AdminPage title={`Halo, ${name}`} description="Pilih menu di bawah untuk mulai mengelola.">
       {loading && <Loading />}
       {error && <ErrorState message="Ringkasan gagal dimuat." onRetry={retry} />}
 

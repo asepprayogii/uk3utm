@@ -4,6 +4,37 @@
 
 const MAX_INPUT_BYTES = 15 * 1024 * 1024
 
+// Atribut `accept` untuk semua input gambar: apa saja yang berupa gambar, termasuk HEIC dari iPhone.
+export const IMAGE_ACCEPT = 'image/*,.heic,.heif,.avif,.webp,.bmp,.gif,.jfif'
+
+const EXT_TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', jfif: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif' }
+const extOf = (name = '') => name.split('.').pop().toLowerCase()
+const isHeicFile = (f) => /hei[cf]/i.test(f.type) || ['heic', 'heif'].includes(extOf(f.name))
+
+/**
+ * Mengubah file apa pun menjadi gambar yang bisa dibaca browser.
+ * HEIC/HEIF (foto iPhone) dikonversi ke JPEG di browser; file tanpa jenis (sering di Windows) dikenali dari ekstensinya.
+ */
+export async function toReadableImage(file) {
+  if (!file) throw new Error('Pilih file gambar.')
+  if (file.size > MAX_INPUT_BYTES) throw new Error('Ukuran gambar maksimal 15 MB.')
+  if (isHeicFile(file)) {
+    try {
+      // Dimuat hanya saat ada foto HEIC, dari berkas lokal di /public (tidak perlu paket npm tambahan).
+      const url = new URL('/vendor/heic-to.js', window.location.origin).href // alamat disusun saat dijalankan agar tidak diproses bundler
+      const { heicTo } = await import(/* @vite-ignore */ url)
+      const blob = await heicTo({ blob: file, type: 'image/jpeg', quality: 0.92 })
+      return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' })
+    } catch {
+      throw new Error('Foto HEIC ini tidak bisa dibuka. Coba ekspor ke JPG dulu.')
+    }
+  }
+  if (file.type?.startsWith('image/')) return file
+  const type = EXT_TYPES[extOf(file.name)]
+  if (type) return new File([file], file.name, { type })
+  throw new Error('File harus berupa gambar (JPG, PNG, HEIC, WebP, dan sejenisnya).')
+}
+
 export function loadBitmap(file) {
   if (typeof createImageBitmap === 'function') {
     return createImageBitmap(file, { imageOrientation: 'from-image' }).catch(() => loadViaImage(file))
@@ -40,9 +71,7 @@ export function canvasToBlob(canvas, type, quality) {
  * @returns {Promise<{ blob: Blob, preview: string, ext: string, type: string }>}
  */
 export async function prepareImage(file, { maxSize = 1600, square = false, quality = 0.85, lossless = false } = {}) {
-  if (!file?.type?.startsWith('image/')) throw new Error('File harus berupa gambar (JPG, PNG, atau WebP).')
-  if (file.size > MAX_INPUT_BYTES) throw new Error('Ukuran gambar maksimal 15 MB.')
-
+  file = await toReadableImage(file)
   const bitmap = await loadBitmap(file)
   const srcW = bitmap.width
   const srcH = bitmap.height
@@ -106,6 +135,7 @@ export function clampCrop(crop, srcW, srcH) {
 
 /** Menggambar area potong ke JPEG 4:5 (maks. 800x1000). */
 export async function renderPortrait(file, crop, { outW = 800, quality = 0.85 } = {}) {
+  file = await toReadableImage(file)
   const bitmap = await loadBitmap(file)
   const c = clampCrop(crop ?? autoCrop(bitmap.width, bitmap.height), bitmap.width, bitmap.height)
   const w = Math.min(outW, Math.round(c.w))

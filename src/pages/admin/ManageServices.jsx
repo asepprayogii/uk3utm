@@ -2,13 +2,16 @@ import { useCallback, useState } from 'react'
 import { BookOpen, Dumbbell, EyeOff, HandHeart, Heart, MessageCircle, Megaphone, Music, Package, Palette, Pencil, Plus, Trash2, Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { removeByUrl } from '../../lib/storage'
+import { FULL_ACCESS, ROLE_LABEL, SERVICE_OWNERS } from '../../lib/adminNav'
+import { writeWithFallback } from '../../lib/dbFallback'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
+import { useAuth } from '../../hooks/useAuth'
 import { useImageField } from '../../hooks/useImageField'
 import { useUI } from '../../hooks/useUI'
 import AdminPage, { Card } from '../../components/admin/AdminPage'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
-import { Input, Textarea, Toggle } from '../../components/ui/Field'
+import { Input, Select, Textarea, Toggle } from '../../components/ui/Field'
 import ImageUpload from '../../components/ui/ImageUpload'
 import Modal from '../../components/ui/Modal'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
@@ -28,14 +31,19 @@ const ICONS = [
 const iconOf = (key) => (ICONS.find((i) => i.key === key) ?? ICONS[0]).Icon
 
 const EMPTY = []
-const blank = (n = 0) => ({ title: '', description: '', icon: 'HandHeart', cp_name: '', cp_wa: '', cp_name2: '', cp_wa2: '', form_url: '', order_index: n, is_active: true })
+const blank = (n = 0) => ({ title: '', description: '', icon: 'HandHeart', cp_name: '', cp_wa: '', cp_name2: '', cp_wa2: '', form_url: '', order_index: n, is_active: true, owner_role: '' })
 const fetchAll = () => unwrap(supabase.from('services').select('*').order('order_index')).then((r) => r ?? [])
 
 export default function ManageServices() {
   const { toast, confirm } = useUI()
+  const { profile } = useAuth()
+  const role = profile?.role
+  const full = FULL_ACCESS.includes(role)
   const { data, loading, error, retry } = useAsyncData(fetchAll, EMPTY)
   const [local, setLocal] = useState(null)
-  const list = local ?? data
+  const all = local ?? data
+  // Penatalayanan dan BPH melihat semua layanan; departemen lain hanya layanan miliknya.
+  const list = full ? all : all.filter((s) => s.owner_role === role)
   const [modal, setModal] = useState(null)
   const [form, setForm] = useState(blank())
   const [saving, setSaving] = useState(false)
@@ -49,8 +57,8 @@ export default function ManageServices() {
   function open(item = null) {
     setForm(item ? {
       title: item.title, description: item.description ?? '', icon: item.icon ?? 'HandHeart', cp_name: item.cp_name ?? '', cp_wa: item.cp_wa ?? '',
-      cp_name2: item.cp_name2 ?? '', cp_wa2: item.cp_wa2 ?? '', form_url: item.form_url ?? '', order_index: item.order_index ?? 0, is_active: item.is_active !== false,
-    } : blank(list.length))
+      cp_name2: item.cp_name2 ?? '', cp_wa2: item.cp_wa2 ?? '', form_url: item.form_url ?? '', order_index: item.order_index ?? 0, is_active: item.is_active !== false, owner_role: item.owner_role ?? '',
+    } : { ...blank(all.length), owner_role: full ? '' : role })
     image.reset(item?.image_url ?? null)
     qris.reset(item?.qris_url ?? null)
     setModal({ editing: item })
@@ -62,9 +70,10 @@ export default function ManageServices() {
     try {
       const img = await image.commit('services/images')
       const q = await qris.commit('services/qris')
-      const row = { ...form, title: form.title.trim(), order_index: Number(form.order_index) || 0, image_url: img.url, qris_url: q.url }
-      if (modal.editing) await unwrap(supabase.from('services').update(row).eq('id', modal.editing.id))
-      else await unwrap(supabase.from('services').insert(row))
+      const { owner_role: owner, ...rest } = form
+      const row = { ...rest, title: form.title.trim(), order_index: Number(form.order_index) || 0, image_url: img.url, qris_url: q.url, owner_role: full ? (owner || null) : role }
+      const run = (r) => (modal.editing ? supabase.from('services').update(r).eq('id', modal.editing.id) : supabase.from('services').insert(r))
+      await writeWithFallback(run, row, ['owner_role'])
       if (img.changed && img.oldUrl) removeByUrl(img.oldUrl)
       if (q.changed && q.oldUrl) removeByUrl(q.oldUrl)
       toast.success('Layanan disimpan.')
@@ -85,7 +94,7 @@ export default function ManageServices() {
   }
 
   return (
-    <AdminPage title="Layanan" description="Layanan yang tampil di halaman Layanan: kontak WhatsApp, formulir, dan QRIS donasi." action={<Button icon={Plus} onClick={() => open()}>Tambah Layanan</Button>}>
+    <AdminPage title="Layanan" description={full ? 'Layanan yang tampil di halaman Layanan: kontak WhatsApp, formulir, dan QRIS donasi. Tentukan departemen pengelola tiap layanan.' : 'Layanan milik departemenmu. Ubah kontak, formulir, dan QRIS di sini.'} action={<Button icon={Plus} onClick={() => open()}>Tambah Layanan</Button>}>
       {loading && <Loading />}
       {error && <ErrorState message="Layanan gagal dimuat." onRetry={retry} />}
       {!loading && !error && list.length === 0 && <Card><EmptyState icon={HandHeart} title="Belum ada layanan" action={<Button icon={Plus} onClick={() => open()}>Tambah layanan</Button>}>Contoh: Konseling, Permohonan Doa, Persembahan.</EmptyState></Card>}
@@ -98,7 +107,7 @@ export default function ManageServices() {
               <div className="flex items-start gap-3">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700"><Icon size={20} /></span>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2"><h3 className="font-bold text-ink-900">{s.title}</h3>{s.is_active === false && <Badge tone="gray" icon={EyeOff}>Disembunyikan</Badge>}</div>
+                  <div className="flex flex-wrap items-center gap-2"><h3 className="font-bold text-ink-900">{s.title}</h3>{s.is_active === false && <Badge tone="gray" icon={EyeOff}>Disembunyikan</Badge>}{full && <Badge tone="brand">{s.owner_role ? ROLE_LABEL[s.owner_role] ?? s.owner_role : 'Penatalayanan'}</Badge>}</div>
                   <p className="line-clamp-2 text-sm text-ink-500">{s.description || 'Tanpa deskripsi'}</p>
                 </div>
               </div>
@@ -118,6 +127,12 @@ export default function ManageServices() {
         footer={<><Button variant="secondary" onClick={() => setModal(null)} disabled={saving}>Batal</Button><Button type="submit" form="service-form" loading={saving}>Simpan</Button></>}>
         <form id="service-form" onSubmit={save} className="flex flex-col gap-5">
           <Input label="Nama layanan" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          {full && (
+            <Select label="Dikelola oleh" hint="Departemen ini bisa melihat dan mengubah layanan ini. Penatalayanan dan BPH selalu bisa." value={form.owner_role} onChange={(e) => setForm({ ...form, owner_role: e.target.value })}>
+              <option value="">Penatalayanan saja</option>
+              {SERVICE_OWNERS.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+            </Select>
+          )}
           <Textarea label="Deskripsi" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           <div>
             <div className="mb-1.5 text-xs font-semibold text-ink-700">Ikon</div>
