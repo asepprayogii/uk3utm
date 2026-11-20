@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { setCanonical, setDescription } from '../../lib/seo'
 import { Link } from 'react-router-dom'
 import { ArrowRight, ExternalLink } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
@@ -154,7 +155,16 @@ function Section({ eyebrow, title, to, children, className = '' }) {
   )
 }
 
+const HOME_TITLE = 'UK3 UTM — Unit Kegiatan Kerohanian Kristen Universitas Trunodjoyo Madura'
+const HOME_DESC = 'Situs resmi UK3 UTM (Persekutuan Doa Revive): pengumuman, renungan, kepengurusan, album kegiatan, dan layanan Unit Kegiatan Kerohanian Kristen Universitas Trunodjoyo Madura.'
+
 export default function Home() {
+  // Beranda tidak memakai PageLayout, jadi meta dikembalikan di sini saat pengunjung kembali dari halaman lain.
+  useEffect(() => {
+    document.title = HOME_TITLE
+    setDescription(HOME_DESC)
+    setCanonical('/')
+  }, [])
   const { data, loading, error } = useAsyncData(fetchHome, INITIAL, { live: true })
   const { content, announcements, devotionals, links, photos, gallery, committee } = data
   // Foto di bagian Galeri beranda diacak dari seluruh galeri; berubah tiap halaman dibuka.

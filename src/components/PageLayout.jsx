@@ -2,13 +2,22 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from './Navbar'
 import Footer from './Footer'
+import { setCanonical, setDescription, setNoIndex } from '../lib/seo'
 
 // Halaman dalam: kepala majalah, judul sangat besar di grid asimetris, garis tipis, konten, footer.
-export default function PageLayout({ title, eyebrow, description, crumbs = [], crumbLabel, width = 'max-w-5xl', children }) {
+export default function PageLayout({ title, eyebrow, description, crumbs = [], crumbLabel, width = 'max-w-5xl', noindex = false, children }) {
   // Judul tab browser mengikuti halaman, supaya mudah dikenali saat banyak tab terbuka.
   useEffect(() => {
     document.title = `${title} — UK3 UTM`
   }, [title])
+
+  // Meta untuk Google: deskripsi, alamat kanonik, dan penanda tidak diindeks (mis. halaman 404).
+  useEffect(() => {
+    setDescription(description)
+    setCanonical(window.location.pathname)
+    setNoIndex(noindex)
+    return () => setNoIndex(false)
+  }, [description, noindex])
 
   return (
     <div className="flex min-h-screen flex-col bg-paper-50 text-ink-900">
