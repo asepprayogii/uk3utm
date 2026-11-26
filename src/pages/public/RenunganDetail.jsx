@@ -24,7 +24,7 @@ export default function RenunganDetail() {
   const { item, others } = data
 
   return (
-    <PageLayout eyebrow={item ? formatDate(item.created_at) : 'Renungan'} title={item?.title ?? 'Renungan'} crumbLabel="Baca" crumbs={[{ to: '/renungan', label: 'Renungan' }]} width="max-w-3xl">
+    <PageLayout eyebrow={item ? formatDate(item.created_at) : 'Renungan'} title={item?.title ?? 'Renungan'} crumbLabel="Baca" crumbs={[{ to: '/renungan', label: 'Renungan' }]} reading>
       {loading && <Loading />}
       {error && <ErrorState message="Renungan gagal dimuat." onRetry={retry} />}
       {!loading && !error && !item && (

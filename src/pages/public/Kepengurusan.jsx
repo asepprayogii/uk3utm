@@ -57,7 +57,6 @@ export default function Kepengurusan() {
       eyebrow={`Periode ${currentPeriod()}`}
       title="Kepengurusan"
       description="Kenali para pengurus yang melayani mahasiswa Kristen di Universitas Trunodjoyo Madura."
-      width="max-w-6xl"
     >
       {loading && <Loading />}
       {error && <ErrorState message="Data kepengurusan gagal dimuat." onRetry={retry} />}

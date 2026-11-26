@@ -126,12 +126,12 @@ export default function Layanan() {
   const [qris, setQris] = useState(null)
 
   return (
-    <PageLayout eyebrow="Kami Ada Untukmu" title="Layanan UK3" description="Hubungi kami untuk kebutuhan rohani dan organisasi." width="max-w-3xl">
+    <PageLayout eyebrow="Kami Ada Untukmu" title="Layanan UK3" description="Hubungi kami untuk kebutuhan rohani dan organisasi.">
       {qris && <QrisModal data={qris} onClose={() => setQris(null)} />}
       {loading && <Loading />}
       {error && <ErrorState message="Layanan gagal dimuat." onRetry={retry} />}
       {!loading && !error && services.length === 0 && <EmptyState icon={HandHeart} title="Belum ada layanan aktif">Layanan akan tampil di sini.</EmptyState>}
-      <div className="flex flex-col gap-10">
+      <div className="grid items-start gap-x-12 gap-y-10 md:grid-cols-2">
         {services.map((s) => (
           <ServiceCard key={s.id} service={s} onOpenQris={setQris} />
         ))}

@@ -5,7 +5,7 @@ import { excerpt, formatDate } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import Reveal from '../../components/Reveal'
 import PageLayout from '../../components/PageLayout'
-import FramedImage from '../../components/FramedImage'
+import Cover from '../../components/Cover'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
 
 const EMPTY = []
@@ -14,7 +14,7 @@ const fetchDevotionals = () => unwrap(supabase.from('devotionals').select('*').o
 export default function Renungan() {
   const { data, loading, error, retry } = useAsyncData(fetchDevotionals, EMPTY, { live: true })
   return (
-    <PageLayout eyebrow="Firman Tuhan" title="Renungan" description="Bacaan singkat untuk menguatkan iman. Ketuk salah satu untuk membaca selengkapnya." width="max-w-6xl">
+    <PageLayout eyebrow="Firman Tuhan" title="Renungan" description="Bacaan singkat untuk menguatkan iman. Ketuk salah satu untuk membaca selengkapnya.">
       {loading && <Loading />}
       {error && <ErrorState message="Renungan gagal dimuat." onRetry={retry} />}
       {!loading && !error && data.length === 0 && <EmptyState icon={BookOpen} title="Belum ada renungan">Renungan baru akan muncul di sini.</EmptyState>}
@@ -28,7 +28,7 @@ export default function Renungan() {
               <p className="mt-3 line-clamp-3 leading-relaxed text-ink-700">{excerpt(d.content, 180)}</p>
             </div>
             <div className="md:col-span-3">
-              <FramedImage src={d.image_url} alt={d.title} ratio="aspect-[4/3]" />
+              <Cover src={d.image_url} alt={d.title} date={d.created_at} />
             </div>
           </Link></Reveal>
         ))}

@@ -25,7 +25,7 @@ export default function PengumumanDetail() {
   const { item, others } = data
 
   return (
-    <PageLayout eyebrow={item ? formatDate(item.created_at) : 'Pengumuman'} title={item?.title ?? 'Pengumuman'} crumbLabel="Baca" crumbs={[{ to: '/pengumuman', label: 'Pengumuman' }]} width="max-w-3xl">
+    <PageLayout eyebrow={item ? formatDate(item.created_at) : 'Pengumuman'} title={item?.title ?? 'Pengumuman'} crumbLabel="Baca" crumbs={[{ to: '/pengumuman', label: 'Pengumuman' }]} reading>
       {loading && <Loading />}
       {error && <ErrorState message="Pengumuman gagal dimuat." onRetry={retry} />}
       {!loading && !error && !item && (

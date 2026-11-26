@@ -65,7 +65,6 @@ export default function Tentang() {
       eyebrow="Mengenal Kami"
       title="Tentang UK3"
       description="Siapa kami, dari mana kami berasal, dan apa yang kami kerjakan bersama."
-      width="max-w-6xl"
     >
       {loading && <Loading />}
       {error && <ErrorState message="Halaman gagal dimuat." onRetry={retry} />}

@@ -16,6 +16,7 @@ import { useAsyncData } from '../../hooks/useAsyncData'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import FramedImage from '../../components/FramedImage'
+import Cover from '../../components/Cover'
 import SocialIcon from '../../components/SocialIcon'
 import Reveal from '../../components/Reveal'
 import VisionMission from '../../components/VisionMission'
@@ -224,7 +225,7 @@ export default function Home() {
           <Section eyebrow="Terkini" title="Pengumuman" to="/pengumuman">
             <div className="grid gap-8 md:grid-cols-12 md:gap-12">
               <Link to={`/pengumuman/${lead.id}`} className="group md:col-span-7">
-                <FramedImage src={lead.image_url} alt={lead.title} ratio="aspect-[4/3]" />
+                <Cover src={lead.image_url} alt={lead.title} date={lead.created_at} />
                 <time dateTime={lead.created_at} className="kicker mt-5 block">{formatDate(lead.created_at)}</time>
                 <h3 className="display mt-2 text-3xl group-hover:text-brand-600 sm:text-5xl">{lead.title}</h3>
                 <p className="mt-3 max-w-xl leading-relaxed text-ink-700">{excerpt(lead.content, 200)}</p>

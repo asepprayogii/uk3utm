@@ -5,7 +5,7 @@ import Footer from './Footer'
 import { setCanonical, setDescription, setNoIndex } from '../lib/seo'
 
 // Halaman dalam: kepala majalah, judul sangat besar di grid asimetris, garis tipis, konten, footer.
-export default function PageLayout({ title, eyebrow, description, crumbs = [], crumbLabel, width = 'max-w-5xl', noindex = false, children }) {
+export default function PageLayout({ title, eyebrow, description, crumbs = [], crumbLabel, reading = false, noindex = false, children }) {
   // Judul tab browser mengikuti halaman, supaya mudah dikenali saat banyak tab terbuka.
   useEffect(() => {
     document.title = `${title} — UK3 UTM`
@@ -25,7 +25,7 @@ export default function PageLayout({ title, eyebrow, description, crumbs = [], c
       <Navbar />
 
       <header className="border-b border-ink-900">
-        <div className={`animate-page-in mx-auto px-5 pt-8 pb-10 sm:px-6 sm:pt-12 sm:pb-14 ${width}`}>
+        <div className="animate-page-in mx-auto max-w-6xl px-5 pt-8 pb-10 sm:px-6 sm:pt-12 sm:pb-14">
           <nav aria-label="Lokasi halaman" className="mb-8 flex flex-wrap items-center gap-2 text-xs font-semibold tracking-wider text-ink-500 uppercase sm:mb-12">
             <Link to="/" className="hover:text-brand-600">Beranda</Link>
             {crumbs.map((c) => (
@@ -47,7 +47,7 @@ export default function PageLayout({ title, eyebrow, description, crumbs = [], c
         </div>
       </header>
 
-      <main id="konten" style={{ animationDelay: '80ms' }} className={`animate-page-in mx-auto w-full flex-1 px-5 py-10 sm:px-6 sm:py-14 ${width}`}>{children}</main>
+      <main id="konten" style={{ animationDelay: '80ms' }} className="animate-page-in mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:px-6 sm:py-14"><div className={reading ? 'max-w-3xl' : ''}>{children}</div></main>
       <Footer />
     </div>
   )

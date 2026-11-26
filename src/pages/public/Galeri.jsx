@@ -17,7 +17,7 @@ export default function Galeri() {
   const close = useCallback(() => setIndex(null), [])
 
   return (
-    <PageLayout eyebrow="Momen Bersama" title="Galeri" description="Dokumentasi kebersamaan kami dalam ibadah, pelayanan, dan kegiatan." width="max-w-6xl">
+    <PageLayout eyebrow="Momen Bersama" title="Galeri" description="Dokumentasi kebersamaan kami dalam ibadah, pelayanan, dan kegiatan.">
       {index !== null && <Lightbox photos={photos} index={index} onClose={close} onIndex={setIndex} />}
       {loading && <Loading />}
       {error && <ErrorState message="Foto gagal dimuat." onRetry={retry} />}
