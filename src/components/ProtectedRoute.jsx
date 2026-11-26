@@ -8,7 +8,8 @@ import Button from './ui/Button'
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { user, profile, loading } = useAuth()
 
-  if (loading) return <Loading fullScreen />
+  // Selama peran belum tahu (baru masuk / sedang dimuat), jangan pernah menampilkan "Akses ditolak".
+  if (loading || (user && !profile)) return <Loading fullScreen />
   if (!user) return <Navigate to="/admin/login" replace />
 
   if (allowedRoles && !allowedRoles.includes(profile?.role)) {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { ArrowLeft, Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
@@ -10,7 +10,6 @@ import { Input } from '../../components/ui/Field'
 
 export default function Login() {
   const { user, loading: authLoading } = useAuth()
-  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [show, setShow] = useState(false)
@@ -30,8 +29,9 @@ export default function Login() {
       setError('Email atau kata sandi salah. Periksa lagi, lalu coba kembali.')
       setLoading(false)
     } else {
+      // Tidak berpindah halaman di sini: AuthProvider memuat peran dulu, lalu Navigate di atas
+      // membawa pengurus ke dashboard. Dengan begitu tidak ada loncatan halaman atau "Akses ditolak".
       markLogin()
-      navigate('/admin')
     }
   }
 

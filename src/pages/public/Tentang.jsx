@@ -5,6 +5,7 @@ import { DEFAULT_ABOUT, fetchContent, parseActivities } from '../../lib/siteCont
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
 import LogoMeaning from '../../components/LogoMeaning'
+import Linkified from '../../components/Linkified'
 import Reveal from '../../components/Reveal'
 import VisionMission from '../../components/VisionMission'
 import SocialIcon from '../../components/SocialIcon'
@@ -82,7 +83,7 @@ export default function Tentang() {
           {/* Pengantar */}
           <Reveal as="section" id="pengantar" className="scroll-mt-24 grid gap-10 md:grid-cols-12 md:gap-14">
             <div className="md:col-span-7">
-              <p className="display text-[1.75rem] leading-snug font-normal sm:text-4xl sm:leading-tight">{content.about ?? DEFAULT_ABOUT}</p>
+              <p className="display text-[1.75rem] leading-snug font-normal sm:text-4xl sm:leading-tight"><Linkified text={content.about ?? DEFAULT_ABOUT} /></p>
             </div>
             <div className="md:col-span-5"><Facts items={facts} /></div>
           </Reveal>
@@ -110,7 +111,7 @@ export default function Tentang() {
                 {paragraphs.length > 0 && (
                   <div className={`${content.founded ? 'md:col-span-8' : 'md:col-span-12'} max-w-[40rem] text-ink-900`}>
                     {paragraphs.map((t, i) => (
-                      <p key={i} className={i === 0 ? 'display text-2xl leading-snug font-normal text-pretty sm:text-[1.75rem]' : 'mt-6 text-[17px] leading-[1.85] text-pretty text-ink-700'}>{t}</p>
+                      <p key={i} className={i === 0 ? 'display text-2xl leading-snug font-normal text-pretty sm:text-[1.75rem]' : 'mt-6 text-[17px] leading-[1.85] text-pretty text-ink-700'}><Linkified text={t} /></p>
                     ))}
                   </div>
                 )}
@@ -134,7 +135,7 @@ export default function Tentang() {
                 {activities.map((a, i) => (
                   <li key={i} className="grid gap-2 border-b border-paper-300 py-6 first:pt-0 md:grid-cols-12 md:gap-10">
                     <h3 className="display text-2xl sm:text-3xl md:col-span-5">{a.title}</h3>
-                    <p className="leading-relaxed text-ink-700 md:col-span-7">{a.description}</p>
+                    <p className="leading-relaxed text-ink-700 md:col-span-7"><Linkified text={a.description} /></p>
                   </li>
                 ))}
               </ul>

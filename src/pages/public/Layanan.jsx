@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Linkified from '../../components/Linkified'
 import {
   Heart,
   HandHeart,
@@ -79,7 +80,7 @@ function ServiceCard({ service: s, onOpenQris }) {
           <h2 className="display text-3xl">{s.title}</h2>
         </div>
 
-        {s.description && <p className="mb-5 max-w-xl leading-relaxed text-ink-700">{s.description}</p>}
+        {s.description && <p className="mb-5 max-w-xl leading-relaxed text-ink-700"><Linkified text={s.description} /></p>}
 
         <div className="flex flex-col gap-3">
           {s.qris_url && (

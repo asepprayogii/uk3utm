@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import Linkified from '../../components/Linkified'
 import { setCanonical, setDescription } from '../../lib/seo'
 import { Link } from 'react-router-dom'
 import { ArrowRight, ExternalLink } from 'lucide-react'
@@ -189,7 +190,7 @@ export default function Home() {
               {loading ? (
                 <div className="mt-8 h-16 max-w-lg animate-pulse bg-paper-200" aria-hidden="true" />
               ) : (
-                <p style={{ animationDelay: '180ms' }} className="mt-8 max-w-md animate-fade-up text-lg leading-relaxed text-ink-700">{content.about ?? DEFAULT_ABOUT}</p>
+                <p style={{ animationDelay: '180ms' }} className="mt-8 max-w-md animate-fade-up text-lg leading-relaxed text-ink-700"><Linkified text={content.about ?? DEFAULT_ABOUT} /></p>
               )}
               <div style={{ animationDelay: '260ms' }} className="mt-8 flex animate-fade-up flex-wrap items-center gap-x-8 gap-y-3 text-sm font-semibold">
                 <Link to="/pengumuman" className="inline-flex items-center gap-2 border-b-2 border-brand-600 pb-1 text-brand-600 hover:text-brand-700">

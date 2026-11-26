@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { clearStamps, isExpired, setNotice, touch } from '../lib/sessionGuard'
 import { normalizeRole } from '../lib/adminNav'
@@ -10,19 +10,26 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const loadedFor = useRef(null) // id pengguna yang perannya sudah dimuat
 
   useEffect(() => {
     let active = true
 
     async function load(sessionUser) {
       if (!active) return
-      setUser(sessionUser ?? null)
 
       if (!sessionUser) {
+        loadedFor.current = null
+        setUser(null)
         setProfile(null)
         setLoading(false)
         return
       }
+
+      // Pengguna baru masuk: tahan tampilan (loading) sampai peran selesai dimuat, supaya
+      // halaman tidak sempat menampilkan "Akses ditolak" karena peran masih kosong.
+      // Pengguna yang sama (mis. token diperbarui) cukup disegarkan diam-diam.
+      if (loadedFor.current !== sessionUser.id) setLoading(true)
 
       const { data } = await supabase
         .from('profiles')
@@ -31,6 +38,9 @@ export default function AuthProvider({ children }) {
         .maybeSingle()
 
       if (!active) return
+      loadedFor.current = sessionUser.id
+      // user dan profil diperbarui bersamaan, tidak pernah ada keadaan "sudah login tapi tanpa peran".
+      setUser(sessionUser)
       setProfile(data ? { ...data, role: normalizeRole(data.role) } : { role: 'viewer' })
       setLoading(false)
     }
