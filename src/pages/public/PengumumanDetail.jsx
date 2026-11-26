@@ -6,6 +6,7 @@ import { excerpt, formatDate } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
 import Linkified from '../../components/Linkified'
+import ArticleBody from '../../components/ArticleBody'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
@@ -25,23 +26,20 @@ export default function PengumumanDetail() {
   const { item, others } = data
 
   return (
-    <PageLayout eyebrow={item ? formatDate(item.created_at) : 'Pengumuman'} title={item?.title ?? 'Pengumuman'} crumbLabel="Baca" crumbs={[{ to: '/pengumuman', label: 'Pengumuman' }]} reading>
+    <PageLayout eyebrow={item ? formatDate(item.created_at) : 'Pengumuman'} title={item?.title ?? 'Pengumuman'} crumbLabel="Baca" crumbs={[{ to: '/pengumuman', label: 'Pengumuman' }]} reading={!item?.image_url}>
       {loading && <Loading />}
       {error && <ErrorState message="Pengumuman gagal dimuat." onRetry={retry} />}
       {!loading && !error && !item && (
         <EmptyState icon={Megaphone} title="Pengumuman tidak ditemukan" action={<Button to="/pengumuman" variant="secondary">Lihat semua pengumuman</Button>}>Mungkin sudah dihapus atau linknya keliru.</EmptyState>
       )}
       {item && (
-        <article>
+        <ArticleBody image={item.image_url} alt={item.title}>
           {item.pinned && <div className="mb-4"><Badge tone="gold" icon={Pin}>Disematkan</Badge></div>}
-          {item.image_url && (
-            <img src={item.image_url} alt={item.title} className="mb-8 w-full border border-paper-300 bg-paper-200" />
-          )}
           <div className="text-[17px] leading-[1.85] whitespace-pre-line text-ink-900"><Linkified text={item.content} /></div>
           <div className="mt-10 border-t border-ink-900 pt-6">
             <Button to="/pengumuman" variant="secondary" icon={ArrowLeft}>Semua pengumuman</Button>
           </div>
-        </article>
+        </ArticleBody>
       )}
       {others.length > 0 && item && (
         <section className="mt-16">

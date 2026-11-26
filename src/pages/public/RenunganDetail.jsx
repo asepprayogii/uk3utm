@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpen } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { excerpt, formatDate } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
+import ArticleBody from '../../components/ArticleBody'
 import PageLayout from '../../components/PageLayout'
 import Linkified from '../../components/Linkified'
 import Button from '../../components/ui/Button'
@@ -24,21 +25,20 @@ export default function RenunganDetail() {
   const { item, others } = data
 
   return (
-    <PageLayout eyebrow={item ? formatDate(item.created_at) : 'Renungan'} title={item?.title ?? 'Renungan'} crumbLabel="Baca" crumbs={[{ to: '/renungan', label: 'Renungan' }]} reading>
+    <PageLayout eyebrow={item ? formatDate(item.created_at) : 'Renungan'} title={item?.title ?? 'Renungan'} crumbLabel="Baca" crumbs={[{ to: '/renungan', label: 'Renungan' }]} reading={!item?.image_url}>
       {loading && <Loading />}
       {error && <ErrorState message="Renungan gagal dimuat." onRetry={retry} />}
       {!loading && !error && !item && (
         <EmptyState icon={BookOpen} title="Renungan tidak ditemukan" action={<Button to="/renungan" variant="secondary">Lihat semua renungan</Button>}>Mungkin sudah dihapus atau linknya keliru.</EmptyState>
       )}
       {item && (
-        <article>
-          {item.image_url && <img src={item.image_url} alt={item.title} className="mb-8 w-full border border-paper-300 bg-paper-200" />}
+        <ArticleBody image={item.image_url} alt={item.title}>
           {item.verse && (
             <blockquote className="mb-8 border-l-2 border-brand-600 pl-5 text-lg leading-relaxed text-ink-700 italic sm:text-xl">“<Linkified text={item.verse} />”</blockquote>
           )}
           <div className="text-[17px] leading-[1.85] whitespace-pre-line text-ink-900"><Linkified text={item.content} /></div>
           <div className="mt-10 border-t border-ink-900 pt-6"><Button to="/renungan" variant="secondary" icon={ArrowLeft}>Semua renungan</Button></div>
-        </article>
+        </ArticleBody>
       )}
       {others.length > 0 && item && (
         <section className="mt-16">
