@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { Megaphone, Pencil, Pin, PinOff, Plus, Trash2 } from 'lucide-react'
+import { Link2, Megaphone, Pencil, Pin, PinOff, Plus, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { removeByUrl } from '../../lib/storage'
 import { formatDate } from '../../lib/format'
@@ -15,6 +15,7 @@ import Button from '../../components/ui/Button'
 import { Input, Textarea, Toggle } from '../../components/ui/Field'
 import ImageUpload from '../../components/ui/ImageUpload'
 import Modal from '../../components/ui/Modal'
+import { copyText, fullUrl } from '../../lib/share'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
 
 const EMPTY = []
@@ -35,6 +36,11 @@ export default function ManageAnnouncements() {
   const [form, setForm] = useState(BLANK)
   const [saving, setSaving] = useState(false)
   const image = useImageField(null)
+
+  async function copyLink(path) {
+    if (await copyText(fullUrl(path))) toast.success('Link disalin. Tempel di WhatsApp untuk melihat pratinjaunya.')
+    else toast.error('Gagal menyalin link.')
+  }
 
   const refresh = useCallback(async () => {
     try { setLocal(await fetchAll()) } catch (e) { toast.error(`Gagal memuat ulang: ${e.message}`) }
@@ -104,6 +110,7 @@ export default function ManageAnnouncements() {
                 <span className="mr-2 text-xs text-ink-400">{formatDate(a.created_at)}</span>
                 {canManage(a) ? (
                   <>
+                    <Button size="sm" variant="secondary" icon={Link2} onClick={() => copyLink(`/pengumuman/${a.id}`)}>Salin link</Button>
                     <Button size="sm" variant="secondary" icon={Pencil} onClick={() => open(a)}>Ubah</Button>
                     <Button size="sm" variant="ghost" icon={a.pinned ? PinOff : Pin} onClick={() => togglePin(a)}>{a.pinned ? 'Lepas sematan' : 'Sematkan'}</Button>
                     <Button size="sm" variant="dangerSoft" icon={Trash2} onClick={() => remove(a)}>Hapus</Button>

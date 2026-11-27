@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'public/vendor']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -17,5 +17,10 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+  },
+  {
+    // Fungsi server Vercel (api/) berjalan di Node, bukan di browser.
+    files: ['api/**/*.js'],
+    languageOptions: { globals: { ...globals.node } },
   },
 ])

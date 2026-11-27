@@ -1,3 +1,20 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/pengumuman/:id",
+      "has": [{ "type": "header", "key": "user-agent", "value": ".*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|LinkedInBot|Discordbot|Googlebot|bingbot|Applebot|SkypeUriPreview|Viber|Signal|Instagram).*" }],
+      "destination": "/api/seo?type=pengumuman&id=:id"
+    },
+    {
+      "source": "/renungan/:id",
+      "has": [{ "type": "header", "key": "user-agent", "value": ".*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|LinkedInBot|Discordbot|Googlebot|bingbot|Applebot|SkypeUriPreview|Viber|Signal|Instagram).*" }],
+      "destination": "/api/seo?type=renungan&id=:id"
+    },
+    {
+      "source": "/(tentang|pengumuman|renungan|kepengurusan|galeri|layanan)",
+      "has": [{ "type": "header", "key": "user-agent", "value": ".*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|LinkedInBot|Discordbot|Googlebot|bingbot|Applebot|SkypeUriPreview|Viber|Signal|Instagram).*" }],
+      "destination": "/api/seo?type=page&page=$1"
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

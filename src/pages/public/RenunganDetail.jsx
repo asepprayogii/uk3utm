@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpen } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { excerpt, formatDate } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
+import ShareBar from '../../components/ShareBar'
 import ArticleBody from '../../components/ArticleBody'
 import PageLayout from '../../components/PageLayout'
 import Linkified from '../../components/Linkified'
@@ -37,7 +38,8 @@ export default function RenunganDetail() {
             <blockquote className="mb-8 border-l-2 border-brand-600 pl-5 text-lg leading-relaxed text-ink-700 italic sm:text-xl">“<Linkified text={item.verse} />”</blockquote>
           )}
           <div className="text-[17px] leading-[1.85] whitespace-pre-line text-ink-900"><Linkified text={item.content} /></div>
-          <div className="mt-10 border-t border-ink-900 pt-6"><Button to="/renungan" variant="secondary" icon={ArrowLeft}>Semua renungan</Button></div>
+          <ShareBar path={`/renungan/${item.id}`} title={item.title} />
+          <div className="mt-8 border-t border-ink-900 pt-6"><Button to="/renungan" variant="secondary" icon={ArrowLeft}>Semua renungan</Button></div>
         </ArticleBody>
       )}
       {others.length > 0 && item && (

@@ -6,6 +6,7 @@ import { excerpt, formatDate } from '../../lib/format'
 import { unwrap, useAsyncData } from '../../hooks/useAsyncData'
 import PageLayout from '../../components/PageLayout'
 import Linkified from '../../components/Linkified'
+import ShareBar from '../../components/ShareBar'
 import ArticleBody from '../../components/ArticleBody'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -36,7 +37,8 @@ export default function PengumumanDetail() {
         <ArticleBody image={item.image_url} alt={item.title}>
           {item.pinned && <div className="mb-4"><Badge tone="gold" icon={Pin}>Disematkan</Badge></div>}
           <div className="text-[17px] leading-[1.85] whitespace-pre-line text-ink-900"><Linkified text={item.content} /></div>
-          <div className="mt-10 border-t border-ink-900 pt-6">
+          <ShareBar path={`/pengumuman/${item.id}`} title={item.title} />
+          <div className="mt-8 border-t border-ink-900 pt-6">
             <Button to="/pengumuman" variant="secondary" icon={ArrowLeft}>Semua pengumuman</Button>
           </div>
         </ArticleBody>

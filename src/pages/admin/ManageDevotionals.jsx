@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { BookOpen, Pencil, Plus, Trash2 } from 'lucide-react'
+import { BookOpen, Link2, Pencil, Plus, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { removeByUrl } from '../../lib/storage'
 import { formatDate } from '../../lib/format'
@@ -12,6 +12,7 @@ import Button from '../../components/ui/Button'
 import { Input, Textarea } from '../../components/ui/Field'
 import ImageUpload from '../../components/ui/ImageUpload'
 import Modal from '../../components/ui/Modal'
+import { copyText, fullUrl } from '../../lib/share'
 import { EmptyState, ErrorState, Loading } from '../../components/States'
 
 const EMPTY = []
@@ -28,6 +29,11 @@ export default function ManageDevotionals() {
   const [form, setForm] = useState(BLANK)
   const [saving, setSaving] = useState(false)
   const image = useImageField(null)
+
+  async function copyLink(path) {
+    if (await copyText(fullUrl(path))) toast.success('Link disalin. Tempel di WhatsApp untuk melihat pratinjaunya.')
+    else toast.error('Gagal menyalin link.')
+  }
 
   const refresh = useCallback(async () => {
     try { setLocal(await fetchAll()) } catch (e) { toast.error(`Gagal memuat ulang: ${e.message}`) }
@@ -87,6 +93,7 @@ export default function ManageDevotionals() {
               <p className="mt-1 line-clamp-2 text-sm text-ink-500">{a.content}</p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <span className="mr-2 text-xs text-ink-400">{formatDate(a.created_at)}</span>
+                <Button size="sm" variant="secondary" icon={Link2} onClick={() => copyLink(`/renungan/${a.id}`)}>Salin link</Button>
                 <Button size="sm" variant="secondary" icon={Pencil} onClick={() => open(a)}>Ubah</Button>
                 <Button size="sm" variant="dangerSoft" icon={Trash2} onClick={() => remove(a)}>Hapus</Button>
               </div>
